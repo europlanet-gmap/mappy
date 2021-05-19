@@ -1,0 +1,392 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>qgismappy package &#8212; Mappy 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Mappy 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">qgismappy package</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="qgismappy-package">
+<h1>qgismappy package<a class="headerlink" href="#qgismappy-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="qgismappy.providers.html">qgismappy.providers package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="qgismappy.providers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qgismappy.providers.html#module-qgismappy.providers.MappyProcessingAlgorithm">qgismappy.providers.MappyProcessingAlgorithm module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qgismappy.providers.html#module-qgismappy.providers.MappyProvider">qgismappy.providers.MappyProvider module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qgismappy.providers.html#module-qgismappy.providers.addselfintersectionpoints">qgismappy.providers.addselfintersectionpoints module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qgismappy.providers.html#module-qgismappy.providers.map_autostyle">qgismappy.providers.map_autostyle module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qgismappy.providers.html#module-qgismappy.providers.map_construction">qgismappy.providers.map_construction module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qgismappy.providers.html#module-qgismappy.providers.remove_duplicate_segments">qgismappy.providers.remove_duplicate_segments module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qgismappy.providers.html#module-qgismappy.providers.remove_scaling_from_crs">qgismappy.providers.remove_scaling_from_crs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qgismappy.providers.html#module-qgismappy.providers.removedangles">qgismappy.providers.removedangles module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qgismappy.providers.html#module-qgismappy.providers">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-qgismappy.dummy_info_widget">
+<span id="qgismappy-dummy-info-widget-module"></span><h2>qgismappy.dummy_info_widget module<a class="headerlink" href="#module-qgismappy.dummy_info_widget" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="qgismappy.dummy_info_widget.DummyInfoWidget">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">qgismappy.dummy_info_widget.</span></code><code class="sig-name descname"><span class="pre">DummyInfoWidget</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qgismappy/dummy_info_widget.html#DummyInfoWidget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qgismappy.dummy_info_widget.DummyInfoWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QDockWidget</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Ui_MappyDockWidgetBase</span></code></p>
+<dl class="py method">
+<dt id="qgismappy.dummy_info_widget.DummyInfoWidget.closeEvent">
+<code class="sig-name descname"><span class="pre">closeEvent</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">QCloseEvent</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qgismappy/dummy_info_widget.html#DummyInfoWidget.closeEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qgismappy.dummy_info_widget.DummyInfoWidget.closeEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qgismappy.dummy_info_widget.DummyInfoWidget.closingPlugin">
+<code class="sig-name descname"><span class="pre">closingPlugin</span></code><a class="headerlink" href="#qgismappy.dummy_info_widget.DummyInfoWidget.closingPlugin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="qgismappy-log-helper-module">
+<h2>qgismappy.log_helper module<a class="headerlink" href="#qgismappy-log-helper-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-qgismappy.plugin_upload">
+<span id="qgismappy-plugin-upload-module"></span><h2>qgismappy.plugin_upload module<a class="headerlink" href="#module-qgismappy.plugin_upload" title="Permalink to this headline">¶</a></h2>
+<p>This script uploads a plugin package to the plugin repository.
+Authors: A. Pasotti, V. Picavet
+git sha              : $TemplateVCSFormat</p>
+<dl class="py function">
+<dt id="qgismappy.plugin_upload.hide_password">
+<code class="sig-prename descclassname"><span class="pre">qgismappy.plugin_upload.</span></code><code class="sig-name descname"><span class="pre">hide_password</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qgismappy/plugin_upload.html#hide_password"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qgismappy.plugin_upload.hide_password" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the http url with password part replaced with ‘*’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> (<em>str</em>) – URL to upload the plugin to.</p></li>
+<li><p><strong>start</strong> (<em>int</em>) – Position of start of password.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="qgismappy.plugin_upload.main">
+<code class="sig-prename descclassname"><span class="pre">qgismappy.plugin_upload.</span></code><code class="sig-name descname"><span class="pre">main</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arguments</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qgismappy/plugin_upload.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qgismappy.plugin_upload.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main entry point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameters</strong> – Command line parameters.</p></li>
+<li><p><strong>arguments</strong> – Command line arguments.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-qgismappy.qgismappy">
+<span id="qgismappy-qgismappy-module"></span><h2>qgismappy.qgismappy module<a class="headerlink" href="#module-qgismappy.qgismappy" title="Permalink to this headline">¶</a></h2>
+<dl>
+<dt>/<strong>***********************************************************************</strong></dt><dd><dl class="simple">
+<dt>Mappy</dt><dd><p>A QGIS plugin</p>
+</dd>
+</dl>
+<p>helper for consistent goelogical map generation
+Generated by Plugin Builder: <a class="reference external" href="http://g-sherman.github.io/Qgis-Plugin-Builder/">http://g-sherman.github.io/Qgis-Plugin-Builder/</a></p>
+<blockquote>
+<div><blockquote>
+<div></div></blockquote>
+<p>begin                : 2020-06-24
+git sha              : $Format:%H$
+copyright            : (C) 2020 by Luca Penasa, PLANMAP and GMAP team
+email                : <a class="reference external" href="mailto:luca&#46;penasa&#37;&#52;&#48;gmail&#46;com">luca<span>&#46;</span>penasa<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
+</div></blockquote>
+<p><strong>***********************************************************************</strong>/</p>
+</dd>
+<dt>/<strong>***********************************************************************</strong></dt><dd><ul class="simple">
+<li><ul>
+<li></li>
+</ul>
+</li>
+<li><p>This program is free software; you can redistribute it and/or modify  *</p></li>
+<li><p>it under the terms of the GNU General Public License as published by  *</p></li>
+<li><p>the Free Software Foundation; either version 2 of the License, or     *</p></li>
+<li><p>(at your option) any later version.                                   *</p></li>
+<li><ul>
+<li></li>
+</ul>
+</li>
+</ul>
+<p><strong>***********************************************************************</strong>/</p>
+</dd>
+</dl>
+<dl class="py class">
+<dt id="qgismappy.qgismappy.Mappy">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">qgismappy.qgismappy.</span></code><code class="sig-name descname"><span class="pre">Mappy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iface</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qgismappy/qgismappy.html#Mappy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qgismappy.qgismappy.Mappy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>QGIS Plugin Implementation.</p>
+<dl class="py method">
+<dt id="qgismappy.qgismappy.Mappy.__init__">
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iface</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qgismappy/qgismappy.html#Mappy.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qgismappy.qgismappy.Mappy.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>iface</strong> (<em>QgsInterface</em>) – An interface instance that will be passed to this class
+which provides the hook by which you can manipulate the QGIS
+application at run time.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qgismappy.qgismappy.Mappy.add_action">
+<code class="sig-name descname"><span class="pre">add_action</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">icon_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enabled_flag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_to_menu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_to_toolbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_tip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">whats_this</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qgismappy/qgismappy.html#Mappy.add_action"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qgismappy.qgismappy.Mappy.add_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a toolbar icon to the toolbar.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>icon_path</strong> (<em>str</em>) – Path to the icon for this action. Can be a resource
+path (e.g. ‘:/plugins/foo/bar.png’) or a normal file system path.</p></li>
+<li><p><strong>text</strong> (<em>str</em>) – Text that should be shown in menu items for this action.</p></li>
+<li><p><strong>callback</strong> (<em>function</em>) – Function to be called when the action is triggered.</p></li>
+<li><p><strong>enabled_flag</strong> (<em>bool</em>) – A flag indicating if the action should be enabled
+by default. Defaults to True.</p></li>
+<li><p><strong>add_to_menu</strong> (<em>bool</em>) – Flag indicating whether the action should also
+be added to the menu. Defaults to True.</p></li>
+<li><p><strong>add_to_toolbar</strong> (<em>bool</em>) – Flag indicating whether the action should also
+be added to the toolbar. Defaults to True.</p></li>
+<li><p><strong>status_tip</strong> (<em>str</em>) – Optional text to show in a popup when mouse pointer
+hovers over the action.</p></li>
+<li><p><strong>parent</strong> (<em>QWidget</em>) – Parent widget for the new action. Defaults None.</p></li>
+<li><p><strong>whats_this</strong> – Optional text to show in the status bar when the
+mouse pointer hovers over the action.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The action that was created. Note that the action is also
+added to self.actions list.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>QAction</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qgismappy.qgismappy.Mappy.initGui">
+<code class="sig-name descname"><span class="pre">initGui</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qgismappy/qgismappy.html#Mappy.initGui"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qgismappy.qgismappy.Mappy.initGui" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the menu entries and toolbar icons inside the QGIS GUI.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qgismappy.qgismappy.Mappy.initProcessing">
+<code class="sig-name descname"><span class="pre">initProcessing</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qgismappy/qgismappy.html#Mappy.initProcessing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qgismappy.qgismappy.Mappy.initProcessing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qgismappy.qgismappy.Mappy.onClosePlugin">
+<code class="sig-name descname"><span class="pre">onClosePlugin</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qgismappy/qgismappy.html#Mappy.onClosePlugin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qgismappy.qgismappy.Mappy.onClosePlugin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cleanup necessary items here when plugin dockwidget is closed</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qgismappy.qgismappy.Mappy.run">
+<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qgismappy/qgismappy.html#Mappy.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qgismappy.qgismappy.Mappy.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run method that loads and starts the plugin</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qgismappy.qgismappy.Mappy.tr">
+<code class="sig-name descname"><span class="pre">tr</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qgismappy/qgismappy.html#Mappy.tr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qgismappy.qgismappy.Mappy.tr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the translation for a string using Qt translation API.</p>
+<p>We implement this ourselves since we do not inherit QObject.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> (<em>str</em><em>, </em><em>QString</em>) – String for translation.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Translated version of message.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>QString</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qgismappy.qgismappy.Mappy.unload">
+<code class="sig-name descname"><span class="pre">unload</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qgismappy/qgismappy.html#Mappy.unload"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qgismappy.qgismappy.Mappy.unload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the plugin menu item and icon from QGIS GUI.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-qgismappy.resources">
+<span id="qgismappy-resources-module"></span><h2>qgismappy.resources module<a class="headerlink" href="#module-qgismappy.resources" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="qgismappy.resources.qCleanupResources">
+<code class="sig-prename descclassname"><span class="pre">qgismappy.resources.</span></code><code class="sig-name descname"><span class="pre">qCleanupResources</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qgismappy/resources.html#qCleanupResources"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qgismappy.resources.qCleanupResources" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="qgismappy.resources.qInitResources">
+<code class="sig-prename descclassname"><span class="pre">qgismappy.resources.</span></code><code class="sig-name descname"><span class="pre">qInitResources</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qgismappy/resources.html#qInitResources"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qgismappy.resources.qInitResources" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-qgismappy.utils">
+<span id="qgismappy-utils-module"></span><h2>qgismappy.utils module<a class="headerlink" href="#module-qgismappy.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="qgismappy.utils.resetCategoriesIfNeeded">
+<code class="sig-prename descclassname"><span class="pre">qgismappy.utils.</span></code><code class="sig-name descname"><span class="pre">resetCategoriesIfNeeded</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units_field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unassigned</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qgismappy/utils.html#resetCategoriesIfNeeded"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qgismappy.utils.resetCategoriesIfNeeded" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-qgismappy">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qgismappy" title="Permalink to this headline">¶</a></h2>
+<dl>
+<dt>/<strong>***********************************************************************</strong></dt><dd><dl class="simple">
+<dt>Mappy</dt><dd><p>A QGIS plugin</p>
+</dd>
+</dl>
+<p>helper for consistent goelogical map generation
+Generated by Plugin Builder: <a class="reference external" href="http://g-sherman.github.io/Qgis-Plugin-Builder/">http://g-sherman.github.io/Qgis-Plugin-Builder/</a></p>
+<blockquote>
+<div><blockquote>
+<div></div></blockquote>
+<p>begin                : 2020-06-24
+copyright            : (C) 2020 by Luca Penasa, PLANMAP and GMAP team
+email                : <a class="reference external" href="mailto:luca&#46;penasa&#37;&#52;&#48;gmail&#46;com">luca<span>&#46;</span>penasa<span>&#64;</span>gmail<span>&#46;</span>com</a>
+git sha              : $Format:%H$</p>
+</div></blockquote>
+<p><strong>***********************************************************************</strong>/</p>
+</dd>
+<dt>/<strong>***********************************************************************</strong></dt><dd><ul class="simple">
+<li><ul>
+<li></li>
+</ul>
+</li>
+<li><p>This program is free software; you can redistribute it and/or modify  *</p></li>
+<li><p>it under the terms of the GNU General Public License as published by  *</p></li>
+<li><p>the Free Software Foundation; either version 2 of the License, or     *</p></li>
+<li><p>(at your option) any later version.                                   *</p></li>
+<li><ul>
+<li></li>
+</ul>
+</li>
+</ul>
+<p><strong>***********************************************************************</strong>/
+This script initializes the plugin, making it known to QGIS.</p>
+</dd>
+</dl>
+<dl class="py function">
+<dt id="qgismappy.classFactory">
+<code class="sig-prename descclassname"><span class="pre">qgismappy.</span></code><code class="sig-name descname"><span class="pre">classFactory</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iface</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qgismappy.html#classFactory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qgismappy.classFactory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load Mappy class from file Mappy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>iface</strong> (<em>QgsInterface</em>) – A QGIS interface instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">qgismappy package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-qgismappy.dummy_info_widget">qgismappy.dummy_info_widget module</a></li>
+<li><a class="reference internal" href="#qgismappy-log-helper-module">qgismappy.log_helper module</a></li>
+<li><a class="reference internal" href="#module-qgismappy.plugin_upload">qgismappy.plugin_upload module</a></li>
+<li><a class="reference internal" href="#module-qgismappy.qgismappy">qgismappy.qgismappy module</a></li>
+<li><a class="reference internal" href="#module-qgismappy.resources">qgismappy.resources module</a></li>
+<li><a class="reference internal" href="#module-qgismappy.utils">qgismappy.utils module</a></li>
+<li><a class="reference internal" href="#module-qgismappy">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/qgismappy.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Mappy 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">qgismappy package</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2013, Luca Penasa, PLANMAP and GMAP team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

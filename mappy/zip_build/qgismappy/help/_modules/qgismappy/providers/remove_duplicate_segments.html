@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>qgismappy.providers.remove_duplicate_segments &#8212; Mappy 0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Mappy 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../qgismappy.html" accesskey="U">qgismappy</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">qgismappy.providers.remove_duplicate_segments</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for qgismappy.providers.remove_duplicate_segments</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">***************************************************************************</span>
+<span class="sd">*                                                                         *</span>
+<span class="sd">*   This program is free software; you can redistribute it and/or modify  *</span>
+<span class="sd">*   it under the terms of the GNU General Public License as published by  *</span>
+<span class="sd">*   the Free Software Foundation; either version 2 of the License, or     *</span>
+<span class="sd">*   (at your option) any later version.                                   *</span>
+<span class="sd">*                                                                         *</span>
+<span class="sd">***************************************************************************</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">qgis.PyQt.QtCore</span> <span class="kn">import</span> <span class="n">QCoreApplication</span>
+<span class="kn">from</span> <span class="nn">qgis.PyQt.QtGui</span> <span class="kn">import</span> <span class="n">QIcon</span>
+<span class="kn">from</span> <span class="nn">qgis.core</span> <span class="kn">import</span> <span class="p">(</span><span class="n">QgsProcessing</span><span class="p">,</span>
+                       <span class="n">QgsProcessingException</span><span class="p">,</span>
+                       <span class="n">QgsProcessingParameterFeatureSource</span><span class="p">,</span>
+                       <span class="n">QgsProcessingParameterFeatureSink</span><span class="p">,</span> <span class="n">QgsProcessingParameterDistance</span><span class="p">,</span> <span class="n">QgsWkbTypes</span><span class="p">,</span> <span class="n">QgsFeatureSink</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">qgis.core</span> <span class="kn">import</span> <span class="n">QgsSpatialIndex</span>
+
+<span class="kn">from</span> <span class="nn">.MappyProcessingAlgorithm</span> <span class="kn">import</span> <span class="n">MappyProcessingAlgorithm</span>
+
+
+<div class="viewcode-block" id="RemoveDuplicateSegmentsProcessingAlgorithm"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.remove_duplicate_segments.RemoveDuplicateSegmentsProcessingAlgorithm">[docs]</a><span class="k">class</span> <span class="nc">RemoveDuplicateSegmentsProcessingAlgorithm</span><span class="p">(</span><span class="n">MappyProcessingAlgorithm</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper to remove duplicated segments from a line layer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">IN_SEGMENTS</span> <span class="o">=</span> <span class="s2">&quot;IN_SEGMENTS&quot;</span>
+    <span class="n">THRESHOLD</span> <span class="o">=</span> <span class="s2">&quot;THRESHOLD&quot;</span>
+    <span class="n">OUTPUT</span> <span class="o">=</span> <span class="s2">&quot;OUTPUT&quot;</span>
+
+
+<div class="viewcode-block" id="RemoveDuplicateSegmentsProcessingAlgorithm.tr"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.remove_duplicate_segments.RemoveDuplicateSegmentsProcessingAlgorithm.tr">[docs]</a>    <span class="k">def</span> <span class="nf">tr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="s1">&#39;Processing&#39;</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RemoveDuplicateSegmentsProcessingAlgorithm.createInstance"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.remove_duplicate_segments.RemoveDuplicateSegmentsProcessingAlgorithm.createInstance">[docs]</a>    <span class="k">def</span> <span class="nf">createInstance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">RemoveDuplicateSegmentsProcessingAlgorithm</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="RemoveDuplicateSegmentsProcessingAlgorithm.name"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.remove_duplicate_segments.RemoveDuplicateSegmentsProcessingAlgorithm.name">[docs]</a>    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;removeduplicatedsegments&#39;</span></div>
+
+<div class="viewcode-block" id="RemoveDuplicateSegmentsProcessingAlgorithm.displayName"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.remove_duplicate_segments.RemoveDuplicateSegmentsProcessingAlgorithm.displayName">[docs]</a>    <span class="k">def</span> <span class="nf">displayName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s1">&#39;Remove Duplicated Segments&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RemoveDuplicateSegmentsProcessingAlgorithm.group"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.remove_duplicate_segments.RemoveDuplicateSegmentsProcessingAlgorithm.group">[docs]</a>    <span class="k">def</span> <span class="nf">group</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s1">&#39;Utils&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RemoveDuplicateSegmentsProcessingAlgorithm.groupId"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.remove_duplicate_segments.RemoveDuplicateSegmentsProcessingAlgorithm.groupId">[docs]</a>    <span class="k">def</span> <span class="nf">groupId</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;utils&#39;</span></div>
+
+<div class="viewcode-block" id="RemoveDuplicateSegmentsProcessingAlgorithm.shortHelpString"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.remove_duplicate_segments.RemoveDuplicateSegmentsProcessingAlgorithm.shortHelpString">[docs]</a>    <span class="k">def</span> <span class="nf">shortHelpString</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;Remove duplicated segments using a threshold&quot;&quot;&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RemoveDuplicateSegmentsProcessingAlgorithm.initAlgorithm"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.remove_duplicate_segments.RemoveDuplicateSegmentsProcessingAlgorithm.initAlgorithm">[docs]</a>    <span class="k">def</span> <span class="nf">initAlgorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">addParameter</span><span class="p">(</span>
+            <span class="n">QgsProcessingParameterFeatureSource</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">IN_SEGMENTS</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s1">&#39;Input Segments)&#39;</span><span class="p">),</span>
+                <span class="p">[</span><span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TypeVectorLine</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">addParameter</span><span class="p">(</span>
+            <span class="n">QgsProcessingParameterDistance</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">THRESHOLD</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s1">&#39;Precision&#39;</span><span class="p">),</span>
+                <span class="n">parentParameterName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">IN_SEGMENTS</span><span class="p">,</span>
+                <span class="n">defaultValue</span><span class="o">=</span><span class="mf">1e-6</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">addParameter</span><span class="p">(</span>
+            <span class="n">QgsProcessingParameterFeatureSink</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s1">&#39;Cleaned segments&#39;</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="RemoveDuplicateSegmentsProcessingAlgorithm.equal_segments"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.remove_duplicate_segments.RemoveDuplicateSegmentsProcessingAlgorithm.equal_segments">[docs]</a>    <span class="k">def</span> <span class="nf">equal_segments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seg1</span><span class="p">,</span> <span class="n">seg2</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+        <span class="n">s1_s</span><span class="p">,</span> <span class="n">s1_e</span> <span class="o">=</span> <span class="n">seg1</span><span class="o">.</span><span class="n">vertices</span><span class="p">()</span>
+        <span class="n">s2_s</span><span class="p">,</span> <span class="n">s2_e</span> <span class="o">=</span> <span class="n">seg2</span><span class="o">.</span><span class="n">vertices</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">s1_s</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">s2_s</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">threshold</span> <span class="ow">and</span> <span class="n">s1_e</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">s2_e</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="n">s1_s</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">s2_e</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">threshold</span> <span class="ow">and</span> <span class="n">s1_e</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">s2_s</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="RemoveDuplicateSegmentsProcessingAlgorithm.processAlgorithm"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.remove_duplicate_segments.RemoveDuplicateSegmentsProcessingAlgorithm.processAlgorithm">[docs]</a>    <span class="k">def</span> <span class="nf">processAlgorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">feedback</span><span class="p">):</span>
+        <span class="n">segments_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameterAsLayer</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">IN_SEGMENTS</span><span class="p">,</span>
+            <span class="n">context</span>
+        <span class="p">)</span>
+
+        <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameterAsDouble</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">THRESHOLD</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+
+        <span class="n">index</span> <span class="o">=</span> <span class="n">QgsSpatialIndex</span><span class="p">()</span>  <span class="c1"># Spatial index</span>
+
+        <span class="n">index</span><span class="o">.</span><span class="n">addFeatures</span><span class="p">(</span><span class="n">segments_layer</span><span class="o">.</span><span class="n">getFeatures</span><span class="p">())</span>
+
+        <span class="n">todel</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ln</span> <span class="ow">in</span> <span class="n">segments_layer</span><span class="o">.</span><span class="n">getFeatures</span><span class="p">():</span>
+            <span class="n">index</span><span class="o">.</span><span class="n">deleteFeature</span><span class="p">(</span><span class="n">ln</span><span class="p">)</span>
+
+            <span class="n">cands</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">intersects</span><span class="p">(</span><span class="n">ln</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span><span class="o">.</span><span class="n">boundingBox</span><span class="p">())</span>
+
+            <span class="n">ln1</span> <span class="o">=</span> <span class="n">ln</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">ca</span> <span class="ow">in</span> <span class="n">cands</span><span class="p">:</span>
+                <span class="n">totest</span> <span class="o">=</span> <span class="n">segments_layer</span><span class="o">.</span><span class="n">getFeature</span><span class="p">(</span><span class="n">ca</span><span class="p">)</span>
+                <span class="n">ln2</span> <span class="o">=</span> <span class="n">totest</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span>
+
+                <span class="n">are_equal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">equal_segments</span><span class="p">(</span><span class="n">ln1</span><span class="p">,</span> <span class="n">ln2</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">are_equal</span><span class="p">:</span>
+                    <span class="n">index</span><span class="o">.</span><span class="n">deleteFeature</span><span class="p">(</span><span class="n">totest</span><span class="p">)</span>
+                    <span class="n">todel</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ca</span><span class="p">)</span>
+
+        <span class="p">(</span><span class="n">sink</span><span class="p">,</span> <span class="n">dest_id</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameterAsSink</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">,</span>
+            <span class="n">context</span><span class="p">,</span>
+            <span class="n">segments_layer</span><span class="o">.</span><span class="n">fields</span><span class="p">(),</span>  <span class="c1"># QgsFields() for an empty fields list or source_lines.fields()</span>
+            <span class="n">QgsWkbTypes</span><span class="o">.</span><span class="n">MultiLineString</span><span class="p">,</span>
+            <span class="n">segments_layer</span><span class="o">.</span><span class="n">sourceCrs</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sink</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QgsProcessingException</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">invalidSinkError</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">segments_layer</span><span class="o">.</span><span class="n">getFeatures</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">feature</span><span class="o">.</span><span class="n">id</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">todel</span><span class="p">:</span>
+                <span class="n">sink</span><span class="o">.</span><span class="n">addFeature</span><span class="p">(</span><span class="n">feature</span><span class="p">,</span> <span class="n">QgsFeatureSink</span><span class="o">.</span><span class="n">FastInsert</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;OUTPUT&quot;</span><span class="p">:</span> <span class="n">dest_id</span><span class="p">}</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Mappy 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../qgismappy.html" >qgismappy</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">qgismappy.providers.remove_duplicate_segments</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2013, Luca Penasa, PLANMAP and GMAP team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

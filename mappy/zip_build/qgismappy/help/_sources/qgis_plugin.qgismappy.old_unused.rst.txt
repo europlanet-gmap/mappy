@@ -1,0 +1,21 @@
+qgis\_plugin.qgismappy.old\_unused package
+==========================================
+
+Submodules
+----------
+
+qgis\_plugin.qgismappy.old\_unused.qgismappy\_dockwidget module
+---------------------------------------------------------------
+
+.. automodule:: qgis_plugin.qgismappy.old_unused.qgismappy_dockwidget
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: qgis_plugin.qgismappy.old_unused
+   :members:
+   :undoc-members:
+   :show-inheritance:

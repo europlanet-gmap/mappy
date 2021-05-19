@@ -1,0 +1,69 @@
+qgis\_plugin.qgismappy.test package
+===================================
+
+Submodules
+----------
+
+qgis\_plugin.qgismappy.test.qgis\_interface module
+--------------------------------------------------
+
+.. automodule:: qgis_plugin.qgismappy.test.qgis_interface
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qgis\_plugin.qgismappy.test.test\_init module
+---------------------------------------------
+
+.. automodule:: qgis_plugin.qgismappy.test.test_init
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qgis\_plugin.qgismappy.test.test\_qgis\_environment module
+----------------------------------------------------------
+
+.. automodule:: qgis_plugin.qgismappy.test.test_qgis_environment
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qgis\_plugin.qgismappy.test.test\_qgismappy\_dockwidget module
+--------------------------------------------------------------
+
+.. automodule:: qgis_plugin.qgismappy.test.test_qgismappy_dockwidget
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qgis\_plugin.qgismappy.test.test\_resources module
+--------------------------------------------------
+
+.. automodule:: qgis_plugin.qgismappy.test.test_resources
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qgis\_plugin.qgismappy.test.test\_translations module
+-----------------------------------------------------
+
+.. automodule:: qgis_plugin.qgismappy.test.test_translations
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qgis\_plugin.qgismappy.test.utilities module
+--------------------------------------------
+
+.. automodule:: qgis_plugin.qgismappy.test.utilities
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: qgis_plugin.qgismappy.test
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Geological mapping with GIS tools &#8212; Mappy 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Mappy 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Geological mapping with GIS tools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="geological-mapping-with-gis-tools">
+<h1>Geological mapping with GIS tools<a class="headerlink" href="#geological-mapping-with-gis-tools" title="Permalink to this headline">¶</a></h1>
+<p><strong>If your are not interested in the theory behind mappy you can skip to the `mappy &lt;mappy.md&gt;`_ tutorial</strong></p>
+<p>This document delineates some useful guidelines and highligths some common problems encountered by mappers when approaching a mapping project, with a special attention to planetary sciences. Although the disciplice is well established the tools used to generate new maps have been progressivly digitized thanks to Geographic information Systems (GIS) software.</p>
+<p>There are many GIS software available both commercially and open-source. Open source tools are now extremely mature and can compete with commercial products under many point of views. This  guide is based on QGIS but in large part the same concepts can be ported to your preferred GIS environment.</p>
+<hr class="docutils" />
+<p><strong>Note</strong></p>
+<p>Some common open-source GISs are QGIS, GRASS, OpenJump, uDig, SAGA, GVSIG</p>
+<hr class="docutils" />
+<div class="section" id="geological-mapping">
+<h2>Geological mapping<a class="headerlink" href="#geological-mapping" title="Permalink to this headline">¶</a></h2>
+<p>Depending on the scope of the geological survey the cartography can depict different types of content: whether lithostratigrapy, chronostratigrapy, morphology, or other criteria are considered, the building blocks of a geological map is the geological unit, as the base element used to subdivide a region into geologically homogeneous patches of terrain.</p>
+<a class="reference external image-reference" href="imgs/PM-MER-SI-Rembrandt_01.browse.png"><img alt="rembrandt_map" src="_images/PM-MER-SI-Rembrandt_01.browse.png" /></a>
+<figcaption> An example of a geological map realized on Mercury </figcaption><p>The basic building blocks of a map are the <strong>units</strong>, which are represented with different colors on the map. Each unit is separated from the surrounding ones by lines (contacts). Some key points to keep in mind when realizing a geological map are:</p>
+<ul class="simple">
+<li><p><strong>Completeness</strong>: no area within the region subject to the mapping can be left unassigned.</p></li>
+<li><p><strong>Limited</strong>: the map should be limited to a specific region, which is defined by an exterior boundary.</p></li>
+<li><p>Any number of additional properties can be added on top of the geological map, in the form of linear elements or polygonal shapes (which can exploit either transparency or pattern infilling)</p></li>
+</ul>
+<hr class="docutils" />
+<p><strong>Note</strong></p>
+<p>There are quite a number of predefine infilling patterns and symbology available for geological mapping. The main reference is the <a class="reference external" href="https://pubs.usgs.gov/tm/2006/11A02/">SGS FGDC Standard</a>.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="geological-mapping-by-polygons">
+<h2>Geological mapping by polygons<a class="headerlink" href="#geological-mapping-by-polygons" title="Permalink to this headline">¶</a></h2>
+<p>Digitized maps are normally represented within GIS software as polygonal layers. Of course polygonal layers are indeed needed to visualize the mapping, making it possible to assign different colors to different units. For this reason many mappers might start a new map by creating a new polygonal layer that she/he will then populate with the different polygons representing the units.</p>
+<p>Although this approach seems to perfectly make sense (indeed the final product should be a polygonal layer)  it inherently has several drawbacks:</p>
+<ul class="simple">
+<li><p>the mapper ends up tracing each contacts two times (one for each confining polygon)</p></li>
+<li><p>whenever it comes to editing the map the same edits must be exactly replicated two times</p></li>
+<li><p>the boundary of the polygons, which represent the contacts, should be stylable (e.g. to represent how much certain we are about a contact). This is not possible when a polygonal representation. The only solution would be to replicate (again!) the contacts as a new line layer that now must be also edited whenever the map is updated.</p></li>
+<li><p>the mapper moves much of her/his attention in the polygons generation, rather than in the identification of the contacts. Furthermore, the mapper is forced to define the boundary of each polygon at once, which require to define the contacts between that unit and (potentially) many others surrounding units.</p></li>
+<li><p>polygonal layers render impossible the application of any automated algorithm for map simplification (e.g. to smooth the contacts or even the node distances)</p></li>
+</ul>
+<hr class="docutils" />
+<p><strong>Note</strong></p>
+<p>Polygons-based mapping has a long tradition, and many GIS software offer dedicated editing tools that can alleviate many of these problems, but their correct use is demanded to the user, and not enforced by the data types.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="geological-mapping-by-contacts-and-points">
+<h2>Geological mapping by contacts and points<a class="headerlink" href="#geological-mapping-by-contacts-and-points" title="Permalink to this headline">¶</a></h2>
+<p>The solution to these issues might appear rather counterintuitive and require to adopt a different perspective: although the polygonal-layer map is the final product that must be generated it might not be the best format to work on. Indeed, the best solution is to avoid completely the data duplication that is inherent in any polygonal representation.</p>
+<p>To this aim we can treat each geological element for what they really are:</p>
+<ul class="simple">
+<li><p>Contacts are lines and not the (duplicated) boundary between two polygons</p></li>
+<li><p>These lines must intersect each other to define valid regions</p></li>
+<li><p>The polygons are just the infilling in between the contacts</p></li>
+</ul>
+<p>Starting from these observations it is possible to establish a different methodology for creating a consistent map that does not suffer from all the issues detailed above:</p>
+<ol class="arabic simple">
+<li><p>Contacts are traced as lines. This also has the benefit to allowing the user to append additional attributes to the lines themselves (i.e. if a contact is more or less certain). To uniquely define a region in the plane the lines just need to intersect each-other. There is no need for precision snapping of the start and end points of the lines.</p></li>
+<li><p>These contacts can be readily transformed into a polygonal layer by <strong>polygonizing</strong> them. All GISs provide adequate tools for this operation.</p></li>
+<li><p>Attributes for the polygons can then be assigned either manually or using a point layer that labels each defined region. The latter approach allows for a complete and predictable reproducibility of the final product.</p></li>
+<li><p>Any number of different segments can be used to define a single contact (provided they intersect somehow), making it possible to assign different attributes to different portions of the same contact (i.e. if the contact is certain in some parts and uncertain in others). This is especially important for styling the contacts in the final layout.</p></li>
+</ol>
+<a class="reference external image-reference" href="imgs/drawing.svg"><img alt="mapping_polygons" src="_images/drawing.svg" /></a>
+<figcaption>Creating maps by using lines and points rather than polygons</figcaption><p>This approach is also more similar to the geological reasoning that is performed when mapping, especially when remotely sensed imagery is used (as in planetary mapping): the operator tries to identify the boundaries between different terrains rather than directly defining the area covered by the units themselves. This approach has several advantages:</p>
+<ul class="simple">
+<li><p>No need to employ additional tools to grant the geometric consistency, which is automatically enforced by the data types. Indeed, errors (e.g. not intersecting lines) are readily visible because a polygon would be either missing or aggregated.</p></li>
+<li><p>Easy editing. Any time a contact is edited the changes will automatically propagate to all affected polygons.</p></li>
+<li><p>Reusable contacts. Contacts can be reused in map layout and styled to represent different types of contacts.</p></li>
+<li><p>The mapper can solve the contacts working on just two units at a time, rather than having to completely define the boundary of a polygon (which might be in contact with many units).</p></li>
+<li><p>The mapping can be performed at progressively finer level of details with no significant efforts: the mapper identify the most relevant units first and then proceed to refine the interpretation just by adding new intersecting lines.</p></li>
+</ul>
+<hr class="docutils" />
+<p><strong>Note</strong></p>
+<p>This approach leads to defining the contacts and label-points layer as the <strong>sources</strong> of a geological map, which can then be transformed to different types (the polygons) for display purposes. Such transformation is predictable and reproducible. This idea suggests that a good and reusable map should indeed also provide these layers to the public rather than just the polygonal ones. Making the map truly upgradable by third parties.</p>
+<hr class="docutils" />
+<p>These ideas can be easily implemented in any GIS of choice by performing a <code class="docutils literal notranslate"><span class="pre">polygonization</span></code> of the contacts and a <code class="docutils literal notranslate"><span class="pre">spatial</span> <span class="pre">join</span></code> of the points to assign the attributes. If the contacts layer shall be used in the final layout imperfect intersections would leave dangling segments at the end of the lines, which require additional editing.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Geological mapping with GIS tools</a><ul>
+<li><a class="reference internal" href="#geological-mapping">Geological mapping</a></li>
+<li><a class="reference internal" href="#geological-mapping-by-polygons">Geological mapping by polygons</a></li>
+<li><a class="reference internal" href="#geological-mapping-by-contacts-and-points">Geological mapping by contacts and points</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/README.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Mappy 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Geological mapping with GIS tools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2013, Luca Penasa, PLANMAP and GMAP team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

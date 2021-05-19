@@ -1,0 +1,348 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>qgismappy.providers.removedangles &#8212; Mappy 0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Mappy 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../qgismappy.html" accesskey="U">qgismappy</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">qgismappy.providers.removedangles</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for qgismappy.providers.removedangles</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Model exported as python.</span>
+<span class="sd">Name : extract_clean_contacts</span>
+<span class="sd">Group : mappy</span>
+<span class="sd">With QGIS : 31802</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">qgis.PyQt.QtGui</span> <span class="kn">import</span> <span class="n">QIcon</span>
+<span class="kn">from</span> <span class="nn">qgis</span> <span class="kn">import</span> <span class="n">processing</span>
+<span class="kn">from</span> <span class="nn">qgis.core</span> <span class="kn">import</span> <span class="n">QgsProcessing</span>
+<span class="kn">from</span> <span class="nn">qgis.core</span> <span class="kn">import</span> <span class="n">QgsProcessingMultiStepFeedback</span>
+<span class="kn">from</span> <span class="nn">qgis.core</span> <span class="kn">import</span> <span class="n">QgsProcessingParameterBoolean</span>
+<span class="kn">from</span> <span class="nn">qgis.core</span> <span class="kn">import</span> <span class="n">QgsProcessingParameterDefinition</span>
+<span class="kn">from</span> <span class="nn">qgis.core</span> <span class="kn">import</span> <span class="n">QgsProcessingParameterDistance</span>
+<span class="kn">from</span> <span class="nn">qgis.core</span> <span class="kn">import</span> <span class="n">QgsProcessingParameterFeatureSink</span>
+<span class="kn">from</span> <span class="nn">qgis.core</span> <span class="kn">import</span> <span class="n">QgsProcessingParameterVectorLayer</span>
+
+<span class="kn">from</span> <span class="nn">.MappyProcessingAlgorithm</span> <span class="kn">import</span> <span class="n">MappyProcessingAlgorithm</span>
+
+<div class="viewcode-block" id="RemoveDangles"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.removedangles.RemoveDangles">[docs]</a><span class="k">class</span> <span class="nc">RemoveDangles</span><span class="p">(</span><span class="n">MappyProcessingAlgorithm</span><span class="p">):</span>
+
+<div class="viewcode-block" id="RemoveDangles.initAlgorithm"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.removedangles.RemoveDangles.initAlgorithm">[docs]</a>    <span class="k">def</span> <span class="nf">initAlgorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addParameter</span><span class="p">(</span>
+            <span class="n">QgsProcessingParameterDistance</span><span class="p">(</span><span class="s1">&#39;Extenddistance&#39;</span><span class="p">,</span> <span class="s1">&#39;Extend distance&#39;</span><span class="p">,</span> <span class="n">parentParameterName</span><span class="o">=</span><span class="s1">&#39;copntacts&#39;</span><span class="p">,</span>
+                                           <span class="n">minValue</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">defaultValue</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
+        <span class="n">param</span> <span class="o">=</span> <span class="n">QgsProcessingParameterDistance</span><span class="p">(</span><span class="s1">&#39;PrecisionjoinBuffer&#39;</span><span class="p">,</span> <span class="s1">&#39;Precision join Buffer&#39;</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                               <span class="n">parentParameterName</span><span class="o">=</span><span class="s1">&#39;copntacts&#39;</span><span class="p">,</span> <span class="n">minValue</span><span class="o">=</span><span class="mf">1e-16</span><span class="p">,</span> <span class="n">defaultValue</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+        <span class="n">param</span><span class="o">.</span><span class="n">setFlags</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">flags</span><span class="p">()</span> <span class="o">|</span> <span class="n">QgsProcessingParameterDefinition</span><span class="o">.</span><span class="n">FlagAdvanced</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addParameter</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addParameter</span><span class="p">(</span>
+            <span class="n">QgsProcessingParameterVectorLayer</span><span class="p">(</span><span class="s1">&#39;contacts&#39;</span><span class="p">,</span> <span class="s1">&#39;contacts&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="p">[</span><span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TypeVectorLine</span><span class="p">],</span>
+                                              <span class="n">defaultValue</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addParameter</span><span class="p">(</span>
+            <span class="n">QgsProcessingParameterVectorLayer</span><span class="p">(</span><span class="s1">&#39;polygonized&#39;</span><span class="p">,</span> <span class="s1">&#39;polygonized&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="p">[</span><span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TypeVectorPolygon</span><span class="p">],</span>
+                                              <span class="n">defaultValue</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addParameter</span><span class="p">(</span><span class="n">QgsProcessingParameterFeatureSink</span><span class="p">(</span><span class="s1">&#39;OUTPUT&#39;</span><span class="p">,</span> <span class="s1">&#39;Clean Contacts&#39;</span><span class="p">,</span>
+                                                            <span class="nb">type</span><span class="o">=</span><span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TypeVectorAnyGeometry</span><span class="p">,</span>
+                                                            <span class="n">createByDefault</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">supportsAppend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                            <span class="n">defaultValue</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addParameter</span><span class="p">(</span>
+            <span class="n">QgsProcessingParameterBoolean</span><span class="p">(</span><span class="s1">&#39;VERBOSE_LOG&#39;</span><span class="p">,</span> <span class="s1">&#39;Verbose logging&#39;</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">defaultValue</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="RemoveDangles.processAlgorithm"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.removedangles.RemoveDangles.processAlgorithm">[docs]</a>    <span class="k">def</span> <span class="nf">processAlgorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">model_feedback</span><span class="p">):</span>
+        <span class="c1"># Use a multi-step feedback, so that individual child algorithm progress reports are adjusted for the</span>
+        <span class="c1"># overall progress through the model</span>
+        <span class="n">feedback</span> <span class="o">=</span> <span class="n">QgsProcessingMultiStepFeedback</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="n">model_feedback</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Add autoincremental field</span>
+        <span class="n">alg_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;FIELD_NAME&#39;</span><span class="p">:</span> <span class="s1">&#39;MAPPY_UUID&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;GROUP_FIELDS&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;contacts&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;SORT_ASCENDING&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;SORT_EXPRESSION&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SORT_NULLS_FIRST&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s1">&#39;START&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;OUTPUT&#39;</span><span class="p">:</span> <span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TEMPORARY_OUTPUT</span>
+        <span class="p">}</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;AddAutoincrementalField&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">processing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;native:addautoincrementalfield&#39;</span><span class="p">,</span> <span class="n">alg_params</span><span class="p">,</span>
+                                                            <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">feedback</span><span class="o">=</span><span class="n">feedback</span><span class="p">,</span> <span class="n">is_child_algorithm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">feedback</span><span class="o">.</span><span class="n">setCurrentStep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">isCanceled</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># Polygons to lines</span>
+        <span class="n">alg_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;polygonized&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;OUTPUT&#39;</span><span class="p">:</span> <span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TEMPORARY_OUTPUT</span>
+        <span class="p">}</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;PolygonsToLines&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">processing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;native:polygonstolines&#39;</span><span class="p">,</span> <span class="n">alg_params</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
+                                                    <span class="n">feedback</span><span class="o">=</span><span class="n">feedback</span><span class="p">,</span> <span class="n">is_child_algorithm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">feedback</span><span class="o">.</span><span class="n">setCurrentStep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">isCanceled</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># Extend lines</span>
+        <span class="n">alg_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;END_DISTANCE&#39;</span><span class="p">:</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Extenddistance&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;AddAutoincrementalField&#39;</span><span class="p">][</span><span class="s1">&#39;OUTPUT&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;START_DISTANCE&#39;</span><span class="p">:</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Extenddistance&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;OUTPUT&#39;</span><span class="p">:</span> <span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TEMPORARY_OUTPUT</span>
+        <span class="p">}</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;ExtendLines&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">processing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;native:extendlines&#39;</span><span class="p">,</span> <span class="n">alg_params</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">feedback</span><span class="o">=</span><span class="n">feedback</span><span class="p">,</span>
+                                                <span class="n">is_child_algorithm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">feedback</span><span class="o">.</span><span class="n">setCurrentStep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">isCanceled</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># Explode lines</span>
+        <span class="n">alg_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;PolygonsToLines&#39;</span><span class="p">][</span><span class="s1">&#39;OUTPUT&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;OUTPUT&#39;</span><span class="p">:</span> <span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TEMPORARY_OUTPUT</span>
+        <span class="p">}</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;ExplodeLines&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">processing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;native:explodelines&#39;</span><span class="p">,</span> <span class="n">alg_params</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">feedback</span><span class="o">=</span><span class="n">feedback</span><span class="p">,</span>
+                                                 <span class="n">is_child_algorithm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">feedback</span><span class="o">.</span><span class="n">setCurrentStep</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">isCanceled</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># clean lines</span>
+        <span class="n">alg_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;ExplodeLines&#39;</span><span class="p">][</span><span class="s1">&#39;OUTPUT&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;OUTPUT&#39;</span><span class="p">:</span> <span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TEMPORARY_OUTPUT</span>
+        <span class="p">}</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;AddSelfIntersectionPoints&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">processing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;mappy:ensureintersectionpoints&#39;</span><span class="p">,</span> <span class="n">alg_params</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">feedback</span><span class="o">=</span><span class="n">feedback</span><span class="p">,</span>
+                                                <span class="n">is_child_algorithm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">feedback</span><span class="o">.</span><span class="n">setCurrentStep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">isCanceled</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># Check validity</span>
+        <span class="n">alg_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;IGNORE_RING_SELF_INTERSECTION&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s1">&#39;INPUT_LAYER&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;ExtendLines&#39;</span><span class="p">][</span><span class="s1">&#39;OUTPUT&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;METHOD&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s1">&#39;VALID_OUTPUT&#39;</span><span class="p">:</span> <span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TEMPORARY_OUTPUT</span>
+        <span class="p">}</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;CheckValidity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">processing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;qgis:checkvalidity&#39;</span><span class="p">,</span> <span class="n">alg_params</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">feedback</span><span class="o">=</span><span class="n">feedback</span><span class="p">,</span>
+                                                  <span class="n">is_child_algorithm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">feedback</span><span class="o">.</span><span class="n">setCurrentStep</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">isCanceled</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># Retain fields</span>
+        <span class="n">alg_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;FIELDS&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;AddSelfIntersectionPoints&#39;</span><span class="p">][</span><span class="s1">&#39;OUTPUT&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;OUTPUT&#39;</span><span class="p">:</span> <span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TEMPORARY_OUTPUT</span>
+        <span class="p">}</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;RetainFields&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">processing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;native:retainfields&#39;</span><span class="p">,</span> <span class="n">alg_params</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">feedback</span><span class="o">=</span><span class="n">feedback</span><span class="p">,</span>
+                                                 <span class="n">is_child_algorithm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">feedback</span><span class="o">.</span><span class="n">setCurrentStep</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">isCanceled</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># Explode contacts lines</span>
+        <span class="n">alg_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;CheckValidity&#39;</span><span class="p">][</span><span class="s1">&#39;VALID_OUTPUT&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;OUTPUT&#39;</span><span class="p">:</span> <span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TEMPORARY_OUTPUT</span>
+        <span class="p">}</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;ExplodeContactsLines&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">processing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;native:explodelines&#39;</span><span class="p">,</span> <span class="n">alg_params</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
+                                                         <span class="n">feedback</span><span class="o">=</span><span class="n">feedback</span><span class="p">,</span> <span class="n">is_child_algorithm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">feedback</span><span class="o">.</span><span class="n">setCurrentStep</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">isCanceled</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># Split With Lines_contacts</span>
+        <span class="n">alg_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;ExplodeContactsLines&#39;</span><span class="p">][</span><span class="s1">&#39;OUTPUT&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;LINES&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;ExplodeContactsLines&#39;</span><span class="p">][</span><span class="s1">&#39;OUTPUT&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;OUTPUT&#39;</span><span class="p">:</span> <span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TEMPORARY_OUTPUT</span>
+        <span class="p">}</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;SplitWithLines_contacts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">processing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;native:splitwithlines&#39;</span><span class="p">,</span> <span class="n">alg_params</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
+                                                            <span class="n">feedback</span><span class="o">=</span><span class="n">feedback</span><span class="p">,</span> <span class="n">is_child_algorithm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">feedback</span><span class="o">.</span><span class="n">setCurrentStep</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">isCanceled</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># Centroids</span>
+        <span class="n">alg_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;ALL_PARTS&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;SplitWithLines_contacts&#39;</span><span class="p">][</span><span class="s1">&#39;OUTPUT&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;OUTPUT&#39;</span><span class="p">:</span> <span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TEMPORARY_OUTPUT</span>
+        <span class="p">}</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;Centroids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">processing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;native:centroids&#39;</span><span class="p">,</span> <span class="n">alg_params</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">feedback</span><span class="o">=</span><span class="n">feedback</span><span class="p">,</span>
+                                              <span class="n">is_child_algorithm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">feedback</span><span class="o">.</span><span class="n">setCurrentStep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">isCanceled</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># Buffer</span>
+        <span class="n">alg_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;DISSOLVE&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s1">&#39;DISTANCE&#39;</span><span class="p">:</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;PrecisionjoinBuffer&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;END_CAP_STYLE&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;Centroids&#39;</span><span class="p">][</span><span class="s1">&#39;OUTPUT&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;JOIN_STYLE&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;MITER_LIMIT&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s1">&#39;SEGMENTS&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+            <span class="s1">&#39;OUTPUT&#39;</span><span class="p">:</span> <span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TEMPORARY_OUTPUT</span>
+        <span class="p">}</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;Buffer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">processing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;native:buffer&#39;</span><span class="p">,</span> <span class="n">alg_params</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">feedback</span><span class="o">=</span><span class="n">feedback</span><span class="p">,</span>
+                                           <span class="n">is_child_algorithm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">feedback</span><span class="o">.</span><span class="n">setCurrentStep</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">isCanceled</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># Join attributes by location</span>
+        <span class="n">alg_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;DISCARD_NONMATCHING&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;RetainFields&#39;</span><span class="p">][</span><span class="s1">&#39;OUTPUT&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;JOIN&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;Buffer&#39;</span><span class="p">][</span><span class="s1">&#39;OUTPUT&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;JOIN_FIELDS&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;METHOD&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s1">&#39;PREDICATE&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="s1">&#39;PREFIX&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;OUTPUT&#39;</span><span class="p">:</span> <span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TEMPORARY_OUTPUT</span>
+        <span class="p">}</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;JoinAttributesByLocation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">processing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;native:joinattributesbylocation&#39;</span><span class="p">,</span> <span class="n">alg_params</span><span class="p">,</span>
+                                                             <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">feedback</span><span class="o">=</span><span class="n">feedback</span><span class="p">,</span>
+                                                             <span class="n">is_child_algorithm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">feedback</span><span class="o">.</span><span class="n">setCurrentStep</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">isCanceled</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># Dissolve</span>
+        <span class="n">alg_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;FIELD&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;MAPPY_UUID&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;JoinAttributesByLocation&#39;</span><span class="p">][</span><span class="s1">&#39;OUTPUT&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;OUTPUT&#39;</span><span class="p">:</span> <span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TEMPORARY_OUTPUT</span>
+        <span class="p">}</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;Dissolve&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">processing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;native:dissolve&#39;</span><span class="p">,</span> <span class="n">alg_params</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">feedback</span><span class="o">=</span><span class="n">feedback</span><span class="p">,</span>
+                                             <span class="n">is_child_algorithm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">feedback</span><span class="o">.</span><span class="n">setCurrentStep</span><span class="p">(</span><span class="mi">13</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">isCanceled</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># Drop field(s)</span>
+        <span class="n">alg_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;COLUMN&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;MAPPY_UUID&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;Dissolve&#39;</span><span class="p">][</span><span class="s1">&#39;OUTPUT&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;OUTPUT&#39;</span><span class="p">:</span> <span class="n">QgsProcessing</span><span class="o">.</span><span class="n">TEMPORARY_OUTPUT</span>
+        <span class="p">}</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;DropFields&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">processing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;native:deletecolumn&#39;</span><span class="p">,</span> <span class="n">alg_params</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">feedback</span><span class="o">=</span><span class="n">feedback</span><span class="p">,</span>
+                                               <span class="n">is_child_algorithm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="nb">id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy_output_to_sink</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;DropFields&quot;</span><span class="p">][</span><span class="s2">&quot;OUTPUT&quot;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;OUTPUT&quot;</span><span class="p">:</span> <span class="nb">id</span><span class="p">}</span></div>
+
+<div class="viewcode-block" id="RemoveDangles.name"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.removedangles.RemoveDangles.name">[docs]</a>    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;removedangles&#39;</span></div>
+
+<div class="viewcode-block" id="RemoveDangles.icon"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.removedangles.RemoveDangles.icon">[docs]</a>    <span class="k">def</span> <span class="nf">icon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">QIcon</span><span class="p">(</span><span class="s1">&#39;:/plugins/qgismappy/icons/dangles.png&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RemoveDangles.displayName"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.removedangles.RemoveDangles.displayName">[docs]</a>    <span class="k">def</span> <span class="nf">displayName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;Remove Dangles (Clean Contacts Dangling Ends)&#39;</span></div>
+
+<div class="viewcode-block" id="RemoveDangles.shortHelpString"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.removedangles.RemoveDangles.shortHelpString">[docs]</a>    <span class="k">def</span> <span class="nf">shortHelpString</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span><span class="p">(</span><span class="s2">&quot;Remove the dangling ends of intersecting lines (i.e. to clean the contacts)&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RemoveDangles.group"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.removedangles.RemoveDangles.group">[docs]</a>    <span class="k">def</span> <span class="nf">group</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;Mapping&#39;</span></div>
+
+<div class="viewcode-block" id="RemoveDangles.groupId"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.removedangles.RemoveDangles.groupId">[docs]</a>    <span class="k">def</span> <span class="nf">groupId</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;mapping&#39;</span></div>
+
+<div class="viewcode-block" id="RemoveDangles.createInstance"><a class="viewcode-back" href="../../../qgismappy.providers.html#qgismappy.providers.removedangles.RemoveDangles.createInstance">[docs]</a>    <span class="k">def</span> <span class="nf">createInstance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">RemoveDangles</span><span class="p">()</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Mappy 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../qgismappy.html" >qgismappy</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">qgismappy.providers.removedangles</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2013, Luca Penasa, PLANMAP and GMAP team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

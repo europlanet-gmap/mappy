@@ -1,0 +1,93 @@
+mappy package
+=============
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   mappy.distances
+
+Submodules
+----------
+
+mappy.booleans module
+---------------------
+
+.. automodule:: mappy.booleans
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+mappy.checks module
+-------------------
+
+.. automodule:: mappy.checks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+mappy.conversions module
+------------------------
+
+.. automodule:: mappy.conversions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+mappy.dev\_tests module
+-----------------------
+
+.. automodule:: mappy.dev_tests
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+mappy.features module
+---------------------
+
+.. automodule:: mappy.features
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+mappy.geom\_ops module
+----------------------
+
+.. automodule:: mappy.geom_ops
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+mappy.mappy\_logging module
+---------------------------
+
+.. automodule:: mappy.mappy_logging
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+mappy.plotting module
+---------------------
+
+.. automodule:: mappy.plotting
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+mappy.tjson module
+------------------
+
+.. automodule:: mappy.tjson
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: mappy
+   :members:
+   :undoc-members:
+   :show-inheritance:
