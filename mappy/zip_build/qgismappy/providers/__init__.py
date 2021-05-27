@@ -1,1 +1,0 @@
-from .MappyProvider import Provider

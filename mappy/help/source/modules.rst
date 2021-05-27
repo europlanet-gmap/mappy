@@ -1,7 +1,7 @@
-qgis_plugin
-===========
+mappy.git
+=========
 
 .. toctree::
    :maxdepth: 4
 
-   qgismappy
+   mappy

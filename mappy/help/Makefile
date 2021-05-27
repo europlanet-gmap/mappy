@@ -34,11 +34,12 @@ help:
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
 clean:
-	-rm -rf $(BUILDDIR)/*
+	rm -rf $(BUILDDIR)/*
 	
 autodoc:
-	sphinx-apidoc -f -o ../help/source/ ../../
-	cp -r ../../../documents/* ../help/source/
+
+	sphinx-apidoc -f -o ../help/source/apidoc ../../
+	cp -r ../../documents ../help/source/additionals
 	@echo "Autodoc files created"
 
 html: autodoc

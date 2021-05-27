@@ -17,7 +17,7 @@ import sys
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-root_py_path = os.path.abspath('../../../')
+root_py_path = os.path.abspath('../../')
 sys.path.insert(0, root_py_path)
 print(f"-> doc path for autodoc {root_py_path}")
 

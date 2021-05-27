@@ -2,7 +2,7 @@ import logging
 
 from qgis.core import QgsMessageLog
 
-from mappy import log
+import logging as log
 
 
 class QgsLogHandler(logging.StreamHandler):
