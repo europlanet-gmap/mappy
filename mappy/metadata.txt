@@ -6,13 +6,11 @@
 name=mappy
 qgisMinimumVersion=3.0
 description=Helper plugin for easy and consistent geological map generation
-version=0.0.5
+version=0.0.4
 author=Luca Penasa, PLANMAP and GMAP team
 email=luca.penasa@gmail.com
 
-about=This plugin simplify the generation of polygonal geological maps from lines (contacts)
-and points (identifying the units). This plugin is developed as the results of PLANMAP (planmap.eu).
-It is now maintained thanks to the  EUROPLANET-GMAP (europlanet-gmap.eu) infrstructure.
+about=This plugin simplify the generation of polygonal geological maps from lines (contacts) and points (identifying the units). This plugin is developed as the results of PLANMAP (planmap.eu). It is now maintained thanks to the  EUROPLANET-GMAP (europlanet-gmap.eu) infrstructure.
 
 
 tracker=https://github.com/europlanet-gmap/mappy/issues

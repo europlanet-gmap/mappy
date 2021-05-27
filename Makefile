@@ -1,23 +1,23 @@
 VERSION=$(shell git describe --tags --abbrev=0)
 
-qgismappy:
-	cp -r qgis_plugin/qgismappy qgismappy
-
-qgismappy/mappy:
-	cp -r mappy qgismappy/
-	
-clean:
-	rm -fr qgismappy
-	rm -fr qgismappy-*.zip
-	
 updateversion:
-	sed -i  's/version=[.0-9]*/version=$(VERSION)/g' qgis_plugin/qgismappy/metadata.txt 
+	sed -i  's/version=[.0-9]*/version=$(VERSION)/g' mappy/metadata.txt
+
+updateinfo:
+	cd scripts; \
+	./render_info_to_html.py
 	
-package: updateversion qgismappy qgismappy/mappy
+deploy:
+	cd mappy;\
+	pb_tool deploy -y
+	
+package: updateversion updateinfo
 	$(info    VERSION:  $(VERSION))
-	zip -qq qgismappy-$(VERSION).zip -r qgismappy
-	rm -fr qgismappy
+	cd mappy; \
+	pb_tool zip; \
+	cp zip_build/mappy.zip zip_build/mappy-${VERSION}.zip 
 	
+
 	
 
 	

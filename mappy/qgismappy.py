@@ -21,7 +21,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-
+from qgis.PyQt.QtCore import QFile, QTextStream
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
@@ -31,15 +31,9 @@ from qgis.core import QgsApplication
 # Import the code for the DockWidget
 
 
-
 from .providers import Provider
 import os.path
 
-
-mappy_intro_text = """
-Thank you for installing Mappy.
-This plugin is developed thanks to the support of the PLANMAP, GMAP and JANUS project
-"""
 
 class Mappy:
     """QGIS Plugin Implementation."""
@@ -83,6 +77,8 @@ class Mappy:
         self.dockwidget = None
 
         self.provider = None
+        self.info_text = ""
+        self.load_info_text()
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -99,8 +95,13 @@ class Mappy:
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('Mappy', message)
 
-
-
+    def load_info_text(self):
+        file = QFile(":/plugins/qgismappy/INFO.html")
+        file.open(QFile.ReadOnly | QFile.Text)
+        stream = QTextStream(file)
+        self.info_text = stream.readAll()
+        print("INFO:")
+        print(self.info_text)
 
     def add_action(
             self,
@@ -228,11 +229,10 @@ class Mappy:
         if not self.pluginIsActive:
             self.pluginIsActive = True
 
-
             if self.dockwidget == None:
-
-                    from .dummy_info_widget import DummyInfoWidget
-                    self.dockwidget = DummyInfoWidget()
+                from .dummy_info_widget import DummyInfoWidget
+                self.dockwidget = DummyInfoWidget()
+                self.dockwidget.textEdit.setHtml(self.info_text)
 
             # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
