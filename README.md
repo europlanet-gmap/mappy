@@ -30,7 +30,7 @@ Download it from [Releases](https://github.com/europlanet-gmap/mappy) and instal
 
 - Ensure the plugin was correctly loaded and activated from Plugins -> Manage ...
 - Open the plugin interface via Plugins->mappy->Mappy
-- Load some data, for example you can use the data in the repository folder "input_data": load contacts and unit_id 
+- Load some data, for example you can use the data in the repository folder "demo_data": load contacts and unit_id 
   (just drag and drop the two folders in QGIS)
 - You can now execute the "construction" by using the appropriate processing algorithm from the toolbox.
 
