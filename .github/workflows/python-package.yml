@@ -51,3 +51,10 @@ jobs:
     - name: Create package
       run: |
         make package
+
+    - uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: false
+        files: |
+          mappy/zip_build/mappy.zip
