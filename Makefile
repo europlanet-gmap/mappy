@@ -6,14 +6,18 @@ updateversion:
 updateinfo:
 	cd scripts; \
 	./render_info_to_html.py
+
+update-stuff: updateversion updateinfo
 	
-deploy:
+deploy: update-stuff
 	cd mappy;\
+	pb_tool clean -y;\
 	pb_tool deploy -y
 	
-package: updateversion updateinfo
+package: update-stuff
 	$(info    VERSION:  $(VERSION))
 	cd mappy; \
+	pb_tool clean -y;\
 	pb_tool zip; \
 	cp zip_build/mappy.zip zip_build/mappy-${VERSION}.zip 
 	

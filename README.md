@@ -1,10 +1,10 @@
-# mappy QGIS plugin
+# Mappy QGIS plugin
 
 This QGIS plugin collects several useful algorithms to easily generate geological 
 maps starting from contacts and points. 
 
-This plugin is developed as the result of the PLANMAP project (N 776276) and is now maintained thanks to the
-EUROPLANET-GMAP infrastructure (N 871149) and the JANUS mission. 
+> This plugin was developed as the result of the PLANMAP project (N 776276) and is now maintained thanks to the
+> EUROPLANET-GMAP infrastructure (N 871149) and supported by the JANUS camera team of the JUICE mission (ASI-INAF 2018-25-HH.0). 
 
 The algorithms are provided in the form of ```processing``` tools (look for mappy in the qgis toolbox). 
 
@@ -16,14 +16,15 @@ More info on the basic idea [here](documents/README.md) and see also the [tutori
 **The plugin will be soon contributed to the [QGIS Python Plugins Repository](https://plugins.qgis.org/plugins/) 
 to make installation easier. Meanwhile:**
 
-You can use the generated zip packages that can be installed in qgis by using the plugin manager.
-Download it from [Releases](https://github.com/europlanet-gmap/mappy) and install using the plugin manager.
+You can use the pre-generated zip packages that can be installed in qgis by using the plugin manager.
+Download it from [Releases](https://github.com/europlanet-gmap/mappy/releases) and install the zip using the plugin manager.
 
 
-## Notes
+## Notes for developers
 
-- this plugin uses pb-tool to make the package
-- the code of plugin itself is in the ```mappy``` folder.
+- this plugin uses pb-tool to compile resources and zip the plugin.
+- a top-level Makefile wraps some operations and can be used to create the package quickly
+- the code of plugin itself is in the ```mappy``` folder
 
 
 # (Quick) How to use

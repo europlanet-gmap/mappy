@@ -242,6 +242,9 @@ class Mappy:
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
 
+            from qgis.utils import showPluginHelp
+            showPluginHelp("Mappy")
+
     def initProcessing(self):
         self.provider = Provider()
         QgsApplication.processingRegistry().addProvider(self.provider)
