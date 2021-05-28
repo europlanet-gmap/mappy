@@ -45,3 +45,7 @@ jobs:
     - name: Test with pytest
       run: |
         make tests
+
+    - name: Create package
+      run: |
+        make package
