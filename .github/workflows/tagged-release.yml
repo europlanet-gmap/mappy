@@ -48,6 +48,7 @@ jobs:
 
     - name: Create package
       run: |
+
         make package
         cp mappy/zip_build/mappy.zip  mappy/zip_build/mappy-${{ steps.get_version.outputs.VERSION }}.zip
 

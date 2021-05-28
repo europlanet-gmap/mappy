@@ -17,6 +17,7 @@ deploy: update-stuff
 package: update-stuff
 	$(info    VERSION:  $(VERSION))
 	cd mappy; \
+	rm -fr providers/__pycache__;\
 	pb_tool clean -y;\
 	pb_tool zip; \
 	cp zip_build/mappy.zip zip_build/mappy-${VERSION}.zip 
