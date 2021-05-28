@@ -35,7 +35,7 @@ jobs:
     - name: Install qgis 
       run: |
         sudo apt-get update 
-        sudo apt-get install python3-qgis
+        sudo apt-get install python3-qgis python3-pyqt5
         
     - name: set pyqgis pythonpath
       run: |
