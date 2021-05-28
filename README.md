@@ -1,6 +1,6 @@
 # Mappy QGIS plugin
 
-[![Python package](https://github.com/luca-penasa/mappy/actions/workflows/python-package.yml/badge.svg)](https://github.com/luca-penasa/mappy/actions/workflows/python-package.yml)
+[![Pre Release](https://github.com/luca-penasa/mappy/actions/workflows/pre-release.yml/badge.svg)](https://github.com/luca-penasa/mappy/actions/workflows/pre-release.yml)
 
 This QGIS plugin collects several useful algorithms to easily generate geological 
 maps starting from contacts and points. 
