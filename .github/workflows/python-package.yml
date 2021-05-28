@@ -20,30 +20,25 @@ jobs:
     - uses: actions/checkout@v2
       with: 
         fetch-depth: 0
-    
-   
+
+    - name: Install system deps (qgis)
+      run: |
+        sudo apt-get update
+        sudo apt-get install python3-qgis
         
-    - name: Install dependencies
+    - name: Install Python additional dev dependencies
       run: |
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         
-    - name: Install qgis 
-      run: |
-        sudo apt-get update 
-        sudo apt-get install python3-qgis python3-pyqt5
-        
-#    - name: set pyqgis pythonpath
-#      run: |
-#        echo "PYTHONPATH=/usr/lib/python3/dist-packages/:$PYTHONPATH" >> $GITHUB_ENV
-
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
     - name: Test with pytest
       run: |
         make tests
