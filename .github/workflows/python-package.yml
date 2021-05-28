@@ -61,8 +61,8 @@ jobs:
         files: |
           mappy/zip_build/mappy-latest.zip
 
-      if: contains(github.ref, "*")
-        - mame:  Find Tag Version
+      - name: Versioned relase
+        if: contains(github.ref, "*")
           run: |
             ecco=$(git describe --tags --abbrev=0)
           outputs:
@@ -70,7 +70,7 @@ jobs:
               tag: ${ecco}
 
 
-            - uses: "marvinpinto/action-automatic-releases@latest"
+          - uses: "marvinpinto/action-automatic-releases@latest"
           with:
             repo_token: "${{ secrets.GITHUB_TOKEN }}"
             automatic_release_tag: "latest"
