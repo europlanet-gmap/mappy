@@ -26,8 +26,8 @@ class MappyProcessingAlgorithm(QgsProcessingAlgorithm):
         for feature in layer.getFeatures():
             sink.addFeature(feature, QgsFeatureSink.FastInsert)
 
-        layer = QgsProcessingUtils.mapLayerFromString(dest_id, context, False)
-        layer.setName("MAM")
+        # layer = QgsProcessingUtils.mapLayerFromString(dest_id, context, False)
+        
 
         return dest_id
 

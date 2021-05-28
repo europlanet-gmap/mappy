@@ -1,7 +1,7 @@
 VERSION=$(shell git describe --tags --abbrev=0)
 
 updateversion:
-	sed -i  's/version=[.0-9]*/version=$(VERSION)/g' mappy/metadata.txt
+	sed -i  's/version=[.a-zA-Z0-9]*/version=$(VERSION)/g' mappy/metadata.txt
 
 updateinfo:
 	cd scripts; \
