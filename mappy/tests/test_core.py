@@ -1,5 +1,5 @@
-from pyqtconfig import QVariant
-from qgis._core import QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsPointXY, QgsProject, QgsLineString, \
+from qgis.PyQt.QtCore import QVariant
+from qgis.core import QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsPointXY, QgsProject, QgsLineString, \
     QgsVectorFileWriter, QgsApplication
 from qgis.analysis import QgsNativeAlgorithms
 import pytest
