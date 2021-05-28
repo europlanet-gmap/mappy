@@ -47,11 +47,16 @@ jobs:
         make package
         cp mappy/zip_build/mappy.zip  mappy/zip_build/mappy-latest.zip
 
+    - name: Get the version
+      id: get_version
+      run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+
+
     - uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         prerelease: false
         files: |
-          mappy/zip_build/mappy.zip
+          mappy/zip_build/mappy-${steps.get_version.outputs.VERSION}.zip
 
 
