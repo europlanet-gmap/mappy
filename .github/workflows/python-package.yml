@@ -39,7 +39,7 @@ jobs:
         
     - name: set pyqgis pythonpath
       run: |
-        echo "PYTHONPATH=/usr/lib/python3/dist-packages/" >> $GITHUB_ENV
+        echo "PYTHONPATH=/usr/lib/python3/dist-packages/:$PYTHONPATH" >> $GITHUB_ENV
 
     - name: Lint with flake8
       run: |
