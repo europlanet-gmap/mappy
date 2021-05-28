@@ -42,14 +42,16 @@ jobs:
       run: |
         make tests
 
-    - name: Create package
-      run: |
-        make package
-        cp mappy/zip_build/mappy.zip  mappy/zip_build/mappy-latest.zip
-
     - name: Get the version
       id: get_version
       run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+
+    - name: Create package
+      run: |
+        make package
+        cp mappy/zip_build/mappy.zip  mappy/zip_build/mappy-${{ steps.get_version.outputs.VERSION }}.zip
+
+
 
 
     - uses: "marvinpinto/action-automatic-releases@latest"
