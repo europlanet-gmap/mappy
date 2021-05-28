@@ -34,9 +34,9 @@ jobs:
         sudo apt-get update 
         sudo apt-get install python3-qgis python3-pyqt5
         
-    - name: set pyqgis pythonpath
-      run: |
-        echo "PYTHONPATH=/usr/lib/python3/dist-packages/:$PYTHONPATH" >> $GITHUB_ENV
+#    - name: set pyqgis pythonpath
+#      run: |
+#        echo "PYTHONPATH=/usr/lib/python3/dist-packages/:$PYTHONPATH" >> $GITHUB_ENV
 
     - name: Lint with flake8
       run: |
