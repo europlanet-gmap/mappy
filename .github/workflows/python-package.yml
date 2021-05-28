@@ -60,3 +60,21 @@ jobs:
         prerelease: true
         files: |
           mappy/zip_build/mappy-latest.zip
+
+      if: contains(github.ref, "*")
+        - mame:  Find Tag Version
+          run: |
+            ecco=$(git describe --tags --abbrev=0)
+          outputs:
+            id: # id of the output
+              tag: ${ecco}
+
+
+            - uses: "marvinpinto/action-automatic-releases@latest"
+          with:
+            repo_token: "${{ secrets.GITHUB_TOKEN }}"
+            automatic_release_tag: "latest"
+            prerelease: true
+            files: |
+              mappy/zip_build/mappy-latest.zip
+
