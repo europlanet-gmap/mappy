@@ -57,6 +57,6 @@ jobs:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         prerelease: false
         files: |
-          "mappy/zip_build/mappy-${{ steps.get_version.outputs.VERSION }}.zip"
+          mappy/zip_build/mappy-${{ steps.get_version.outputs.VERSION }}.zip
 
 
