@@ -20,8 +20,11 @@ package: update-stuff
 	pb_tool clean -y;\
 	pb_tool zip; \
 	cp zip_build/mappy.zip zip_build/mappy-${VERSION}.zip 
-	
 
+
+tests:
+	cd mappy/tests; \
+	pytest -vs --order-dependencies
 	
 
 	
