@@ -10,7 +10,7 @@ version=latest
 author=Luca Penasa, PLANMAP and GMAP team
 email=luca.penasa@gmail.com
 
-about=This plugin simplify the generation of polygonal geological maps from lines (contacts) and points (identifying the units). This plugin was developed as the result of the PLANMAP project (N 776276) and is now maintained thanks to the EUROPLANET-GMAP infrastructure (N 871149) and supported by the JANUS camera team of the JUICE mission (ASI-INAF 2018-25-HH.0).
+about=This plugin simplifies the generation of polygonal geological maps from lines (contacts) and points (identifying the units). This plugin was developed as the result of the PLANMAP project (N 776276) and is now maintained thanks to the EUROPLANET-GMAP infrastructure (N 871149) and supported by the JANUS camera team of the JUICE mission (ASI-INAF 2018-25-HH.0).
 
 tracker=https://github.com/europlanet-gmap/mappy/issues
 repository=https://github.com/europlanet-gmap/mappy
