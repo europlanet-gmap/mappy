@@ -15,11 +15,13 @@ More info on the basic idea [here](documents/README.md) and see also the [tutori
 
 # Install
 
-**The plugin will be soon contributed to the [QGIS Python Plugins Repository](https://plugins.qgis.org/plugins/) 
-to make installation easier. Meanwhile:**
+**The plugin has now been contributed to the [QGIS Python Plugins Repository](https://plugins.qgis.org/plugins/mappy/) 
+to make installation easier. To install it just launch QGIS and find the Plugin Manager under ```Plugins->Manage and Install```. Under ```Settings``` remember to enable ```Show also experimental plugins``` and refresh the plugin database with ```Reload Repository```. Under ```All``` you should now be able to find ```mappy```**
 
-You can use the pre-generated zip packages that can be installed in qgis by using the plugin manager.
-Download it from [Releases](https://github.com/europlanet-gmap/mappy/releases) and install the zip using the plugin manager.
+> If you already had a previous version of mappy installed (e.g. during the PLANMAP-GMAP Winter School) remove the previous version before proceeding with installation, or the plugin will cause conflicts.
+
+Alternativley, if you want to try the latest version available, you can use the pre-generated zip packages that can be installed in qgis by using the plugin manager.
+Download it from [Releases](https://github.com/europlanet-gmap/mappy/releases) and install the zip using the plugin manager. Releases marked as ```latest``` are atuomatically in sync with the master of this repo. Tagged releases (e.g. v0.1.2) should be considered as stable versions, although the plugin itself is still largerly experimental.
 
 
 ## Notes for developers
