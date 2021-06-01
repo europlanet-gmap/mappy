@@ -11,6 +11,7 @@ from .remove_duplicate_segments import RemoveDuplicateSegmentsProcessingAlgorith
 from .remove_scaling_from_crs import RemoveScalingFromCrs
 from .addselfintersectionpoints import AddSelfIntersectionPoints
 from .removedangles import RemoveDangles
+from .labelpointsfrompolygons import LabelPointsFromPolygonsProcessingAlgorithm
 
 
 class Provider(QgsProcessingProvider):
@@ -25,6 +26,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(AddSelfIntersectionPoints())
         self.addAlgorithm(RemoveDangles())
         self.addAlgorithm(RemoveScalingFromCrs())
+        self.addAlgorithm(LabelPointsFromPolygonsProcessingAlgorithm())
 
         # useful during dev
         # self.load_models_as_algorithms()
