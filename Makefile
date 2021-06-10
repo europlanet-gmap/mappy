@@ -8,17 +8,20 @@ updateinfo:
 	./render_info_to_html.py
 
 update-stuff: updateversion updateinfo
-	
-deploy: update-stuff
+
+clean:
 	cd mappy;\
-	pb_tool clean -y;\
+	rm -fr providers/__pycache__;\
+	rm INFO.html;\
+	rm resources.py;
+	
+deploy: clean update-stuff
+	cd mappy;\
 	pb_tool deploy -y
 	
-package: update-stuff
+package: clean update-stuff
 	$(info    VERSION:  $(VERSION))
 	cd mappy; \
-	rm -fr providers/__pycache__;\
-	pb_tool clean -y;\
 	pb_tool zip; \
 	cp zip_build/mappy.zip zip_build/mappy-${VERSION}.zip 
 

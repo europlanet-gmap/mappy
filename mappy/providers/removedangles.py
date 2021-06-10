@@ -20,10 +20,10 @@ class RemoveDangles(MappyProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
         self.addParameter(
-            QgsProcessingParameterDistance('Extenddistance', 'Extend distance', parentParameterName='copntacts',
+            QgsProcessingParameterDistance('Extenddistance', 'Extend distance', parentParameterName='contacts',
                                            minValue=0, defaultValue=None))
         param = QgsProcessingParameterDistance('PrecisionjoinBuffer', 'Precision join Buffer', optional=True,
-                                               parentParameterName='copntacts', minValue=1e-16, defaultValue=0.001)
+                                               parentParameterName='contacts', minValue=1e-16, defaultValue=0.001)
         param.setFlags(param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
         self.addParameter(param)
         self.addParameter(
@@ -39,10 +39,19 @@ class RemoveDangles(MappyProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterBoolean('VERBOSE_LOG', 'Verbose logging', optional=True, defaultValue=False))
 
+
+    def next_step(self):
+        self.feedback.setCurrentStep(self.current_step)
+        self.current_step += 1
+        if self.feedback.isCanceled():
+            return True
+
     def processAlgorithm(self, parameters, context, model_feedback):
+        self.current_step = 0
         # Use a multi-step feedback, so that individual child algorithm progress reports are adjusted for the
         # overall progress through the model
-        feedback = QgsProcessingMultiStepFeedback(14, model_feedback)
+        feedback = QgsProcessingMultiStepFeedback(15, model_feedback)
+        self.feedback = feedback
         results = {}
         outputs = {}
 
@@ -60,8 +69,7 @@ class RemoveDangles(MappyProcessingAlgorithm):
         outputs['AddAutoincrementalField'] = processing.run('native:addautoincrementalfield', alg_params,
                                                             context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(1)
-        if feedback.isCanceled():
+        if self.next_step():
             return {}
 
         # Polygons to lines
@@ -72,8 +80,7 @@ class RemoveDangles(MappyProcessingAlgorithm):
         outputs['PolygonsToLines'] = processing.run('native:polygonstolines', alg_params, context=context,
                                                     feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(2)
-        if feedback.isCanceled():
+        if self.next_step():
             return {}
 
         # Extend lines
@@ -86,8 +93,7 @@ class RemoveDangles(MappyProcessingAlgorithm):
         outputs['ExtendLines'] = processing.run('native:extendlines', alg_params, context=context, feedback=feedback,
                                                 is_child_algorithm=True)
 
-        feedback.setCurrentStep(3)
-        if feedback.isCanceled():
+        if self.next_step():
             return {}
 
         # Explode lines
@@ -98,8 +104,7 @@ class RemoveDangles(MappyProcessingAlgorithm):
         outputs['ExplodeLines'] = processing.run('native:explodelines', alg_params, context=context, feedback=feedback,
                                                  is_child_algorithm=True)
 
-        feedback.setCurrentStep(4)
-        if feedback.isCanceled():
+        if self.next_step():
             return {}
 
         # clean lines
@@ -110,8 +115,7 @@ class RemoveDangles(MappyProcessingAlgorithm):
         outputs['AddSelfIntersectionPoints'] = processing.run('mappy:ensureintersectionpoints', alg_params, context=context, feedback=feedback,
                                                 is_child_algorithm=True)
 
-        feedback.setCurrentStep(5)
-        if feedback.isCanceled():
+        if self.next_step():
             return {}
 
         # Check validity
@@ -124,8 +128,7 @@ class RemoveDangles(MappyProcessingAlgorithm):
         outputs['CheckValidity'] = processing.run('qgis:checkvalidity', alg_params, context=context, feedback=feedback,
                                                   is_child_algorithm=True)
 
-        feedback.setCurrentStep(6)
-        if feedback.isCanceled():
+        if self.next_step():
             return {}
 
         # Retain fields
@@ -137,33 +140,51 @@ class RemoveDangles(MappyProcessingAlgorithm):
         outputs['RetainFields'] = processing.run('native:retainfields', alg_params, context=context, feedback=feedback,
                                                  is_child_algorithm=True)
 
-        feedback.setCurrentStep(7)
-        if feedback.isCanceled():
+        if self.next_step():
             return {}
 
         # Explode contacts lines
         alg_params = {
             'INPUT': outputs['CheckValidity']['VALID_OUTPUT'],
-            'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
+            'OUTPUT': "memory:buffer"
         }
         outputs['ExplodeContactsLines'] = processing.run('native:explodelines', alg_params, context=context,
                                                          feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(8)
-        if feedback.isCanceled():
+        if self.next_step():
             return {}
+
+        alg_params = {
+            'IGNORE_RING_SELF_INTERSECTION': False,
+            'INPUT_LAYER': outputs['ExplodeContactsLines']['OUTPUT'],
+            'METHOD': 2,
+            'VALID_OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
+        }
+        outputs['CheckValidity1'] = processing.run('qgis:checkvalidity', alg_params, context=context, feedback=feedback,
+                                                  is_child_algorithm=True)
+
+
+        if self.next_step():
+            return {}
+
 
         # Split With Lines_contacts
         alg_params = {
-            'INPUT': outputs['ExplodeContactsLines']['OUTPUT'],
-            'LINES': outputs['ExplodeContactsLines']['OUTPUT'],
+            'INPUT': outputs['CheckValidity1']['VALID_OUTPUT'],
+            'LINES': outputs['CheckValidity1']['VALID_OUTPUT'],
             'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
         }
+
+
+
+
+
         outputs['SplitWithLines_contacts'] = processing.run('native:splitwithlines', alg_params, context=context,
                                                             feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(9)
-        if feedback.isCanceled():
+
+
+        if self.next_step():
             return {}
 
         # Centroids
@@ -175,8 +196,9 @@ class RemoveDangles(MappyProcessingAlgorithm):
         outputs['Centroids'] = processing.run('native:centroids', alg_params, context=context, feedback=feedback,
                                               is_child_algorithm=True)
 
-        feedback.setCurrentStep(10)
-        if feedback.isCanceled():
+
+
+        if self.next_step():
             return {}
 
         # Buffer
@@ -193,8 +215,7 @@ class RemoveDangles(MappyProcessingAlgorithm):
         outputs['Buffer'] = processing.run('native:buffer', alg_params, context=context, feedback=feedback,
                                            is_child_algorithm=True)
 
-        feedback.setCurrentStep(11)
-        if feedback.isCanceled():
+        if self.next_step():
             return {}
 
         # Join attributes by location
@@ -212,8 +233,7 @@ class RemoveDangles(MappyProcessingAlgorithm):
                                                              context=context, feedback=feedback,
                                                              is_child_algorithm=True)
 
-        feedback.setCurrentStep(12)
-        if feedback.isCanceled():
+        if self.next_step():
             return {}
 
         # Dissolve
@@ -225,8 +245,7 @@ class RemoveDangles(MappyProcessingAlgorithm):
         outputs['Dissolve'] = processing.run('native:dissolve', alg_params, context=context, feedback=feedback,
                                              is_child_algorithm=True)
 
-        feedback.setCurrentStep(13)
-        if feedback.isCanceled():
+        if self.next_step():
             return {}
 
         # Drop field(s)

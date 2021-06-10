@@ -37,8 +37,8 @@ class TestCore(ExtendedUnitTesting):
         Storage.providers.append(n)
 
     def test_load_mappy_provider(self):
-        from mappy.providers.MappyProvider import Provider
-        p = Provider()
+        from mappy.providers.MappyProvider import MappyProvider
+        p = MappyProvider()
         self._test_provider_can_be_loaded(p, "mappy")
         for alg in QgsApplication.processingRegistry().algorithms():
             id = alg.id()
@@ -123,8 +123,8 @@ class TestCore(ExtendedUnitTesting):
         from processing.core.Processing import Processing
         Processing.initialize()
         # QgsApplication.processingRegistry().addProvider(QgsNativeAlgorithms())
-        # from mappy.providers.MappyProvider import Provider
-        # QgsApplication.processingRegistry().addProvider(Provider())
+        # from mappy.providers.MappyProvider import MappyProvider
+        # QgsApplication.processingRegistry().addProvider(MappyProvider())
 
         # Processing.initialize()
         o: QgsVectorLayer = processing.run("mappy:mapconstruction", {"IN_LINES": Storage.lines, "IN_POINTS": Storage.points, "OUTPUT": "TEMPORARY_OUTPUT"})["OUTPUT"]

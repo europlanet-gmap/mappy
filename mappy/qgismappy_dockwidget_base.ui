@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MappyDockWidgetBase</class>
+ <widget class="QDockWidget" name="MappyDockWidgetBase">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>525</width>
+    <height>565</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Mappy</string>
+  </property>
+  <widget class="QWidget" name="dockWidgetContents">
+   <layout class="QGridLayout" name="gridLayout_2">
+    <item row="0" column="0">
+     <widget class="QTabWidget" name="tab">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="tab_settings">
+       <attribute name="title">
+        <string>Settings</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QGroupBox" name="groupBox">
+          <property name="title">
+           <string>Input</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Limits layer (lines)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QgsMapLayerComboBox" name="lines"/>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>Indicator points (points)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QgsMapLayerComboBox" name="points"/>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_8">
+             <property name="text">
+              <string>Unit's field</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QgsFieldComboBox" name="units_field"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="title">
+           <string>Output</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="out_polygons_layer_name">
+             <property name="text">
+              <string>final_map</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QCheckBox" name="generate_clean_contacts">
+             <property name="text">
+              <string>Generate Clean Contacts layer</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_9">
+             <property name="text">
+              <string>Polygons Layer Name</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>Output Geopackage</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLineEdit" name="out_contacts_layer_name">
+             <property name="text">
+              <string>final_contacts</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QgsFileWidget" name="output"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_3">
+          <property name="title">
+           <string>Options</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_7">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>AutoExtend (extend lines to grant intersection)</string>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QgsDoubleSpinBox" name="auto_extend">
+             <property name="suffix">
+              <string> km</string>
+             </property>
+             <property name="maximum">
+              <double>100000.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <widget class="QCheckBox" name="overwrite">
+             <property name="text">
+              <string>Overwrite Output Layers if they exists [WARN - will overwrite Output layers]</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0" colspan="2">
+            <widget class="QCheckBox" name="add_indicators">
+             <property name="text">
+              <string>Auto-add missing indicator points [WARN - will modify indicator points layers]</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0" colspan="2">
+            <widget class="QCheckBox" name="update_points_locations">
+             <property name="text">
+              <string>Auto relocate indicator points to optimal position for labelling
+[WARN - will modify indicator points layers]</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_info">
+       <attribute name="title">
+        <string>Plugin Info</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <widget class="QTextEdit" name="infobox">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QgsDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>qgsdoublespinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QgsFieldComboBox</class>
+   <extends>QComboBox</extends>
+   <header>qgsfieldcombobox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QgsFileWidget</class>
+   <extends>QWidget</extends>
+   <header>qgsfilewidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QgsMapLayerComboBox</class>
+   <extends>QComboBox</extends>
+   <header>qgsmaplayercombobox.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

@@ -26,12 +26,18 @@ from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 # Initialize Qt resources from file resources.py
+from qgis._core import QgsVectorFileWriter, QgsCoordinateTransformContext, QgsProject, QgsVectorLayer, QgsFeatureSink, \
+    QgsFeature
+from traits.trait_types import self
+
+from .mappy_utis import load_mappy_info_text
+from .qgismappy_dockwidget import MappyDockWidget
 from .resources import *
 from qgis.core import QgsApplication
 # Import the code for the DockWidget
 
 
-from .providers import Provider
+from .providers import MappyProvider
 import os.path
 
 
@@ -66,7 +72,7 @@ class Mappy:
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&mappy')
+        self.menu = self.tr(u'&Mappy')
         # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'Mappy')
         self.toolbar.setObjectName(u'Mappy')
@@ -77,31 +83,19 @@ class Mappy:
         self.dockwidget = None
 
         self.provider = None
-        self.info_text = ""
-        self.load_info_text()
+        self.info_text = load_mappy_info_text()
+
+        self.config_dock = MappyDockWidget()
+        self.config_dock.closingPlugin.connect(self.close_config)
+        self.config_dock.infobox.setHtml(self.info_text)
+        self.iface.addDockWidget(Qt.RightDockWidgetArea, self.config_dock)
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
         """Get the translation for a string using Qt translation API.
-
-        We implement this ourselves since we do not inherit QObject.
-
-        :param message: String for translation.
-        :type message: str, QString
-
-        :returns: Translated version of message.
-        :rtype: QString
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('Mappy', message)
-
-    def load_info_text(self):
-        file = QFile(":/plugins/qgismappy/INFO.html")
-        file.open(QFile.ReadOnly | QFile.Text)
-        stream = QTextStream(file)
-        self.info_text = stream.readAll()
-        print("INFO:")
-        print(self.info_text)
 
     def add_action(
             self,
@@ -114,44 +108,6 @@ class Mappy:
             status_tip=None,
             whats_this=None,
             parent=None):
-        """Add a toolbar icon to the toolbar.
-
-        :param icon_path: Path to the icon for this action. Can be a resource
-            path (e.g. ':/plugins/foo/bar.png') or a normal file system path.
-        :type icon_path: str
-
-        :param text: Text that should be shown in menu items for this action.
-        :type text: str
-
-        :param callback: Function to be called when the action is triggered.
-        :type callback: function
-
-        :param enabled_flag: A flag indicating if the action should be enabled
-            by default. Defaults to True.
-        :type enabled_flag: bool
-
-        :param add_to_menu: Flag indicating whether the action should also
-            be added to the menu. Defaults to True.
-        :type add_to_menu: bool
-
-        :param add_to_toolbar: Flag indicating whether the action should also
-            be added to the toolbar. Defaults to True.
-        :type add_to_toolbar: bool
-
-        :param status_tip: Optional text to show in a popup when mouse pointer
-            hovers over the action.
-        :type status_tip: str
-
-        :param parent: Parent widget for the new action. Defaults None.
-        :type parent: QWidget
-
-        :param whats_this: Optional text to show in the status bar when the
-            mouse pointer hovers over the action.
-
-        :returns: The action that was created. Note that the action is also
-            added to self.actions list.
-        :rtype: QAction
-        """
 
         icon = QIcon(icon_path)
         action = QAction(icon, text, parent)
@@ -179,72 +135,157 @@ class Mappy:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/qgismappy/icons/icon.png'
+        icon_path = ':/plugins/qgismappy/icons/settings.png'
         self.add_action(
             icon_path,
-            text=self.tr(u'Mappy'),
-            callback=self.run,
+            text=self.tr(u'Toggle Mappy config'),
+            callback=self.toggle_config_dock,
+            parent=self.iface.mainWindow())
+
+        icon_path = ':/plugins/qgismappy/icons/reload.png'
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Recompute map. Will overwrite data, hence pay attention to the config settings.'),
+            callback=self.recompute_map,
             parent=self.iface.mainWindow())
 
         self.initProcessing()
 
-    # --------------------------------------------------------------------------
+    def toggle_config_dock(self):
+        if self.config_dock.isVisible():
+            self.config_dock.setVisible(False)
+        else:
+            self.config_dock.setVisible(True)
 
-    def onClosePlugin(self):
-        """Cleanup necessary items here when plugin dockwidget is closed"""
+    def close_config(self):
+        self.config_dock.closingPlugin.disconnect(self.close_config)
+        pass  # nothing relevant for now
 
-        # print "** CLOSING Mappy"
+    def check_input_units(self, pars):
+        print(pars)
+        lines = pars["lines"]
+        points = pars["points"]
+        print("---------->")
+        print(lines.sourceCrs().mapUnits())
+        print(lines.sourceCrs().mapUnits())
 
-        # disconnects
-        self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
+    def recompute_map(self):
+        from .mappy_utis import collect_parameters
 
-        # remove this statement if dockwidget is to remain
-        # for reuse if plugin is reopened
-        # Commented next statement since it causes QGIS crashe
-        # when closing the docked window:
-        # self.dockwidget = None
+        pars = collect_parameters(self.config_dock)
 
-        self.pluginIsActive = False
+        from qgis import processing
+
+        self.check_input_units(pars)
+
+        ofile = pars["output"]
+        olayername = pars["out_polygons_layer_name"]
+        o_cont_name = pars["out_contacts_layer_name"]
+
+        args = {"IN_LINES": pars["lines"],
+                "IN_POINTS": pars["points"],
+                "OUTPUT": "TEMPORARY_OUTPUT",
+                "UNMATCHED": "TEMPORARY_OUTPUT"}
+        o = processing.run("mappy:mapconstruction", args)
+
+        layer = o["OUTPUT"]
+        unmatched = o["UNMATCHED"]
+        points_layer = pars["points"]
+
+        if pars["add_indicators"]:
+            newpoints = processing.run("mappy:labelspointsfrompolygons", {
+                'IN_LAYER': unmatched,
+                'TOLERANCE': 1, 'OUTPUT': 'TEMPORARY_OUTPUT'})["OUTPUT"]
+
+            newfeats = []
+            for feature in newpoints.getFeatures():
+                feature: QgsFeature
+                print(f"ADDING FEATURE {feature}")
+
+                newf = QgsFeature()
+                newf.setGeometry(feature.geometry())
+
+                newfeats.append(newf)
+
+            points_layer.dataProvider().addFeatures(newfeats)
+
+            points_layer.dataProvider().reloadData()
+            points_layer.triggerRepaint()
+
+        self.write_layer_to_gpkg(layer, ofile, olayername)
+        self.load_layer_if_not_loaded(ofile, olayername, field_style=pars["units_field"])
+
+        if pars["generate_clean_contacts"]:
+            opts = {'Extenddistance': 0, 'PrecisionjoinBuffer': 0.001,
+                    'contacts': pars["lines"],
+                    'polygonized': layer,
+                    'OUTPUT': 'TEMPORARY_OUTPUT'}
+            layer = processing.run("mappy:removedangles", opts)["OUTPUT"]
+            self.write_layer_to_gpkg(layer, ofile, o_cont_name)
+            self.load_layer_if_not_loaded(ofile, o_cont_name, None)
+
+    def load_layer_if_not_loaded(self, gpkgfile, layername, field_style=None):
+        l: QgsVectorLayer = self.findLayer(gpkgfile, layername)
+        if l is None:
+            l = self.addLayerFromGeopackage(gpkgfile, layername)
+        else:
+            l.dataProvider().reloadData()
+            l.triggerRepaint()
+
+        if field_style:
+            from .mappy_utis import resetCategoriesIfNeeded
+            resetCategoriesIfNeeded(l, field_style)
+
+    def write_layer_to_gpkg(self, layer, gpkgfile, layername):
+        options = QgsVectorFileWriter.SaveVectorOptions()
+        options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
+        # to get rid of spaces in the layer name
+        options.layerName = layername
+        context = QgsProject.instance().transformContext()
+        QgsVectorFileWriter.writeAsVectorFormatV2(layer, gpkgfile, context, options)
+
+    def findLayer(self, gpkg, layer_name):
+        gpkg = os.path.abspath(gpkg)
+
+        gpkg += f"|layername={layer_name}"
+        layers = QgsProject.instance().mapLayers()
+
+        for name, layer in layers.items():
+            luri = layer.dataProvider().dataSourceUri()
+
+            if luri == gpkg:
+                return layer
+
+        return None
+
+    def addLayerFromGeopackage(self, gpkgfile, layer_name, categories_field=None):
+        gpkgfile += f"|layername={layer_name}"
+        l = QgsVectorLayer(gpkgfile)
+        l.setName(layer_name)
+        QgsProject.instance().addMapLayer(l)
+
+        # if categories_field is not None:
+        #     self.resetCategoriesIfNeeded(l, categories_field)
+
+        # l.triggerRepaint()
+        # l.dataChanged.emit()  # or dataSourceChanged?
+        # l.dataSourceChanged.emit()
+        return l
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
 
-        # print "** UNLOAD Mappy"
-
         for action in self.actions:
             self.iface.removePluginMenu(
-                self.tr(u'&mappy'),
+                self.tr(u'&Mappy'),
                 action)
             self.iface.removeToolBarIcon(action)
         # remove the toolbar
         del self.toolbar
+        del self.config_dock
 
         QgsApplication.processingRegistry().removeProvider(self.provider)
 
-    # --------------------------------------------------------------------------
-
-    def run(self):
-        """Run method that loads and starts the plugin"""
-
-        if not self.pluginIsActive:
-            self.pluginIsActive = True
-
-            if self.dockwidget == None:
-                from .dummy_info_widget import DummyInfoWidget
-                self.dockwidget = DummyInfoWidget()
-                self.dockwidget.textEdit.setHtml(self.info_text)
-
-            # connect to provide cleanup on closing of dockwidget
-            self.dockwidget.closingPlugin.connect(self.onClosePlugin)
-
-            # show the dockwidget
-            # TODO: fix to allow choice of dock location
-            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
-            self.dockwidget.show()
-
-            from qgis.utils import showPluginHelp
-            showPluginHelp("Mappy")
-
     def initProcessing(self):
-        self.provider = Provider()
+        self.provider = MappyProvider()
         QgsApplication.processingRegistry().addProvider(self.provider)
