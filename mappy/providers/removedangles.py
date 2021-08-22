@@ -55,11 +55,25 @@ class RemoveDangles(MappyProcessingAlgorithm):
         results = {}
         outputs = {}
 
+
+        alg_params = {"INPUT": parameters['contacts'],
+                      'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT,
+                      "REMOVE_EMPTY": True}
+
+
+        outputs['RemoveNullGeometries'] = processing.run('native:removenullgeometries', alg_params,
+                                                            context=context, feedback=feedback, is_child_algorithm=True)
+
+        # processing.run("native:removenullgeometries", {
+        #     'INPUT': '/home/luca/Code/mappy.git/demo_data/mars/vectors_map.gpkg|layername=contacts',
+        #     'REMOVE_EMPTY': True, 'OUTPUT': 'TEMPORARY_OUTPUT'})
+
+
         # Add autoincremental field
         alg_params = {
             'FIELD_NAME': 'MAPPY_UUID',
             'GROUP_FIELDS': [''],
-            'INPUT': parameters['contacts'],
+            'INPUT': outputs['RemoveNullGeometries']["OUTPUT"],
             'SORT_ASCENDING': True,
             'SORT_EXPRESSION': '',
             'SORT_NULLS_FIRST': False,
