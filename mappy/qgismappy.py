@@ -32,7 +32,7 @@ from qgis.core import QgsVectorFileWriter, QgsProject, QgsVectorLayer,  \
     QgsFeature, QgsMessageLog
 
 
-from .mappy_utis import load_mappy_info_text
+from .mappy_utils import load_mappy_info_text
 from .qgismappy_dockwidget import MappyDockWidget
 from qgis.core import QgsApplication
 
@@ -278,7 +278,7 @@ class Mappy:
         return True
 
     def recompute_map(self):
-        from .mappy_utis import collect_parameters
+        from .mappy_utils import collect_parameters
 
         pars = collect_parameters(self.config_dock)
 
@@ -375,7 +375,7 @@ class Mappy:
         l.setReadOnly()
 
         if field_style:
-            from .mappy_utis import resetCategoriesIfNeeded
+            from .mappy_utils import resetCategoriesIfNeeded
             resetCategoriesIfNeeded(l, field_style)
 
         return l

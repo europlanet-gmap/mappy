@@ -42,7 +42,7 @@ from pathlib import Path
 
 
 # from qgis.gui import QgsMapLayerComboBox
-from mappy.mappy_utis import getChangeSignal, parameters_widgets, readWidgetContent, serialize_value_for_settings
+from mappy.mappy_utils import getChangeSignal, parameters_widgets, readWidgetContent, serialize_value_for_settings
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgismappy_dockwidget_base.ui'))
@@ -175,7 +175,7 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         proj = QgsProject.instance()
 
-        from .mappy_utis import collect_parameters
+        from .mappy_utils import collect_parameters
         pars = collect_parameters(self)
         print(f"found pars {pars}")
 
@@ -202,7 +202,7 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             else:
                 raise TypeError(f"cannot convert type {type(value)} to {type(pars[k])}")
 
-            from .mappy_utis import restoreWidgetContent
+            from .mappy_utils import restoreWidgetContent
             w = self.get_widget_by_name(k)
             try:
                 restoreWidgetContent(w, pars[k])
