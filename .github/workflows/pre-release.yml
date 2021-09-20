@@ -26,7 +26,7 @@ jobs:
     - name: Install system deps (qgis)
       run: |
         sudo apt-get update
-        sudo apt-get install python3-qgis
+        sudo apt-get install python3-qgis  pyqt5-dev-tools
         
     - name: Install Python additional dev dependencies
       run: |
