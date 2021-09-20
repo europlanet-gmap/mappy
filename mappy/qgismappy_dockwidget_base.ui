@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>525</width>
-    <height>565</height>
+    <width>518</width>
+    <height>431</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
     <item row="0" column="0">
      <widget class="QTabWidget" name="tab">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_settings">
        <attribute name="title">
@@ -123,27 +123,7 @@
            <string>Options</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_7">
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_4">
-             <property name="text">
-              <string>AutoExtend (extend lines to grant intersection)</string>
-             </property>
-             <property name="wordWrap">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QgsDoubleSpinBox" name="auto_extend">
-             <property name="suffix">
-              <string> km</string>
-             </property>
-             <property name="maximum">
-              <double>100000.000000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0" colspan="2">
+           <item row="0" column="0" colspan="2">
             <widget class="QCheckBox" name="overwrite">
              <property name="text">
               <string>Overwrite Output Layers if they exists [WARN - will overwrite Output layers]</string>
@@ -153,7 +133,7 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="0" colspan="2">
+           <item row="1" column="0">
             <widget class="QCheckBox" name="add_indicators">
              <property name="text">
               <string>Auto-add missing indicator points [WARN - will modify indicator points layers]</string>
@@ -163,11 +143,10 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="0" colspan="2">
-            <widget class="QCheckBox" name="update_points_locations">
+           <item row="2" column="0">
+            <widget class="QCheckBox" name="copyoverlinestyle">
              <property name="text">
-              <string>Auto relocate indicator points to optimal position for labelling
-[WARN - will modify indicator points layers]</string>
+              <string>Copy lines style to clean contacts (if generated)</string>
              </property>
              <property name="checked">
               <bool>true</bool>
@@ -185,7 +164,7 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
-         <widget class="QTextEdit" name="infobox">
+         <widget class="QTextBrowser" name="infobox">
           <property name="readOnly">
            <bool>true</bool>
           </property>
@@ -199,11 +178,6 @@
   </widget>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>QgsDoubleSpinBox</class>
-   <extends>QDoubleSpinBox</extends>
-   <header>qgsdoublespinbox.h</header>
-  </customwidget>
   <customwidget>
    <class>QgsFieldComboBox</class>
    <extends>QComboBox</extends>

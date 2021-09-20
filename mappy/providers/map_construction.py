@@ -122,6 +122,7 @@ class MapConstructionProcessingAlgorithm(MappyProcessingAlgorithm):
         pname = self.matchAlgo("native:polygonize")
         spiname = self.matchAlgo("native:createspatialindex")
         jname = self.matchAlgo("native:joinattributesbylocation")
+        # jname = self.matchAlgo("native:joinbylocationsummary")
 
         source_lines = self.parameterAsSource(
             parameters,

@@ -1,9 +1,12 @@
+from qgis.PyQt import Qt
 from qgis.PyQt.QtCore import QFile, QTextStream
 from qgis.PyQt.QtWidgets import QLineEdit, QCheckBox
-from qgis._core import QgsVectorFileWriter, QgsProject, QgsCategorizedSymbolRenderer, QgsSymbol, QgsRendererCategory
-from qgis._gui import QgsFileWidget
+from qgis._core import QgsVectorLayer, QgsMapLayer
+from qgis.core import QgsVectorFileWriter, QgsProject, QgsCategorizedSymbolRenderer, QgsSymbol, QgsRendererCategory
+from qgis.gui import QgsFileWidget
 from qgis.gui import QgsFieldComboBox, QgsDoubleSpinBox, QgsMapLayerComboBox
 
+parameters_widgets = [QgsMapLayerComboBox, QgsFieldComboBox, QgsDoubleSpinBox, QLineEdit, QCheckBox, QgsFileWidget]
 
 def readWidgetContent(widget):
     if isinstance(widget, QgsMapLayerComboBox):
@@ -27,6 +30,62 @@ def readWidgetContent(widget):
     else:
         return None
 
+def restoreWidgetContent(widget, value):
+    if isinstance(widget, QgsMapLayerComboBox):
+        if not isinstance(value, QgsMapLayer):
+            raise TypeError(f"{type(value)} is a wrong type for widget QgsMapLayerComboBox")
+        widget.setLayer(value)
+
+    elif isinstance(widget, QgsFieldComboBox):
+        exists = widget.findText(str(value))
+        if not exists:
+            raise ValueError(f"You are trying to set the widget {widget.name()} to value {value}. but combo box does not contain this value")
+
+        widget.setField(str(value))
+
+    elif isinstance(widget, QgsDoubleSpinBox):
+        widget.setValue(float(value))
+
+    elif isinstance(widget, QLineEdit):
+        widget.setText(str(value))
+
+    elif isinstance(widget, QCheckBox):
+        widget.setChecked(bool(value))
+
+    elif isinstance(widget, QgsFileWidget):
+        widget.setFilePath(str(value))
+
+    else:
+        raise NotImplementedError("not implemented for this widget")
+
+
+def getChangeSignal(widget):
+    if isinstance(widget, QgsMapLayerComboBox):
+        return widget.layerChanged
+
+    elif isinstance(widget, QgsFieldComboBox):
+        return widget.fieldChanged
+
+    elif isinstance(widget, QgsDoubleSpinBox):
+        return widget.valueChanged
+
+    elif isinstance(widget, QLineEdit):
+        return widget.textChanged
+
+    elif isinstance(widget, QCheckBox):
+        return widget.stateChanged
+
+    elif isinstance(widget, QgsFileWidget):
+        return widget.fileChanged
+
+    else:
+        return None
+
+def serialize_value_for_settings(value):
+    if type(value) in [QgsVectorLayer]:
+        return value.id()
+    else:
+        return str(value)
 
 def collect_parameters(qt_obj):
     pars = {}
@@ -42,7 +101,9 @@ def load_mappy_info_text():
     file = QFile(":/plugins/qgismappy/INFO.html")
     file.open(QFile.ReadOnly | QFile.Text)
     stream = QTextStream(file)
-    return stream.readAll()
+    text = stream.readAll()
+    print(f"text {text}")
+    return text
 
 
 def write_layer_to_gpkg(layer, gpkgfile,  layername):
@@ -72,8 +133,14 @@ def resetCategoriesIfNeeded(layer, units_field):
     values = sorted(uniques)
     categories = []
 
-    for current, value in enumerate(values):
+    # delete "old/unused categories"
+    for cat in prev_cats:
+        cat: QgsRendererCategory
+        if cat.value() not in values:
+            cat_id = renderer.categoryIndexForValue(cat.value())
+            renderer.deleteCategory(cat_id)
 
+    for current, value in enumerate(values):
         already_in = False
         for prev in prev_cats:
             if prev.value() == value:
@@ -82,6 +149,10 @@ def resetCategoriesIfNeeded(layer, units_field):
 
         if not already_in:
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+            from qgis.PyQt.QtCore import Qt
+
+            symbol.symbolLayer(0).setStrokeStyle(Qt.NoPen)
+
             category = QgsRendererCategory(value, symbol, str(value))
             categories.append(category)
 

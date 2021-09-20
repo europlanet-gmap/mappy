@@ -21,24 +21,25 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import QFile, QTextStream
+
+from .resources import * # DO NOT DELETE
+from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 # Initialize Qt resources from file resources.py
-from qgis._core import QgsVectorFileWriter, QgsCoordinateTransformContext, QgsProject, QgsVectorLayer, QgsFeatureSink, \
-    QgsFeature
-from traits.trait_types import self
+from qgis.core import QgsVectorFileWriter, QgsProject, QgsVectorLayer,  \
+    QgsFeature, QgsMessageLog
+
 
 from .mappy_utis import load_mappy_info_text
 from .qgismappy_dockwidget import MappyDockWidget
-from .resources import *
 from qgis.core import QgsApplication
-# Import the code for the DockWidget
-
 
 from .providers import MappyProvider
 import os.path
+
+
 
 
 class Mappy:
@@ -87,8 +88,13 @@ class Mappy:
 
         self.config_dock = MappyDockWidget()
         self.config_dock.closingPlugin.connect(self.close_config)
+        print(f"setting infobox text to {self.info_text}")
         self.config_dock.infobox.setHtml(self.info_text)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.config_dock)
+
+        v = self.getVersion()
+
+        self.log_message(f"Mappy version: {v}")
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -96,6 +102,29 @@ class Mappy:
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('Mappy', message)
+
+
+
+    def getVersion(self):
+        import mappy
+        from pathlib import Path
+        f = Path(mappy.__file__).parent.joinpath("metadata.txt")
+        self.log_message(f"Reading verions from  {f}")
+
+        try:
+            with open(f) as file:
+                for l in file.readlines():
+                    if l.startswith("version"):
+                        return l.split("=")[1]
+        except Exception as e:
+            print("cannot determine version of mappy")
+
+    def log_message(self, message, level=0, notifyUser=True):
+        QgsMessageLog.logMessage(message, "Mappy", level, notifyUser)
+
+
+
+
 
     def add_action(
             self,
@@ -161,13 +190,92 @@ class Mappy:
         self.config_dock.closingPlugin.disconnect(self.close_config)
         pass  # nothing relevant for now
 
-    def check_input_units(self, pars):
+    def check_if_layer_not_none_or_invalid(self, layer: QgsVectorLayer):
+        if layer is None:
+            status = "None"
+        elif not layer.isValid():
+            status = "Invalid"
+        else:
+            status = "ok"
+
+        if status is not "ok":
+            return False, status
+        else:
+            return True, status
+
+    def alert_box(self, title, message):
+        dlg = QMessageBox()
+        dlg.setWindowTitle(title)
+        dlg.setText(message)
+        return dlg.exec()
+
+    def check_input_pars(self, pars):
         print(pars)
-        lines = pars["lines"]
-        points = pars["points"]
+        try:
+            lines = pars["lines"]
+        except:
+            self.alert_box("Error", "Missing lines layer. Please select it in the settings.")
+            return False
+
+
+        try:
+            points = pars["points"]
+        except:
+            self.alert_box("Error", "Missing points layer. Please select it in the settings.")
+            return False
+
+
+        # points = pars["points"]
+        lines: QgsVectorLayer
+        points: QgsVectorLayer
         print("---------->")
         print(lines.sourceCrs().mapUnits())
         print(lines.sourceCrs().mapUnits())
+
+        b, status = self.check_if_layer_not_none_or_invalid(lines)
+        if not b:
+            self.alert_box(f"Line layer {status}", "The layer is missing or invalid")
+            return False
+
+        b, status = self.check_if_layer_not_none_or_invalid(points)
+        if not b:
+            self.alert_box(f"Line layer {status}", "The layer is missing or invalid")
+            return False
+
+
+
+        lines_is_mod =lines.isModified()
+        points_is_mod = points.isModified()
+
+        layers = ""
+        if lines_is_mod:
+            layers += "lines"
+
+        if points_is_mod:
+            if layers == "":
+                layers += "points"
+            else:
+                layers += " and points"
+
+
+
+        if lines.isModified() or points.isModified():
+            dlg = QMessageBox()
+            dlg.setWindowTitle("Unsaved changes")
+            dlg.setText(f"Input layer(s) \"{layers}\" have unsaved changes. Click ok to save and proceed with map creation")
+            dlg.setStandardButtons(QMessageBox.Save | QMessageBox.Cancel)
+            button = dlg.exec()
+
+
+
+            if button == QMessageBox.Save:
+                lines.commitChanges(False)
+                points.commitChanges(False)
+                return True
+            else:
+                return False
+
+        return True
 
     def recompute_map(self):
         from .mappy_utis import collect_parameters
@@ -176,11 +284,13 @@ class Mappy:
 
         from qgis import processing
 
-        self.check_input_units(pars)
+        if not self.check_input_pars(pars):
+            return
 
         ofile = pars["output"]
         olayername = pars["out_polygons_layer_name"]
         o_cont_name = pars["out_contacts_layer_name"]
+
 
         args = {"IN_LINES": pars["lines"],
                 "IN_POINTS": pars["points"],
@@ -215,6 +325,9 @@ class Mappy:
         self.write_layer_to_gpkg(layer, ofile, olayername)
         self.load_layer_if_not_loaded(ofile, olayername, field_style=pars["units_field"])
 
+
+
+
         if pars["generate_clean_contacts"]:
             opts = {'Extenddistance': 0, 'PrecisionjoinBuffer': 0.001,
                     'contacts': pars["lines"],
@@ -222,9 +335,36 @@ class Mappy:
                     'OUTPUT': 'TEMPORARY_OUTPUT'}
             layer = processing.run("mappy:removedangles", opts)["OUTPUT"]
             self.write_layer_to_gpkg(layer, ofile, o_cont_name)
-            self.load_layer_if_not_loaded(ofile, o_cont_name, None)
+            layer = self.load_layer_if_not_loaded(ofile, o_cont_name, None)
 
-    def load_layer_if_not_loaded(self, gpkgfile, layername, field_style=None):
+            if pars["copyoverlinestyle"]:
+                print("copying layer style for lines")
+                layer: QgsVectorLayer
+                linelayer: QgsVectorLayer = pars["lines"]
+                # renderer: QgsFeatureRenderer = linelayer.renderer()
+
+                # newrend = type(linelayer.renderer())()
+
+                newrend = linelayer.renderer().clone() # we clone the renderer
+                # renderer.copyRendererData(newrend)
+
+                layer.setRenderer(newrend)
+
+                # print(f"new renderer {newrend}")
+
+                # iface.layerTreeView().refreshLayerSymbology(layer.id())
+
+                # layer.rendererChanged.emit()
+                # layer.dataSourceChanged.emit()
+                #
+                # layer.triggerRepaint()
+
+                # print(f"on layer {layer.name()}")
+
+                # layerTreeView().refreshLayerSymbology(vlayer.id())
+
+
+    def load_layer_if_not_loaded(self, gpkgfile, layername, field_style=None) -> QgsVectorLayer:
         l: QgsVectorLayer = self.findLayer(gpkgfile, layername)
         if l is None:
             l = self.addLayerFromGeopackage(gpkgfile, layername)
@@ -232,9 +372,13 @@ class Mappy:
             l.dataProvider().reloadData()
             l.triggerRepaint()
 
+        l.setReadOnly()
+
         if field_style:
             from .mappy_utis import resetCategoriesIfNeeded
             resetCategoriesIfNeeded(l, field_style)
+
+        return l
 
     def write_layer_to_gpkg(self, layer, gpkgfile, layername):
         options = QgsVectorFileWriter.SaveVectorOptions()

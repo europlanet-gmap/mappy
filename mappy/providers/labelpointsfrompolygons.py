@@ -11,7 +11,7 @@ from qgis.utils import iface
 from qgis.PyQt.QtGui import QIcon
 from qgis import processing
 
-from ..utils import resetCategoriesIfNeeded
+
 from .MappyProcessingAlgorithm import MappyProcessingAlgorithm
 
 
