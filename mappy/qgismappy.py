@@ -198,7 +198,7 @@ class Mappy:
         else:
             status = "ok"
 
-        if status is not "ok":
+        if status != "ok":
             return False, status
         else:
             return True, status
