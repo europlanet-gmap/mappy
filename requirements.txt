@@ -3,4 +3,3 @@ pytest_dependency
 markdown
 pb-tool
 m2r2
-pyuic5-tool
