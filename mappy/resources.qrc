@@ -4,6 +4,9 @@
         <file>icons/mapconstruction.png</file>
         <file>icons/mapstyle.png</file>
         <file>icons/dangles.png</file>
+        <file>icons/create_points.png</file>
+        <file>icons/settings.png</file>
+        <file>icons/reload.png</file>
         <file>INFO.html</file>
     </qresource>
 </RCC>

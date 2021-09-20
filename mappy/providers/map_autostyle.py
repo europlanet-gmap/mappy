@@ -9,7 +9,6 @@ from qgis.utils import iface
 
 from qgis.PyQt.QtGui import QIcon
 
-from ..utils import resetCategoriesIfNeeded
 from .MappyProcessingAlgorithm import MappyProcessingAlgorithm
 
 
@@ -68,13 +67,13 @@ class MapAutoStyleProcessingAlgorithm(MappyProcessingAlgorithm):
             )
         )
 
-        self.addParameter(
-            QgsProcessingParameterBoolean(
-                self.STYLE_UNASSIGNED,
-                self.tr('Create category also for unassigned polygons'),
-                defaultValue=True, optional=False
-            )
-        )
+        # self.addParameter(
+        #     QgsProcessingParameterBoolean(
+        #         self.STYLE_UNASSIGNED,
+        #         self.tr('Create category also for unassigned polygons'),
+        #         defaultValue=True, optional=False
+        #     )
+        # )
 
 
     def processAlgorithm(self, parameters, context, feedback):
@@ -85,10 +84,11 @@ class MapAutoStyleProcessingAlgorithm(MappyProcessingAlgorithm):
         )
 
         fieldname = self.parameterAsString(parameters, self.CAT_FIELD, context)
-        unassigned = self.parameterAsBool(parameters, self.STYLE_UNASSIGNED, context)
+        # unassigned = self.parameterAsBool(parameters, self.STYLE_UNASSIGNED, context)
         feedback.pushInfo(f"field used is {fieldname}")
 
-        from ..utils import resetCategoriesIfNeeded
-        resetCategoriesIfNeeded(polygons_layer, fieldname, unassigned=unassigned)
+        from ..mappy_utis import resetCategoriesIfNeeded
+        # resetCategoriesIfNeeded(polygons_layer, fieldname, unassigned=unassigned)
+        resetCategoriesIfNeeded(polygons_layer, fieldname)
         return {}
 

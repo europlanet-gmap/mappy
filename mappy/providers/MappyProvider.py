@@ -14,7 +14,7 @@ from .removedangles import RemoveDangles
 from .labelpointsfrompolygons import LabelPointsFromPolygonsProcessingAlgorithm
 
 
-class Provider(QgsProcessingProvider):
+class MappyProvider(QgsProcessingProvider):
     """
     The Mappy provider for QGIS processing framework
     """

@@ -11,7 +11,7 @@ from qgis.utils import iface
 from qgis.PyQt.QtGui import QIcon
 from qgis import processing
 
-from ..utils import resetCategoriesIfNeeded
+
 from .MappyProcessingAlgorithm import MappyProcessingAlgorithm
 
 
@@ -21,7 +21,7 @@ class LabelPointsFromPolygonsProcessingAlgorithm(MappyProcessingAlgorithm):
     """
 
     def icon(self):
-        return QIcon(':/plugins/qgismappy/icons/mapstyle.png')
+        return QIcon(':/plugins/qgismappy/icons/create_points.png')
 
     INPUT = "IN_LAYER"
     TOLERANCE = "TOLERANCE"

@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="174.6246mm"
    height="59.290806mm"
    viewBox="0 0 174.6246 59.290805"
    version="1.1"
    id="svg8"
-   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
-   sodipodi:docname="drawing.svg">
+   inkscape:version="1.1 (c4e8f9ed74, 2021-05-24)"
+   sodipodi:docname="drawing.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <defs
      id="defs2">
     <clipPath
@@ -71,24 +71,25 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.27970766"
-     inkscape:cx="305.93868"
-     inkscape:cy="386.70781"
+     inkscape:zoom="0.39556637"
+     inkscape:cx="549.84452"
+     inkscape:cy="329.90671"
      inkscape:document-units="mm"
-     inkscape:current-layer="g2254"
+     inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
      showgrid="false"
      inkscape:window-width="1920"
-     inkscape:window-height="1015"
+     inkscape:window-height="991"
      inkscape:window-x="0"
-     inkscape:window-y="28"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
      inkscape:snap-global="false"
      fit-margin-top="0"
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     showborder="false" />
+     showborder="false"
+     inkscape:pagecheckerboard="0" />
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -97,7 +98,6 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -201,7 +201,10 @@
        id="g866"
        clip-path="none" />
     <g
-       id="g1179">
+       id="g1179"
+       inkscape:export-filename="/home/luca/Code/mappy.git/documents/imgs/errors.png"
+       inkscape:export-xdpi="299.92947"
+       inkscape:export-ydpi="299.92947">
       <g
          clip-path="url(#clipPath1153)"
          id="g1106">
@@ -278,7 +281,10 @@
     </g>
     <g
        id="g1196"
-       transform="translate(-0.8122324)">
+       transform="translate(-0.8122324)"
+       inkscape:export-filename="/home/luca/Code/mappy.git/documents/imgs/errors.png"
+       inkscape:export-xdpi="299.92947"
+       inkscape:export-ydpi="299.92947">
       <g
          transform="translate(-22.102787)"
          clip-path="url(#clipPath1149)"
@@ -366,7 +372,10 @@
     </g>
     <g
        id="g1214"
-       transform="translate(-0.28583527)">
+       transform="translate(-0.28583527)"
+       inkscape:export-filename="/home/luca/Code/mappy.git/documents/imgs/errors.png"
+       inkscape:export-xdpi="299.92947"
+       inkscape:export-ydpi="299.92947">
       <g
          transform="translate(-41.270259)"
          clip-path="url(#clipPath1145)"
@@ -459,7 +468,10 @@
     </g>
     <g
        id="g1237"
-       transform="translate(-66.254039)">
+       transform="translate(-66.254039)"
+       inkscape:export-filename="/home/luca/Code/mappy.git/documents/imgs/errors.png"
+       inkscape:export-xdpi="299.92947"
+       inkscape:export-ydpi="299.92947">
       <rect
          style="fill:none;stroke:#000000;stroke-width:0.529;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:5.29;stop-color:#000000"
          id="rect965"
@@ -570,51 +582,6 @@
          id="rect1100"
          style="fill:none;stroke:#000000;stroke-width:0.529;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:5.29;stop-color:#000000" />
     </g>
-    <text
-       id="text1245"
-       y="21.60887"
-       x="46.376049"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.1875px;line-height:1.05;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.154688"
-       xml:space="preserve"><tspan
-         dx="-0.11"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';stroke-width:0.154688"
-         y="21.60887"
-         x="46.376049"
-         id="tspan1243"
-         sodipodi:role="line">a)</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.1875px;line-height:1.05;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.154688"
-       x="99.212845"
-       y="21.60887"
-       id="text1249"><tspan
-         sodipodi:role="line"
-         id="tspan1247"
-         x="99.212845"
-         y="21.60887"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';stroke-width:0.154688">b)</tspan></text>
-    <text
-       id="text1253"
-       y="21.60887"
-       x="152.04964"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.1875px;line-height:1.05;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.154688"
-       xml:space="preserve"><tspan
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';stroke-width:0.154688"
-         y="21.60887"
-         x="152.04964"
-         id="tspan1251"
-         sodipodi:role="line">c)</tspan></text>
-    <text
-       id="text1261"
-       y="21.60887"
-       x="204.88646"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.1875px;line-height:1.05;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.154688"
-       xml:space="preserve"><tspan
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';stroke-width:0.154688"
-         y="21.60887"
-         x="204.88646"
-         id="tspan1259"
-         sodipodi:role="line">d)</tspan></text>
     <path
        inkscape:export-ydpi="72.730003"
        inkscape:export-xdpi="72.730003"
@@ -1446,5 +1413,61 @@
          x="206.26976"
          sodipodi:role="line"
          id="tspan2244" /></text>
+    <text
+       inkscape:export-ydpi="299.92947"
+       inkscape:export-xdpi="299.92947"
+       id="text1130"
+       y="20.321552"
+       x="37.73217"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"
+       inkscape:export-filename="/home/luca/Code/mappy.git/documents/imgs/errors.png"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.29167px;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';stroke-width:0.264583"
+         y="20.321552"
+         x="37.73217"
+         id="tspan1128"
+         sodipodi:role="line">Correct</tspan></text>
+    <text
+       inkscape:export-ydpi="299.92947"
+       inkscape:export-xdpi="299.92947"
+       id="text1732"
+       y="20.321552"
+       x="92.174988"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"
+       inkscape:export-filename="/home/luca/Code/mappy.git/documents/imgs/errors.png"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.29167px;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';stroke-width:0.264583"
+         y="20.321552"
+         x="92.174988"
+         id="tspan1730"
+         sodipodi:role="line">Sliver</tspan></text>
+    <text
+       inkscape:export-ydpi="299.92947"
+       inkscape:export-xdpi="299.92947"
+       id="text1736"
+       y="20.321552"
+       x="143.46661"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"
+       inkscape:export-filename="/home/luca/Code/mappy.git/documents/imgs/errors.png"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.29167px;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';stroke-width:0.264583"
+         y="20.321552"
+         x="143.46661"
+         id="tspan1734"
+         sodipodi:role="line">Overlap</tspan></text>
+    <text
+       inkscape:export-ydpi="299.92947"
+       inkscape:export-xdpi="299.92947"
+       id="text1740"
+       y="20.321552"
+       x="189.89523"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"
+       inkscape:export-filename="/home/luca/Code/mappy.git/documents/imgs/errors.png"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.29167px;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';stroke-width:0.264583"
+         y="20.321552"
+         x="189.89523"
+         id="tspan1738"
+         sodipodi:role="line">Duplication</tspan></text>
   </g>
 </svg>
