@@ -223,7 +223,9 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def initConstruct(self):
         self.lines.setFilters(QgsMapLayerProxyModel.LineLayer)
         self.points.setFilters(QgsMapLayerProxyModel.PointLayer)
-        self.output.lineEdit().setText(f"{self.getUserHome()}/geomap.gpkg")
+        home = self.getUserHome()
+        initfname = Path(home).joinpath("geomap.gpkg").as_posix()
+        self.output.lineEdit().setText(initfname)
         self.output.setFilter('*.gpkg')
 
     def log_message(self, message, level=0, notifyUser=True):

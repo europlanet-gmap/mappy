@@ -109,7 +109,7 @@ class Mappy:
         import mappy
         from pathlib import Path
         f = Path(mappy.__file__).parent.joinpath("metadata.txt")
-        self.log_message(f"Reading verions from  {f}")
+        self.log_message(f"Reading version from  {f}")
 
         try:
             with open(f) as file:
@@ -117,7 +117,7 @@ class Mappy:
                     if l.startswith("version"):
                         return l.split("=")[1]
         except Exception as e:
-            print("cannot determine version of mappy")
+            self.log_message("cannot determine version of mappy")
 
     def log_message(self, message, level=0, notifyUser=True):
         QgsMessageLog.logMessage(message, "Mappy", level, notifyUser)
@@ -381,8 +381,15 @@ class Mappy:
         return l
 
     def write_layer_to_gpkg(self, layer, gpkgfile, layername):
+        self.log_message(f"Writing layer {layer} to file {gpkgfile} with layername {layername}")
+
         options = QgsVectorFileWriter.SaveVectorOptions()
-        options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
+        from pathlib import Path
+        if Path(gpkgfile).exists():
+            options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
+        else:
+            options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteFile
+
         # to get rid of spaces in the layer name
         options.layerName = layername
         context = QgsProject.instance().transformContext()

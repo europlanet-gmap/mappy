@@ -21,7 +21,7 @@
     <item row="0" column="0">
      <widget class="QTabWidget" name="tab">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_settings">
        <attribute name="title">
@@ -112,7 +112,11 @@
             </widget>
            </item>
            <item row="0" column="1">
-            <widget class="QgsFileWidget" name="output"/>
+            <widget class="QgsFileWidget" name="output">
+             <property name="storageMode">
+              <enum>QgsFileWidget::SaveFile</enum>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>
