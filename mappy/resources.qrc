@@ -7,6 +7,7 @@
         <file>icons/create_points.png</file>
         <file>icons/settings.png</file>
         <file>icons/reload.png</file>
+        <file>icons/download.png</file>
         <file>INFO.html</file>
     </qresource>
 </RCC>

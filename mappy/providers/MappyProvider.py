@@ -12,14 +12,14 @@ from .remove_scaling_from_crs import RemoveScalingFromCrs
 from .addselfintersectionpoints import AddSelfIntersectionPoints
 from .removedangles import RemoveDangles
 from .labelpointsfrompolygons import LabelPointsFromPolygonsProcessingAlgorithm
-
+from .download_symbology import DownloadSymbology
 
 class MappyProvider(QgsProcessingProvider):
     """
     The Mappy provider for QGIS processing framework
     """
     def loadAlgorithms(self, *args, **kwargs):
-        print("LOADING")
+
         self.addAlgorithm(MapConstructionProcessingAlgorithm())
         self.addAlgorithm(MapAutoStyleProcessingAlgorithm())
         self.addAlgorithm(RemoveDuplicateSegmentsProcessingAlgorithm())
@@ -27,6 +27,7 @@ class MappyProvider(QgsProcessingProvider):
         self.addAlgorithm(RemoveDangles())
         self.addAlgorithm(RemoveScalingFromCrs())
         self.addAlgorithm(LabelPointsFromPolygonsProcessingAlgorithm())
+        self.addAlgorithm(DownloadSymbology())
 
         # useful during dev
         # self.load_models_as_algorithms()
