@@ -383,17 +383,8 @@ class Mappy:
     def write_layer_to_gpkg(self, layer, gpkgfile, layername):
         self.log_message(f"Writing layer {layer} to file {gpkgfile} with layername {layername}")
 
-        options = QgsVectorFileWriter.SaveVectorOptions()
-        from pathlib import Path
-        if Path(gpkgfile).exists():
-            options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
-        else:
-            options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteFile
-
-        # to get rid of spaces in the layer name
-        options.layerName = layername
-        context = QgsProject.instance().transformContext()
-        QgsVectorFileWriter.writeAsVectorFormatV2(layer, gpkgfile, context, options)
+        from .mappy_utils import write_layer_to_gpkg2
+        write_layer_to_gpkg2(layer, gpkgfile, layername)
 
     def findLayer(self, gpkg, layer_name):
         gpkg = os.path.abspath(gpkg)
@@ -410,10 +401,9 @@ class Mappy:
         return None
 
     def addLayerFromGeopackage(self, gpkgfile, layer_name, categories_field=None):
-        gpkgfile += f"|layername={layer_name}"
-        l = QgsVectorLayer(gpkgfile)
-        l.setName(layer_name)
-        QgsProject.instance().addMapLayer(l)
+        from .mappy_utils import add_layer_from_geopackage
+        l = add_layer_from_geopackage(gpkgfile, layer_name, categories_field=None)
+
 
         # if categories_field is not None:
         #     self.resetCategoriesIfNeeded(l, categories_field)

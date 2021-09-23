@@ -98,9 +98,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.49497475"
-     inkscape:cx="2815.2951"
-     inkscape:cy="309.10668"
+     inkscape:zoom="0.9899495"
+     inkscape:cx="3729.9882"
+     inkscape:cy="250.51783"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -536,5 +536,18 @@
        inkscape:export-filename="/home/luca/Code/mappy.git/mappy/icons/download.png"
        inkscape:export-xdpi="300.01001"
        inkscape:export-ydpi="300.01001" />
+    <g
+       aria-label="+"
+       id="text2019"
+       style="font-size:10.5833px;line-height:1.25;letter-spacing:0px;word-spacing:0px;fill:#729fcf;fill-opacity:1;stroke-width:0.264583"
+       transform="matrix(9.8184298,0,0,9.8184298,-9169.8344,-730.81103)"
+       inkscape:export-filename="/home/luca/Code/mappy.git/mappy/icons/new_project.png"
+       inkscape:export-xdpi="300.01001"
+       inkscape:export-ydpi="300.01001">
+      <path
+         d="m 1037.7867,80.033148 v 2.878368 h 2.8784 v 0.878497 h -2.8784 v 2.878368 h -0.8681 v -2.878368 h -2.8784 v -0.878497 h 2.8784 v -2.878368 z"
+         id="path2585"
+         style="fill:#729fcf;fill-opacity:1" />
+    </g>
   </g>
 </svg>

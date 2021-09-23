@@ -1,0 +1,131 @@
+from pathlib import Path
+
+from PyQt5.QtCore import QSettings
+from qgis.PyQt.QtGui import QIcon
+from qgis._core import QgsProcessingParameterFolderDestination, QgsProcessingFeedback, QgsStyle, \
+    QgsProcessingParameterString, QgsApplication, QgsProcessingParameterCrs, QgsVectorLayer, QgsField, \
+    QgsProcessingAlgorithm, QgsProject
+from qgis.PyQt.QtCore import QVariant
+
+from .MappyProcessingAlgorithm import MappyProcessingAlgorithm
+
+from pathlib import Path
+
+
+class QuickProjectSetup(MappyProcessingAlgorithm):
+    """Quick download planetary geology symbology"""
+
+    def initAlgorithm(self, config=None):
+
+        pars = []
+        pars.append(QgsProcessingParameterString("ProjectName", "Name of the project", defaultValue="Map"))
+        pars.append(QgsProcessingParameterFolderDestination("OutFolder", "Folder to store your project in",
+                                                            defaultValue=Path.home().joinpath(
+                                                                "Mapping Projects").as_posix()))
+
+        pars.append(QgsProcessingParameterCrs("CRS", "Project Reference System", defaultValue=None))
+
+        for p in pars:
+            self.addParameter(p)
+
+    def next_step(self):
+        self.feedback.setCurrentStep(self.current_step)
+        self.current_step += 1
+        if self.feedback.isCanceled():
+            return True
+
+    def ensureDir(self, dir, model_feedback):
+        if not Path(dir).exists():
+            Path(dir).mkdir(parents=True)
+            model_feedback.pushCommandInfo(f"Created folder {dir}")
+
+    def processAlgorithm(self, parameters, context, model_feedback: QgsProcessingFeedback):
+
+        project_name = parameters["ProjectName"]
+
+        if parameters["OutFolder"] == "TEMPORARY_OUTPUT":
+            import tempfile
+            parameters["OutFolder"] = tempfile.gettempdir()
+
+        ofolder = Path(parameters["OutFolder"]).joinpath(project_name)
+        crs = parameters["CRS"]
+
+        vector_folder = ofolder.joinpath("vector")
+        vector_file = vector_folder.joinpath(project_name.lower()).with_suffix(".gpkg")
+
+        model_feedback.pushCommandInfo(f"Setting up project {project_name} in folder {ofolder}")
+
+        model_feedback.pushCommandInfo(
+            f"Vector files will be located in folder {vector_folder} (file will be {vector_file})")
+
+        self.ensureDir(ofolder, model_feedback)
+        self.ensureDir(vector_folder, model_feedback)
+
+        # vl = QgsVectorLayer("Point", "source_indicators", "memory")
+
+        pts_fields = [["unit_name", QVariant.String]]
+        line_fields = [["certainty", QVariant.String]]
+
+        self.generate_and_load_geopackage_layer(vector_file.as_posix(), crs, type="Point", name="source_indicators",
+                                                fields=pts_fields)
+        self.generate_and_load_geopackage_layer(vector_file.as_posix(), crs, type="Linestring", name="source_contacts",
+                                                fields=line_fields)
+
+
+
+        proj = QgsProject.instance()
+        proj.write(ofolder.joinpath(project_name).with_suffix(".qgz").as_posix())
+
+        return {}
+
+    def generate_and_load_geopackage_layer(self, gpkg_file, crs=None, type="Point", name="source_indicators",
+                                           fields=dict(name="unit_name", type=QVariant.String)):
+        vl = QgsVectorLayer(type, name, "memory")
+
+        pr = vl.dataProvider()
+
+        for field in fields:
+            pr.addAttributes([QgsField(field[0], field[1])])
+        vl.updateFields()
+        if crs is not None:
+            vl.setCrs(crs)
+
+        from mappy.mappy_utils import write_layer_to_gpkg2, add_layer_from_geopackage
+
+        write_layer_to_gpkg2(vl, gpkg_file, name)
+
+        # vector_file = vector_file.as_posix() + f"|layername={vl.name()}"
+        # print(vector_file)
+        # l = QgsVectorLayer(vector_file)
+        # l.setName(vl.name())
+
+        l = add_layer_from_geopackage(gpkg_file, name)
+
+        return l
+
+    def flags(self):
+        """
+        doing this beacuase we are going to interact with qgis main instance. we need to be within the same thread
+        """
+        return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
+
+    def name(self):
+        return 'quickprojectsetup'
+
+    def icon(self):
+        return QIcon(':/plugins/qgismappy/icons/new_project.png')
+
+    def displayName(self):
+        return 'Quick Mapping Project Setup'
+
+    def shortHelpString(self):
+        return self.tr("Helper to quickly setup a new mapping project and start mapping right away")
+
+    def group(self):
+        return 'Mapping'
+
+    def groupId(self):
+        return 'mapping'
+
+    def createInstance(self):
+        return QuickProjectSetup()

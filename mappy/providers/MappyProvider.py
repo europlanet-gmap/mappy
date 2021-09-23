@@ -13,6 +13,7 @@ from .addselfintersectionpoints import AddSelfIntersectionPoints
 from .removedangles import RemoveDangles
 from .labelpointsfrompolygons import LabelPointsFromPolygonsProcessingAlgorithm
 from .download_symbology import DownloadSymbology
+from .quick_project_setup import QuickProjectSetup
 
 class MappyProvider(QgsProcessingProvider):
     """
@@ -28,6 +29,7 @@ class MappyProvider(QgsProcessingProvider):
         self.addAlgorithm(RemoveScalingFromCrs())
         self.addAlgorithm(LabelPointsFromPolygonsProcessingAlgorithm())
         self.addAlgorithm(DownloadSymbology())
+        self.addAlgorithm(QuickProjectSetup())
 
         # useful during dev
         # self.load_models_as_algorithms()

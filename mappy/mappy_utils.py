@@ -96,6 +96,12 @@ def collect_parameters(qt_obj):
 
     return pars
 
+def add_layer_from_geopackage(gpkgfile, layer_name, categories_field=None):
+    gpkgfile += f"|layername={layer_name}"
+    l = QgsVectorLayer(gpkgfile)
+    l.setName(layer_name)
+    QgsProject.instance().addMapLayer(l)
+    return l
 
 def load_mappy_info_text():
     file = QFile(":/plugins/qgismappy/INFO.html")
@@ -112,6 +118,20 @@ def write_layer_to_gpkg(layer, gpkgfile,  layername):
     options.layerName = layername
     context = QgsProject.instance().transformContext()
     QgsVectorFileWriter.writeAsVectorFormatV2(layer, gpkgfile, context, options)
+
+def write_layer_to_gpkg2(layer, gpkgfile, layername):
+
+    options = QgsVectorFileWriter.SaveVectorOptions()
+    from pathlib import Path
+    if Path(gpkgfile).exists():
+        options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
+    else:
+        options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteFile
+
+    # to get rid of spaces in the layer name
+    options.layerName = layername
+    context = QgsProject.instance().transformContext()
+    return QgsVectorFileWriter.writeAsVectorFormatV3(layer, gpkgfile, context, options)
 
 
 def resetCategoriesIfNeeded(layer, units_field):

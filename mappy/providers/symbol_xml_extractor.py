@@ -1,11 +1,9 @@
-# this file is reused from qgis resource manager plugin.
+# this file is reused from qgis resource manager plugin and slightly stripped.
 # unitl planetary symbology is also moved to the resource manager system.
-
 
 from qgis.PyQt.QtXml import QDomDocument
 from qgis.PyQt.QtCore import QFile, QIODevice
 from qgis.core import QgsSymbolLayerUtils, QgsReadWriteContext, QgsProject
-
 
 class SymbolXMLExtractor(object):
     """Parses the given file and returns the symbols and colorramps"""
@@ -17,7 +15,6 @@ class SymbolXMLExtractor(object):
         """
         self._xml_path = xml_path
         self._symbols = []
-        self._colorramps = []
         # Parse the xml to get the symbols and colorramps
         self.parse_xml()
 
@@ -59,15 +56,5 @@ class SymbolXMLExtractor(object):
 
     @property
     def symbols(self):
-        """Return a list of the symbols in the XML file.
-
-        The structure of the property:
-        symbols = [
-            {
-                'name': str
-                'symbol': QgsSymbolV2
-            }
-        ]
-        """
         return self._symbols
 
