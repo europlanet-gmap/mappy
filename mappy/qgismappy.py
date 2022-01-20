@@ -41,7 +41,6 @@ import os.path
 
 
 
-
 class Mappy:
     """QGIS Plugin Implementation."""
 
@@ -395,7 +394,8 @@ class Mappy:
         for name, layer in layers.items():
             luri = layer.dataProvider().dataSourceUri()
 
-            if luri == gpkg:
+            r = os.path.realpath
+            if r(luri) == r(gpkg):
                 return layer
 
         return None
