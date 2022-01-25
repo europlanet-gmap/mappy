@@ -87,7 +87,7 @@ class Mappy:
 
         self.config_dock = MappyDockWidget()
         self.config_dock.closingPlugin.connect(self.close_config)
-        print(f"setting infobox text to {self.info_text}")
+        # print(f"setting infobox text to {self.info_text}")
         self.config_dock.infobox.setHtml(self.info_text)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.config_dock)
 
