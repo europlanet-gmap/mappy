@@ -109,24 +109,24 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             s.connect(getattr(self, slot_name))
 
     def value_changed(self,name,  value):
-        print(f"Detected parameter change in {name} to value {value}")
-        print(name, value)
+        log.debug(f"Detected parameter change in {name} to value {value}")
+        log.debug(name, value)
         proj = QgsProject.instance()
 
         if name =="points":
-            print("points layer were changed")
+            log.debug("points layer were changed")
             self.units_field.setLayer(value)
             points_layer = serialize_value_for_settings(self.get_current_parameter_value(name))
             key = points_layer + "_preferred_field"
-            print("reading from settings")
+            log.debug("reading from settings")
             suggested, good = proj.readEntry("mappy", key)
-            print(f"suggested value {suggested}")
+            log.debug(f"suggested value {suggested}")
             if good:
                 self.units_field: QgsFieldComboBox
                 exists = self.units_field.findText(suggested)
-                print(exists)
+                log.debug(exists)
                 if suggested and exists:
-                    print("----> set back field to previsouly used assignement")
+                    log.debug("----> set back field to previsouly used assignement")
                     self.units_field.setField(suggested)
 
 
@@ -136,23 +136,23 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             points_layer = serialize_value_for_settings(self.get_current_parameter_value("points"))
             key = points_layer + "_preferred_field"
             proj.writeEntry("mappy", key, value)
-            print(f"stored preference to key {key}")
+            log.debug(f"stored preference to key {key}")
 
 
 
         current = self.get_current_parameter_value(name)
-        print(f"CURRENT VALUE {current}")
+        log.debug(f"CURRENT VALUE {current}")
 
         asstring = serialize_value_for_settings(value)
 
         proj.writeEntry("mappy", name, asstring)
-        print("Wrote to settings")
+        log.debug("Wrote to settings")
 
     # def saveSettingsToProject(self):
-    #     print("SAVING SETTINGS CALLED")
+    #     log.debug("SAVING SETTINGS CALLED")
     #     from .mappy_utis import collect_parameters
     #     pars = collect_parameters(self)
-    #     print(f"found pars {pars}")
+    #     log.debug(f"found pars {pars}")
     #
     #     proj = QgsProject.instance()
     #
@@ -164,24 +164,24 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     #         elif type(item) in [bool]:
     #             proj.writeEntryBool("mappy", k, pars[k])
     #         elif type(item in [QgsVectorLayer]):
-    #             print(pars[k].id())
+    #             log.debug(pars[k].id())
     #             proj.writeEntry("mappy", k, pars[k].id())
     #         else:
-    #             print(f"Cannot store value of type {type(item)}")
+    #             log.debug(f"Cannot store value of type {type(item)}")
 
     def restoreSettingsFromProject(self):
 
-        print("Restoring values from settings")
+        log.debug("Restoring values from settings")
 
         proj = QgsProject.instance()
 
         from .mappy_utils import collect_parameters
         pars = collect_parameters(self)
-        print(f"found pars {pars}")
+        log.debug(f"found pars {pars}")
 
         for k, item in pars.items():
             value, found = proj.readEntry("mappy", k, None)
-            print(f"just read {k}: {value}")
+            log.debug(f"just read {k}: {value}")
             if not found:
                 continue
             ptype = type(pars[k])
@@ -196,7 +196,7 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 l = root.findLayer(pars[k])
                 if l:
                     pars[k] = l.layer()
-                print(f"found layer {l}")
+                log.debug(f"found layer {l}")
 
 
             else:
@@ -207,7 +207,7 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             try:
                 restoreWidgetContent(w, pars[k])
             except Exception as e:
-                print(f"Could not restore the value for the widget from the settings.\n Error: {e}")
+                log.debug(f"Could not restore the value for the widget from the settings.\n Error: {e}")
 
 
 
@@ -215,7 +215,7 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
 
 
-        print(f"resulting pars {pars}")
+        log.debug(f"resulting pars {pars}")
 
     def getUserHome(self):
         return str(Path.home())
@@ -232,21 +232,21 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         QgsMessageLog.logMessage(message, "Mappy", level, notifyUser)
 
     def lines_layerChanged(self, layer):
-        print("LINE LAYER CHANGED")
+        log.debug("LINE LAYER CHANGED")
         if self.lines.currentLayer() != layer:
             self.saveSettingsToProject()
 
     def points_layerChanged(self, layer):
         self.units_field: QgsFieldComboBox
 
-        print("POINT LAYER CHANGED")
+        log.debug("POINT LAYER CHANGED")
 
         if self.units_field.layer() != layer:
             self.units_field.setLayer(layer)
             self.saveSettingsToProject()
 
     def units_field_fieldChanged(self, id):
-        print(f"UNIT FIELD CHANGED to {id}, cfield is {self.units_field.currentField()}")
+        log.debug(f"UNIT FIELD CHANGED to {id}, cfield is {self.units_field.currentField()}")
         if self.units_field.currentField() != id:
             self.saveSettingsToProject()
 

@@ -108,7 +108,7 @@ def load_mappy_info_text():
     file.open(QFile.ReadOnly | QFile.Text)
     stream = QTextStream(file)
     text = stream.readAll()
-    print(f"text {text}")
+    # print(f"text {text}")
     return text
 
 
@@ -131,7 +131,14 @@ def write_layer_to_gpkg2(layer, gpkgfile, layername):
     # to get rid of spaces in the layer name
     options.layerName = layername
     context = QgsProject.instance().transformContext()
-    return QgsVectorFileWriter.writeAsVectorFormatV3(layer, gpkgfile, context, options)
+
+    if hasattr(QgsVectorFileWriter, "writeAsVectorFormatV3"):
+        return QgsVectorFileWriter.writeAsVectorFormatV3(layer, gpkgfile, context, options)
+    else:
+        return QgsVectorFileWriter.writeAsVectorFormatV2(layer, gpkgfile, context, options)
+
+
+
 
 
 def resetCategoriesIfNeeded(layer, units_field):
