@@ -1,4 +1,5 @@
 from qgis.PyQt.QtCore import QCoreApplication
+from qgis.core import QgsApplication
 from qgis.core import QgsProcessingUtils
 from qgis.core import QgsProcessingException, QgsFeatureSink
 from qgis.core import QgsProcessingAlgorithm
@@ -30,6 +31,14 @@ class MappyProcessingAlgorithm(QgsProcessingAlgorithm):
         
 
         return dest_id
+
+    def matchAlgo(self, name):
+        reg = QgsApplication.processingRegistry()
+        found = reg.algorithmById(name)
+        if found:
+            return name
+        else:
+            return "qgis:" + name.split(":")[1]
 
     def tr(self, string):
         """

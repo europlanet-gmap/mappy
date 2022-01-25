@@ -110,13 +110,7 @@ class MapConstructionProcessingAlgorithm(MappyProcessingAlgorithm):
             raise QgsProcessingException(
                 f"Input layer {basename} for input parameter {name} was modified but not saved. Please be sure to save your edits before generating the polygons")
 
-    def matchAlgo(self, name):
-        reg = QgsApplication.processingRegistry()
-        found = reg.algorithmById(name)
-        if found:
-            return name
-        else:
-            return "qgis:" + name.split(":")[1]
+
 
     def processAlgorithm(self, parameters, context, feedback):
         pname = self.matchAlgo("native:polygonize")
