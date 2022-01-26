@@ -6,6 +6,7 @@ from qgis.core import QgsProcessingParameterFeatureSink
 from qgis.core import QgsProcessingParameterVectorLayer
 
 from .MappyProcessingAlgorithm import MappyProcessingAlgorithm
+from ..mappy_utils import matchAlgo
 
 
 class AddSelfIntersectionPoints(MappyProcessingAlgorithm):
@@ -145,7 +146,7 @@ class AddSelfIntersectionPoints(MappyProcessingAlgorithm):
             'INPUT': outputs['Dissolve']['OUTPUT'],
             'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
         }
-        outputs['DropFields'] = processing.run('native:deletecolumn', alg_params, context=context, feedback=feedback,
+        outputs['DropFields'] = processing.run(matchAlgo('native:deletecolumn'), alg_params, context=context, feedback=feedback,
                                                is_child_algorithm=True)
 
         dest_id = self.copy_output_to_sink(parameters, context, outputs['DropFields']["OUTPUT"], "OUTPUT")

@@ -32,13 +32,7 @@ class MappyProcessingAlgorithm(QgsProcessingAlgorithm):
 
         return dest_id
 
-    def matchAlgo(self, name):
-        reg = QgsApplication.processingRegistry()
-        found = reg.algorithmById(name)
-        if found:
-            return name
-        else:
-            return "qgis:" + name.split(":")[1]
+
 
     def tr(self, string):
         """

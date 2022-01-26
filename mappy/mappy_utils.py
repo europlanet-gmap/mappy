@@ -1,12 +1,35 @@
 from qgis.PyQt import Qt
 from qgis.PyQt.QtCore import QFile, QTextStream
 from qgis.PyQt.QtWidgets import QLineEdit, QCheckBox
-from qgis._core import QgsVectorLayer, QgsMapLayer
+from qgis.core import QgsVectorLayer, QgsMapLayer, QgsApplication
 from qgis.core import QgsVectorFileWriter, QgsProject, QgsCategorizedSymbolRenderer, QgsSymbol, QgsRendererCategory
 from qgis.gui import QgsFileWidget
 from qgis.gui import QgsFieldComboBox, QgsDoubleSpinBox, QgsMapLayerComboBox
 
 parameters_widgets = [QgsMapLayerComboBox, QgsFieldComboBox, QgsDoubleSpinBox, QLineEdit, QCheckBox, QgsFileWidget]
+
+
+def hasAlgo(name):
+    reg = QgsApplication.processingRegistry()
+    found = reg.algorithmById(name)
+    if found:
+        return True
+    else:
+        return False
+
+def matchAlgo(name):
+    if hasAlgo(name):
+        return name
+    else:
+        newname = "qgis:" + name.split(":")[1]
+        if hasAlgo(newname):
+            return newname
+        else:
+            raise NameError(f"Cannot match algorithm with name {name}. This is possibly due to using this plugin on an older version of QGIS.")
+
+
+
+
 
 def readWidgetContent(widget):
     if isinstance(widget, QgsMapLayerComboBox):
