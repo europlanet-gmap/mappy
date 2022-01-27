@@ -62,7 +62,7 @@ class LabelPointsFromPolygonsProcessingAlgorithm(MappyProcessingAlgorithm):
             QgsProcessingParameterDistance(
                 self.TOLERANCE,
                 self.tr("Tolerance"),
-                defaultValue=1
+                defaultValue=0.01
             )
         )
 

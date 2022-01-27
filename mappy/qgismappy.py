@@ -44,6 +44,8 @@ import os.path
 class Mappy:
     """QGIS Plugin Implementation."""
 
+    instance = None
+
     def __init__(self, iface):
         """Constructor.
 
@@ -94,6 +96,8 @@ class Mappy:
         v = self.getVersion()
 
         self.log_message(f"Mappy version: {v}")
+
+        Mappy.instance = self
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):

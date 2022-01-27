@@ -4,12 +4,14 @@ from PyQt5.QtCore import QSettings
 from qgis.PyQt.QtGui import QIcon
 from qgis._core import QgsProcessingParameterFolderDestination, QgsProcessingFeedback, QgsStyle, \
     QgsProcessingParameterString, QgsApplication, QgsProcessingParameterCrs, QgsVectorLayer, QgsField, \
-    QgsProcessingAlgorithm, QgsProject
+    QgsProcessingAlgorithm, QgsProject, QgsProcessingParameterBoolean
 from qgis.PyQt.QtCore import QVariant
 
 from .MappyProcessingAlgorithm import MappyProcessingAlgorithm
 
 from pathlib import Path
+
+from ..mappy_utils import restoreWidgetContent
 
 
 class QuickProjectSetup(MappyProcessingAlgorithm):
@@ -24,6 +26,8 @@ class QuickProjectSetup(MappyProcessingAlgorithm):
                                                                 "Mapping Projects").as_posix()))
 
         pars.append(QgsProcessingParameterCrs("CRS", "Project Reference System", defaultValue=None))
+
+        pars.append(QgsProcessingParameterBoolean("LinearFeaturesLayer", "Create an additional line layer for structural mapping or linear features", defaultValue=True))
 
         for p in pars:
             self.addParameter(p)
@@ -42,6 +46,8 @@ class QuickProjectSetup(MappyProcessingAlgorithm):
     def processAlgorithm(self, parameters, context, model_feedback: QgsProcessingFeedback):
 
         project_name = parameters["ProjectName"]
+
+        create_linear_features_layer = parameters["LinearFeaturesLayer"]
 
         if parameters["OutFolder"] == "TEMPORARY_OUTPUT":
             import tempfile
@@ -71,10 +77,27 @@ class QuickProjectSetup(MappyProcessingAlgorithm):
         self.generate_and_load_geopackage_layer(vector_file.as_posix(), crs, type="Linestring", name="source_contacts",
                                                 fields=line_fields)
 
+        if create_linear_features_layer:
+            structure_fields = [["certainty", QVariant.String], ["type", QVariant.String] ]
+            self.generate_and_load_geopackage_layer(vector_file.as_posix(), crs, type="Linestring", name="linear_features",
+                                                    fields=structure_fields)
 
 
         proj = QgsProject.instance()
         proj.write(ofolder.joinpath(project_name).with_suffix(".qgz").as_posix())
+
+        from mappy.qgismappy import Mappy
+        instance : Mappy = Mappy.instance
+        instance.config_dock.show()
+
+        dock = instance.config_dock
+
+        w = dock.get_widget_by_name("output")
+        restoreWidgetContent(w, vector_file)
+
+        w = dock.get_widget_by_name("units_field")
+        restoreWidgetContent(w, "unit_name")
+
 
         return {}
 

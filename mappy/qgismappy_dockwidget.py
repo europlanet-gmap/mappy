@@ -38,6 +38,8 @@ from qgis.core import QgsProject, QgsMapLayerProxyModel, QgsSymbol, QgsRendererC
 
 import logging as log
 
+# log.getLogger().setLevel(log.DEBUG)
+
 from pathlib import Path
 
 
@@ -110,7 +112,6 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def value_changed(self,name,  value):
         log.debug(f"Detected parameter change in {name} to value {value}")
-        log.debug(name, value)
         proj = QgsProject.instance()
 
         if name =="points":
