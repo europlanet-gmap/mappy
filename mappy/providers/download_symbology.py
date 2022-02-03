@@ -43,7 +43,7 @@ class DownloadSymbology(MappyProcessingAlgorithm):
         full_svg_path = s.joinpath(default_svg_path).as_posix()
 
         svg_paths = QSettings().value('svg/searchPathsForSVG')
-        if full_svg_path in svg_paths:
+        if svg_paths and full_svg_path in svg_paths:
             model_feedback.pushCommandInfo(f"svg path {full_svg_path} is already present in the settings")
         else:
             model_feedback.pushCommandInfo(f"Adding svg path {full_svg_path} to the settings")
