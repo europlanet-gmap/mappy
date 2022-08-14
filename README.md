@@ -11,7 +11,7 @@ maps starting from contacts and points.
 
 The algorithms are provided in the form of ```processing``` tools (look for mappy in the qgis toolbox). 
 
-More info on the basic idea [here](documents/README.md) and see also the [tutorial](documents/mappy.md).
+More info on the basic idea [here](docs/source/geological_mapping.md) and see also the [tutorial](docs/source/providers.md).
 
 
 # Install

@@ -15,6 +15,8 @@ from .labelpointsfrompolygons import LabelPointsFromPolygonsProcessingAlgorithm
 from .download_symbology import DownloadSymbology
 from .quick_project_setup import QuickProjectSetup
 
+from .import_polygons import ImportPolgonalMap
+
 class MappyProvider(QgsProcessingProvider):
     """
     The Mappy provider for QGIS processing framework
@@ -30,6 +32,7 @@ class MappyProvider(QgsProcessingProvider):
         self.addAlgorithm(LabelPointsFromPolygonsProcessingAlgorithm())
         self.addAlgorithm(DownloadSymbology())
         self.addAlgorithm(QuickProjectSetup())
+        self.addAlgorithm(ImportPolgonalMap())
 
         # useful during dev
         # self.load_models_as_algorithms()
