@@ -1,7 +1,7 @@
 # Mappy QGIS plugin
 
 
-[![Doc Status](https://readthedocs.org/projects/mappy/badge/?version=latest)](https://mappy.readthedocs.io/en/latest/?badge=latest)
+[![Doc Status](https://readthedocs.org/projects/mappy/badge/?version=master)](https://mappy.readthedocs.io/en/master/?badge=master)
 [![Pre Release Build](https://github.com/europlanet-gmap/mappy/actions/workflows/pre-release.yml/badge.svg)](https://github.com/europlanet-gmap/mappy/actions/workflows/pre-release.yml)
 
 
