@@ -21,6 +21,9 @@
  *                                                                         *
  ***************************************************************************/
 """
+from PyQt5.QtCore import QUrl
+from PyQt5.QtGui import QDesktopServices
+from qgis.utils import showPluginHelp
 
 from .resources import * # DO NOT DELETE
 from qgis.PyQt.QtWidgets import QMessageBox
@@ -181,7 +184,19 @@ class Mappy:
             callback=self.recompute_map,
             parent=self.iface.mainWindow())
 
+
+        icon_path = None
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Online Help'),
+            callback=self.openHelp,
+            parent=self.iface.mainWindow())
+
         self.initProcessing()
+
+
+    def openHelp(self):
+        QDesktopServices.openUrl(QUrl("https://mappy.readthedocs.io"))
 
     def toggle_config_dock(self):
         if self.config_dock.isVisible():
