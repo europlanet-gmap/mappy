@@ -1,9 +1,8 @@
 # Mappy QGIS plugin
 
-|build_status| |docs|
 
-
-[![Pre Release](https://github.com/europlanet-gmap/mappy/actions/workflows/pre-release.yml/badge.svg)](https://github.com/europlanet-gmap/mappy/actions/workflows/pre-release.yml)
+[![Doc Status](https://readthedocs.org/projects/mappy/badge/?version=latest)](https://mappy.readthedocs.io/en/latest/?badge=latest)
+[![Pre Release Build](https://github.com/europlanet-gmap/mappy/actions/workflows/pre-release.yml/badge.svg)](https://github.com/europlanet-gmap/mappy/actions/workflows/pre-release.yml)
 
 
 
@@ -49,14 +48,4 @@ Download it from [Releases](https://github.com/europlanet-gmap/mappy/releases) a
 
 In case of troubles just drop an issue here on github!
 
-
-.. |docs| image:: https://readthedocs.org/projects/mappy/badge/?version=latest
-    :alt: Documentation Status
-    :scale: 100%
-    :target: https://mappy.readthedocs.io/en/latest/?badge=latest
-
-.. |build_status| image:: https://github.com/europlanet-gmap/mappy/actions/workflows/pre-release.yml/badge.svg
-    :alt: Pre-Release Status
-    :scale: 100%
-    :target: https://github.com/europlanet-gmap/mappy/actions/workflows/pre-release.yml
 
