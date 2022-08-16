@@ -29,6 +29,10 @@ package: clean update-stuff
 tests:
 	cd mappy/tests; \
 	pytest -vs --order-dependencies
+
+
+livedoc:
+	poetry run sphinx-autobuild docs/source docs/build
 	
 
 	
