@@ -15,6 +15,7 @@ pytest-order = "^1.0.1"
 pytest-dependency = "^0.5.1"
 Markdown = "^3.4.1"
 pb-tool = "^3.1.0"
+sphinxcontrib-bibtex = "^2.4.2"
 
 
 [tool.poetry.dev-dependencies]

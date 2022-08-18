@@ -3,7 +3,11 @@
 :::{warning}
 
 This project is under active development. This means it is often updated and
-the documentation might somtimes be out of sync with the plugin itself
+the documentation might somtimes be out of sync with the plugin itself.
+
+Mappy has been developed for teaching purposes and some operations might be 
+computationally intensive on large datasets. This is especially true for the 
+generation of the clean contacts. See also warnings in {ref}`generating_map`.
 
 :::
 
@@ -43,6 +47,7 @@ installing
 quick_start
 geological_mapping
 providers
+citing
 :::
 
 

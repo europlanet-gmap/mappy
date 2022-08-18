@@ -21,15 +21,20 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
     'myst_parser',
-    'sphinx.ext.autosectionlabel'
-    # 'numfig'
+    'sphinx.ext.autosectionlabel',
+    'sphinxcontrib.bibtex'
 ]
+
+bibtex_bibfiles = ['biblio.bib']
 
 myst_enable_extensions = [
   "colon_fence",
   "dollarmath"
 ]
 
+
+bibtex_encoding = 'utf-8-sig'
+bibtex_default_style = 'unsrt'
 
 source_suffix = ['.rst', '.md']
 numfig = True
