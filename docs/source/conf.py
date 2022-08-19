@@ -2,7 +2,7 @@
 
 # -- Project information
 
-import sys, regex
+import sys, re
 sys.path.append("../")
 
 project = 'Mappy'
@@ -13,7 +13,7 @@ author = 'Luca Penasa'
 def read_version(metadata_file = "../../mappy/metadata.txt"):
     with open(metadata_file, "r") as f:
         t = f.read()
-    m = regex.match(r"(?s).*version=([0-9\\.]*)(?s).*", t)
+    m = re.match(r"(?s).*version=([0-9\\.]*)(?s).*", t)
     return m.group(1)
 
 release = read_version()
