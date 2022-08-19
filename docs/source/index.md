@@ -21,7 +21,7 @@ team of the JUICE mission (ASI-INAF 2018-25-HH.0).
 **Mappy**  is a QGIS plugin that simplify some useful operations needed to
 create geological maps by the point-and-contacts principle:
 
-:::{figure} imgs/drawing.svg
+:::{figure} imgs/drawing.png
 :align: center
 :width: 90%
 :::
@@ -40,7 +40,7 @@ and to generate your maps by calling the appropriate algorithms from the
 toolbox.
 Find out more in the {doc}`providers` section.
 
-## Contents
+## Documentation
 
 :::{toctree}
 installing

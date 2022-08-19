@@ -2,15 +2,25 @@
 
 # -- Project information
 
-import sys
+import sys, regex
 sys.path.append("../")
 
 project = 'Mappy'
 copyright = 'Luca Penasa, PLANMAP and GMAP team'
 author = 'Luca Penasa'
 
-release = '0.1'
-version = '0.1.4'
+
+def read_version(metadata_file = "../../mappy/metadata.txt"):
+    with open(metadata_file, "r") as f:
+        t = f.read()
+    m = regex.match(r"(?s).*version=([0-9\\.]*)(?s).*", t)
+    return m.group(1)
+
+release = read_version()
+version = '.'.join(release.split(".")[:2]) # only major v.
+
+print(f"Release {release}")
+print(f"Version {version}")
 
 # -- General configuration
 
@@ -33,6 +43,8 @@ myst_enable_extensions = [
 ]
 
 
+
+
 bibtex_encoding = 'utf-8-sig'
 bibtex_default_style = 'unsrt'
 
@@ -53,3 +65,33 @@ html_theme = 'sphinx_rtd_theme'
 
 # -- Options for EPUB output
 epub_show_urls = 'footnote'
+
+
+# -- Options for TEX output
+# latex_engine = 'xelatex'
+# latex_use_xindy = False
+#
+#
+# latex_elements = {'preamble': r'''\usepackage{pmboxdraw}''',
+#
+#                   }
+
+
+latex_engine = 'xelatex'
+latex_elements = {
+    'fontpkg': r'''
+\setmainfont{DejaVu Serif}
+\setsansfont{DejaVu Sans}
+\setmonofont{DejaVu Sans Mono}
+''',
+    'preamble': r'''
+\usepackage[titles]{tocloft}
+\cftsetpnumwidth {1.25cm}\cftsetrmarg{1.5cm}
+\setlength{\cftchapnumwidth}{0.75cm}
+\setlength{\cftsecindent}{\cftchapnumwidth}
+\setlength{\cftsecnumwidth}{1.25cm}
+''',
+    'fncychap': r'\usepackage[Bjornstrup]{fncychap}',
+    'printindex': r'\footnotesize\raggedright\printindex',
+}
+latex_show_urls = 'footnote'

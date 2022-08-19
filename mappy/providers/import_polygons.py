@@ -10,8 +10,7 @@ from qgis.core import QgsProcessingMultiStepFeedback
 from qgis.core import QgsProcessingParameterVectorLayer
 from qgis.core import QgsProcessingParameterDistance
 from qgis.core import QgsProcessingParameterFeatureSink
-import processing
-
+from qgis import processing
 from mappy.providers.MappyProcessingAlgorithm import MappyProcessingAlgorithm
 
 

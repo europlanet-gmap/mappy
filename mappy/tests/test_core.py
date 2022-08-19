@@ -102,11 +102,11 @@ class TestCore(ExtendedUnitTesting):
 
     @dep(depends=["points", "lines"])
     def test_save(self):
-        from .utils import save_to_geopackage
+        from .utils import save_to_geopackage2
 
-        o = save_to_geopackage("out.gpkg", Storage.points, "points")
+        o = save_to_geopackage2("out.gpkg", Storage.points, "points")
         print(o)
-        o = save_to_geopackage("out.gpkg", Storage.lines, "lines")
+        o = save_to_geopackage2("out.gpkg", Storage.lines, "lines")
         print(o)
 
 
@@ -119,7 +119,8 @@ class TestCore(ExtendedUnitTesting):
 
         import sys
         sys.path.append("/usr/share/qgis/python/plugins/")
-        import processing
+        from qgis import processing
+        # import processing
         from processing.core.Processing import Processing
         Processing.initialize()
         # QgsApplication.processingRegistry().addProvider(QgsNativeAlgorithms())
@@ -138,8 +139,8 @@ class TestCore(ExtendedUnitTesting):
     def test_map(self):
         n = Storage.map.featureCount()
         self.assertIs(n, 2)
-        from .utils import save_to_geopackage
-        o = save_to_geopackage("out.gpkg", Storage.map, "map")
+        from .utils import save_to_geopackage2
+        o = save_to_geopackage2("out.gpkg", Storage.map, "map")
         self.assertTrue(o[0] == 0)
 
         ff = [Storage.map.getFeature(i)["geo_unit"] for i in [1,2]]

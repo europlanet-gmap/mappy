@@ -66,6 +66,7 @@ use {guilabel}`Layer ► Create Layer ► New Geopackage Layer` or `CTRL+SHIFT+N
 
 :::{figure} imgs/geopackage.png
 :align: center
+:width: 50% 
 
 Creating a new geopackage layer in QGIS with one point layer named ```points```
 , with one field ```geo_units```of type ```Text Data```. Once the geopackage is
@@ -136,6 +137,7 @@ to ease this work (
 
 :::{figure} imgs/forms_example.png
 :align: center
+:width: 100%
 
 Example of attribute form set up with the predefined unit's names (notice you
 can also create them as a CSV file to load).
@@ -150,6 +152,7 @@ dedicated {guilabel}`Attribute form` the dialog will look something like this:
 
 :::{figure} imgs/widget.png
 :align: center
+:width: 80%
 
 Example of Feature Attribute Dialog, customized with a {guilabel}`Value Map`
 field
@@ -182,7 +185,7 @@ Mappy can be accessed through a dedicated toolbar:
 The gear button will toggle the configuration dialog:
 
 :::{figure} imgs/dialog.png
-:width: 400
+:width: 60%
 :align: center
 
 Mappy settings dialog

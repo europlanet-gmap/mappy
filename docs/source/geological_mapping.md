@@ -3,10 +3,10 @@
 **If you are not interested in the theory behind mappy you can skip to
 the [mappy](quick_start) tutorial**
 
-This document delineates some useful guidelines and highligths some common
+This document delineates some useful guidelines and highlights some common
 problems encountered by mappers when approaching a mapping project, with a
-special attention to planetary sciences. Although the disciplice is well
-established the tools used to generate new maps have been progressivly
+special attention to planetary sciences. Although the discipline is well
+established the tools used to generate new maps have been progressively
 digitized thanks to Geographic information Systems (GIS) software.
 
 There are many GIS software available both commercially and open-source. Open
@@ -76,7 +76,7 @@ should be a polygonal layer)  it inherently has several drawbacks:
 - the boundary of the polygons, which represent the contacts, should be
   stylable (e.g. to represent how much certain we are about a contact). This is
   not possible when a polygonal representation. The only solution would be to
-  replicate (again!) the contacts as a new line layer that now must be also
+  duplicate (again!) the contacts as a new line layer that now must be also
   edited whenever the map is updated.
 - the mapper moves much of her/his attention in the polygons generation, rather
   than in the identification of the contacts. Furthermore, the mapper is forced
@@ -128,7 +128,9 @@ issues detailed above:
    certain in some parts and uncertain in others). This is especially important
    for styling the contacts in the final layout.
 
-:::{figure} imgs/drawing.svg
+:::{figure} imgs/drawing.png
+:width: 80%
+:align: center
 
 Creating maps by using lines and points rather than polygons
 :::
