@@ -6,7 +6,7 @@
 name=mappy
 qgisMinimumVersion=3.16
 description=Helper plugin for easy and consistent geological map generation
-version=0.2.1
+version=0.3.0
 author=Luca Penasa, PLANMAP and GMAP team
 email=luca.penasa@gmail.com
 
