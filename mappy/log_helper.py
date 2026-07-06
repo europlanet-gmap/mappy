@@ -1,8 +1,9 @@
+
+from qgis.core import QgsMessageLog, Qgis
+
 import logging
 
-from qgis.core import QgsMessageLog
-
-import logging as log
+log = logging.getLogger("mappy")
 
 
 class QgsLogHandler(logging.StreamHandler):
@@ -14,15 +15,17 @@ class QgsLogHandler(logging.StreamHandler):
     def emit(self, record):
         try:
             msg = self.format(record)
-            QgsMessageLog.logMessage(msg, "Mappy", 0, False)
+            QgsMessageLog.logMessage(msg, "Mappy", Qgis.MessageLevel.Info, False)
             self.flush()
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
             self.handleError(record)
 
-
-prev_handlers = log.handlers
+try:
+    prev_handlers = log.handlers
+except:
+    prev_handlers = []
 
 if len(prev_handlers) == 0:  # when reloading a plugin the python interpreter is the same so we dont want to duplicate
     # logging handlers. Not a clean way to do so, but it is just for development

@@ -5,6 +5,7 @@
 [general]
 name=mappy
 qgisMinimumVersion=3.16
+qgisMaximumVersion=4.99
 description=Helper plugin for easy and consistent geological map generation
 version=v0.3.2
 author=Luca Penasa, PLANMAP and GMAP team

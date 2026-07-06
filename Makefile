@@ -28,7 +28,7 @@ tests:
 	pytest -vs --order-dependencies
 
 livedoc:
-	poetry run sphinx-autobuild docs/source docs/build
+	uv run sphinx-autobuild docs/source docs/build
 	
 
 	

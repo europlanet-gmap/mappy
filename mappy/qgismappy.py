@@ -21,8 +21,8 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QDesktopServices
+from qgis.PyQt.QtCore import QUrl
+from qgis.PyQt.QtGui import QDesktopServices
 from qgis.utils import showPluginHelp
 
 from .resources import * # DO NOT DELETE
@@ -32,7 +32,7 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 # Initialize Qt resources from file resources.py
 from qgis.core import QgsVectorFileWriter, QgsProject, QgsVectorLayer,  \
-    QgsFeature, QgsMessageLog
+    QgsFeature, QgsMessageLog, Qgis
 
 
 from .mappy_utils import load_mappy_info_text
@@ -42,7 +42,7 @@ from qgis.core import QgsApplication
 from .providers import MappyProvider
 import os.path
 
-
+from .log_helper import log
 
 class Mappy:
     """QGIS Plugin Implementation."""
@@ -64,7 +64,7 @@ class Mappy:
         self.plugin_dir = os.path.dirname(__file__)
 
         # initialize locale
-        locale = QSettings().value('locale/userLocale')[0:2]
+        locale = (QSettings().value('locale/userLocale') or 'en')[0:2]
         locale_path = os.path.join(
             self.plugin_dir,
             'i18n',
@@ -94,7 +94,7 @@ class Mappy:
         self.config_dock.closingPlugin.connect(self.close_config)
         # print(f"setting infobox text to {self.info_text}")
         self.config_dock.infobox.setHtml(self.info_text)
-        self.iface.addDockWidget(Qt.RightDockWidgetArea, self.config_dock)
+        self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.config_dock)
 
         v = self.getVersion()
 
@@ -125,7 +125,7 @@ class Mappy:
         except Exception as e:
             self.log_message("cannot determine version of mappy")
 
-    def log_message(self, message, level=0, notifyUser=True):
+    def log_message(self, message, level=Qgis.MessageLevel.Info, notifyUser=True):
         QgsMessageLog.logMessage(message, "Mappy", level, notifyUser)
 
 
@@ -246,9 +246,9 @@ class Mappy:
         # points = pars["points"]
         lines: QgsVectorLayer
         points: QgsVectorLayer
-        print("---------->")
-        print(lines.sourceCrs().mapUnits())
-        print(lines.sourceCrs().mapUnits())
+        log.debug("---------->")
+        log.debug(lines.sourceCrs().mapUnits())
+        log.debug(lines.sourceCrs().mapUnits())
 
         b, status = self.check_if_layer_not_none_or_invalid(lines)
         if not b:
@@ -281,12 +281,12 @@ class Mappy:
             dlg = QMessageBox()
             dlg.setWindowTitle("Unsaved changes")
             dlg.setText(f"Input layer(s) \"{layers}\" have unsaved changes. Click ok to save and proceed with map creation")
-            dlg.setStandardButtons(QMessageBox.Save | QMessageBox.Cancel)
+            dlg.setStandardButtons(QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel)
             button = dlg.exec()
 
 
 
-            if button == QMessageBox.Save:
+            if button == QMessageBox.StandardButton.Save:
                 lines.commitChanges(False)
                 points.commitChanges(False)
                 return True
@@ -341,7 +341,10 @@ class Mappy:
             points_layer.triggerRepaint()
 
         self.write_layer_to_gpkg(layer, ofile, olayername)
-        self.load_layer_if_not_loaded(ofile, olayername, field_style=pars["units_field"])
+        self.load_layer_if_not_loaded(
+            ofile, olayername, field_style=pars["units_field"],
+            insert_after=["source_contacts", "source_indicators"],
+        )
 
 
 
@@ -382,10 +385,10 @@ class Mappy:
                 # layerTreeView().refreshLayerSymbology(vlayer.id())
 
 
-    def load_layer_if_not_loaded(self, gpkgfile, layername, field_style=None) -> QgsVectorLayer:
+    def load_layer_if_not_loaded(self, gpkgfile, layername, field_style=None, insert_after=None) -> QgsVectorLayer:
         l: QgsVectorLayer = self.findLayer(gpkgfile, layername)
         if l is None:
-            l = self.addLayerFromGeopackage(gpkgfile, layername)
+            l = self.addLayerFromGeopackage(gpkgfile, layername, insert_after=insert_after)
         else:
             l.dataProvider().reloadData()
             l.triggerRepaint()
@@ -419,9 +422,9 @@ class Mappy:
 
         return None
 
-    def addLayerFromGeopackage(self, gpkgfile, layer_name, categories_field=None):
+    def addLayerFromGeopackage(self, gpkgfile, layer_name, categories_field=None, insert_after=None):
         from .mappy_utils import add_layer_from_geopackage
-        l = add_layer_from_geopackage(gpkgfile, layer_name, categories_field=None)
+        l = add_layer_from_geopackage(gpkgfile, layer_name, categories_field=None, insert_after=insert_after)
 
 
         # if categories_field is not None:

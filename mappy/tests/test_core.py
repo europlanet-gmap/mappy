@@ -3,7 +3,13 @@ from qgis.core import QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsPoin
     QgsVectorFileWriter, QgsApplication
 from qgis.analysis import QgsNativeAlgorithms
 import pytest
-from . import app, ExtendedUnitTesting
+
+from mappy.tests.conftest import qgis_app
+
+
+
+from . import ExtendedUnitTesting
+
 
 dep = pytest.mark.dependency
 
@@ -15,11 +21,23 @@ class Storage:
 
 
 class TestCore(ExtendedUnitTesting):
-
     def test_app(self):
-        self.assertIsNotNone(app, "app is none")
+        self.assertIsNotNone(QgsApplication.instance(), "app is none")
+
+    def test_mappy_plugin_is_loaded(self):
+        import qgis.utils
+        self.assertIn("mappy", qgis.utils.plugins, "mappy plugin not found in qgis.utils.plugins")
+
+    def test_mappy_plugin_path_registered(self):
+        import qgis.utils
+        from pathlib import Path
+        project_root = str(Path(__file__).resolve().parents[2])
+        self.assertIn(project_root, qgis.utils.plugin_paths,
+                      f"{project_root} not in qgis.utils.plugin_paths")
+
 
     def _test_provider_can_be_loaded(self, prov, id):
+        app = QgsApplication.instance()
         app.processingRegistry().addProvider(prov)
 
         r = app.processingRegistry()
@@ -47,6 +65,7 @@ class TestCore(ExtendedUnitTesting):
 
         Storage.providers.append(p)
 
+    @pytest.mark.order(1)
     @dep(name="points")
     def test_point_layer(self):
         vl = QgsVectorLayer("Point", "points", "memory")
@@ -68,6 +87,7 @@ class TestCore(ExtendedUnitTesting):
 
         Storage.points = vl
 
+    @pytest.mark.order(2)
     @dep(name="lines")
     def test_lines_layer(self):
         vl = QgsVectorLayer("linestring", "lines", "memory")
@@ -112,6 +132,7 @@ class TestCore(ExtendedUnitTesting):
 
         self.assertFileExists("out.gpkg")
 
+    @pytest.mark.order(3)
     @dep(name = "mapc",depends=["points", "lines"])
     def test_map_construction(self):
         from qgis.core import QgsApplication, QgsProcessingFeedback
@@ -121,8 +142,6 @@ class TestCore(ExtendedUnitTesting):
         sys.path.append("/usr/share/qgis/python/plugins/")
         from qgis import processing
         # import processing
-        from processing.core.Processing import Processing
-        Processing.initialize()
         # QgsApplication.processingRegistry().addProvider(QgsNativeAlgorithms())
         # from mappy.providers.MappyProvider import MappyProvider
         # QgsApplication.processingRegistry().addProvider(MappyProvider())

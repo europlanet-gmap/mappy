@@ -72,3 +72,7 @@ def classFactory(iface):  # pylint: disable=invalid-name
     return Mappy(iface)
 
 
+
+
+
+print('LOADED FROM CODE: mappy/__init__.py')

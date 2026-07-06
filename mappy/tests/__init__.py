@@ -4,10 +4,6 @@ import unittest
 from qgis.core import QgsApplication
 import os
 from qgis.core import *
-os.environ["QT_QPA_PLATFORM"] = "offscreen"
-QgsApplication.setPrefixPath("/usr", False)
-app = QgsApplication([], False)
-app.initQgis()
 
 class ExtendedUnitTesting(unittest.TestCase):
 

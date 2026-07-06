@@ -1,7 +1,6 @@
-from qgis.PyQt import Qt
 from qgis.PyQt.QtCore import QFile, QTextStream
 from qgis.PyQt.QtWidgets import QLineEdit, QCheckBox
-from qgis.core import QgsVectorLayer, QgsMapLayer, QgsApplication
+from qgis.core import QgsVectorLayer, QgsMapLayer, QgsApplication, QgsLayerTreeLayer
 from qgis.core import QgsVectorFileWriter, QgsProject, QgsCategorizedSymbolRenderer, QgsSymbol, QgsRendererCategory
 from qgis.gui import QgsFileWidget
 from qgis.gui import QgsFieldComboBox, QgsDoubleSpinBox, QgsMapLayerComboBox
@@ -61,7 +60,7 @@ def restoreWidgetContent(widget, value):
 
     elif isinstance(widget, QgsFieldComboBox):
         exists = widget.findText(str(value))
-        if not exists:
+        if exists == -1:
             raise ValueError(f"You are trying to set the widget {widget.name()} to value {value}. but combo box does not contain this value")
 
         widget.setField(str(value))
@@ -119,16 +118,40 @@ def collect_parameters(qt_obj):
 
     return pars
 
-def add_layer_from_geopackage(gpkgfile, layer_name, categories_field=None):
+def insert_layer_after(layer, after_layer_names):
+    """Insert `layer` into the layer tree root, directly after whichever of
+    `after_layer_names` currently sits lowest (last) among the root's direct
+    children. Falls back to the default top-of-tree position if none of those
+    names are present there.
+    """
+    root = QgsProject.instance().layerTreeRoot()
+
+    anchor_index = None
+    for i, child in enumerate(root.children()):
+        if isinstance(child, QgsLayerTreeLayer) and child.name() in after_layer_names:
+            anchor_index = i
+
+    if anchor_index is None:
+        root.insertLayer(0, layer)
+    else:
+        root.insertLayer(anchor_index + 1, layer)
+
+def add_layer_from_geopackage(gpkgfile, layer_name, categories_field=None, insert_after=None):
     gpkgfile += f"|layername={layer_name}"
     l = QgsVectorLayer(gpkgfile)
     l.setName(layer_name)
-    QgsProject.instance().addMapLayer(l)
+
+    if insert_after:
+        QgsProject.instance().addMapLayer(l, False)
+        insert_layer_after(l, insert_after)
+    else:
+        QgsProject.instance().addMapLayer(l)
+
     return l
 
 def load_mappy_info_text():
     file = QFile(":/plugins/qgismappy/INFO.html")
-    file.open(QFile.ReadOnly | QFile.Text)
+    file.open(QFile.OpenModeFlag.ReadOnly | QFile.OpenModeFlag.Text)
     stream = QTextStream(file)
     text = stream.readAll()
     # print(f"text {text}")
@@ -178,9 +201,14 @@ def resetCategoriesIfNeeded(layer, units_field):
 
     id = layer.fields().indexFromName(units_field)
     uniques = list(layer.uniqueValues(id))
+    has_unassigned = None in uniques
     uniques = [u for u in uniques if u is not None]
 
     values = sorted(uniques)
+    if has_unassigned:
+        # catch-all category so polygons with no unit value are still drawn
+        # (QgsCategorizedSymbolRenderer skips features that match no category)
+        values.append(None)
     categories = []
 
     # delete "old/unused categories"
@@ -200,10 +228,20 @@ def resetCategoriesIfNeeded(layer, units_field):
         if not already_in:
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
             from qgis.PyQt.QtCore import Qt
+            from qgis.PyQt.QtGui import QColor
 
-            symbol.symbolLayer(0).setStrokeStyle(Qt.NoPen)
+            if slayer := symbol.symbolLayer(0):
+                slayer.setStrokeStyle(Qt.PenStyle.NoPen)
 
-            category = QgsRendererCategory(value, symbol, str(value))
+            if value is None:
+                symbol.setColor(QColor(200, 200, 200))
+                if slayer and hasattr(slayer, "setBrushStyle"):
+                    slayer.setBrushStyle(Qt.BrushStyle.DiagCrossPattern)
+                label = "Unassigned"
+            else:
+                label = str(value)
+
+            category = QgsRendererCategory(value, symbol, label)
             categories.append(category)
 
     for cat in categories:

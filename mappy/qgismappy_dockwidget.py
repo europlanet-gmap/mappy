@@ -21,11 +21,12 @@
  *                                                                         *
  ***************************************************************************/
 """
+
 import os
 from typing import List, Tuple
 
 import numpy as np
-from PyQt5.QtWidgets import QComboBox
+from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt import QtWidgets, uic, QtCore
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtWidgets import QFileDialog, QLineEdit, QCheckBox
@@ -33,10 +34,16 @@ from qgis._core import QgsMessageLog, QgsExpressionContextUtils
 from qgis._gui import QgsFileWidget
 from qgis.core import QgsCategorizedSymbolRenderer
 from qgis.gui import QgsMapLayerComboBox, QgsFieldComboBox, QgsDoubleSpinBox
-from qgis.core import QgsProject, QgsMapLayerProxyModel, QgsSymbol, QgsRendererCategory, \
-    QgsVectorLayer
+from qgis.core import (
+    QgsProject,
+    QgsMapLayerProxyModel,
+    QgsSymbol,
+    QgsRendererCategory,
+    QgsVectorLayer,
+    Qgis,
+)
 
-import logging as log
+from .log_helper import log
 
 # log.getLogger().setLevel(log.DEBUG)
 
@@ -44,13 +51,16 @@ from pathlib import Path
 
 
 # from qgis.gui import QgsMapLayerComboBox
-from mappy.mappy_utils import getChangeSignal, parameters_widgets, readWidgetContent, serialize_value_for_settings
+from mappy.mappy_utils import (
+    getChangeSignal,
+    parameters_widgets,
+    readWidgetContent,
+    serialize_value_for_settings,
+)
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'qgismappy_dockwidget_base.ui'))
-
-
-
+FORM_CLASS, _ = uic.loadUiType(
+    os.path.join(os.path.dirname(__file__), "qgismappy_dockwidget_base.ui")
+)
 
 
 class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
@@ -71,7 +81,9 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         proj = QgsProject.instance()
         proj.readProject.connect(self.restoreSettingsFromProject)
 
-        self.infobox.setTextInteractionFlags(QtCore.Qt.TextBrowserInteraction)
+        self.infobox.setTextInteractionFlags(
+            QtCore.Qt.TextInteractionFlag.TextBrowserInteraction
+        )
         self.infobox.setOpenExternalLinks(True)
 
         self.connect_widgets()
@@ -102,7 +114,8 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
             def generate_method(name):
                 def call_trigger(self, value):
-                    self.value_changed( name, value)
+                    self.value_changed(name, value)
+
                 return call_trigger
 
             slot_name = f"widget_parameter_{name}_changed"
@@ -110,18 +123,24 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             s = getChangeSignal(w)
             s.connect(getattr(self, slot_name))
 
-    def value_changed(self,name,  value):
-        log.debug(f"Detected parameter change in {name} to value {value}")
+    def value_changed(self, name, value):
+        print(value)
+        log.debug("--------------------------------------------------------------")
+        log.debug(f"Detected parameter change in {name} to value {type(value)}")
+
         proj = QgsProject.instance()
 
-        if name =="points":
-            log.debug("points layer were changed")
-            self.units_field.setLayer(value)
-            points_layer = serialize_value_for_settings(self.get_current_parameter_value(name))
+        if name == "points":
+            log.debug("points layer was changed")
+            points_layer = serialize_value_for_settings(value)
             key = points_layer + "_preferred_field"
             log.debug("reading from settings")
             suggested, good = proj.readEntry("mappy", key)
             log.debug(f"suggested value {suggested}")
+            # setLayer() below makes the field combo auto-pick a default field,
+            # which re-enters value_changed("units_field", ...) synchronously and
+            # would overwrite the stored preference above if read afterwards
+            self.units_field.setLayer(value)
             if good:
                 self.units_field: QgsFieldComboBox
                 exists = self.units_field.findText(suggested)
@@ -130,16 +149,14 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     log.debug("----> set back field to previsouly used assignement")
                     self.units_field.setField(suggested)
 
-
-
         if name == "units_field":
             # we store also this preference for being connected to this specific layer of points
-            points_layer = serialize_value_for_settings(self.get_current_parameter_value("points"))
+            points_layer = serialize_value_for_settings(
+                self.get_current_parameter_value("points")
+            )
             key = points_layer + "_preferred_field"
             proj.writeEntry("mappy", key, value)
-            log.debug(f"stored preference to key {key}")
-
-
+            log.debug(f"stored preference with value {value} to key {key}")
 
         current = self.get_current_parameter_value(name)
         log.debug(f"CURRENT VALUE {current}")
@@ -149,27 +166,6 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         proj.writeEntry("mappy", name, asstring)
         log.debug("Wrote to settings")
 
-    # def saveSettingsToProject(self):
-    #     log.debug("SAVING SETTINGS CALLED")
-    #     from .mappy_utis import collect_parameters
-    #     pars = collect_parameters(self)
-    #     log.debug(f"found pars {pars}")
-    #
-    #     proj = QgsProject.instance()
-    #
-    #     for k, item in pars.items():
-    #         if type(item) in [str, int]:
-    #             proj.writeEntry("mappy", k, pars[k])
-    #         elif type(item) in [np.double, float]:
-    #             proj.writeEntryDouble("mappy", k, pars[k])
-    #         elif type(item) in [bool]:
-    #             proj.writeEntryBool("mappy", k, pars[k])
-    #         elif type(item in [QgsVectorLayer]):
-    #             log.debug(pars[k].id())
-    #             proj.writeEntry("mappy", k, pars[k].id())
-    #         else:
-    #             log.debug(f"Cannot store value of type {type(item)}")
-
     def restoreSettingsFromProject(self):
 
         log.debug("Restoring values from settings")
@@ -177,6 +173,7 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         proj = QgsProject.instance()
 
         from .mappy_utils import collect_parameters
+
         pars = collect_parameters(self)
         log.debug(f"found pars {pars}")
 
@@ -199,22 +196,18 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     pars[k] = l.layer()
                 log.debug(f"found layer {l}")
 
-
             else:
                 raise TypeError(f"cannot convert type {type(value)} to {type(pars[k])}")
 
             from .mappy_utils import restoreWidgetContent
+
             w = self.get_widget_by_name(k)
             try:
                 restoreWidgetContent(w, pars[k])
             except Exception as e:
-                log.debug(f"Could not restore the value for the widget from the settings.\n Error: {e}")
-
-
-
-
-
-
+                log.debug(
+                    f"Could not restore the value for the widget from the settings.\n Error: {e}"
+                )
 
         log.debug(f"resulting pars {pars}")
 
@@ -227,29 +220,10 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         home = self.getUserHome()
         initfname = Path(home).joinpath("geomap.gpkg").as_posix()
         self.output.lineEdit().setText(initfname)
-        self.output.setFilter('*.gpkg')
+        self.output.setFilter("*.gpkg")
 
-    def log_message(self, message, level=0, notifyUser=True):
+    def log_message(self, message, level=Qgis.MessageLevel.Info, notifyUser=True):
         QgsMessageLog.logMessage(message, "Mappy", level, notifyUser)
-
-    def lines_layerChanged(self, layer):
-        log.debug("LINE LAYER CHANGED")
-        if self.lines.currentLayer() != layer:
-            self.saveSettingsToProject()
-
-    def points_layerChanged(self, layer):
-        self.units_field: QgsFieldComboBox
-
-        log.debug("POINT LAYER CHANGED")
-
-        if self.units_field.layer() != layer:
-            self.units_field.setLayer(layer)
-            self.saveSettingsToProject()
-
-    def units_field_fieldChanged(self, id):
-        log.debug(f"UNIT FIELD CHANGED to {id}, cfield is {self.units_field.currentField()}")
-        if self.units_field.currentField() != id:
-            self.saveSettingsToProject()
 
     def closeEvent(self, event):
         self.closingPlugin.emit()

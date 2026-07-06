@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from PyQt5.QtCore import QSettings
+from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtGui import QIcon
 from qgis._core import QgsProcessingParameterFolderDestination, QgsProcessingFeedback, QgsStyle, \
     QgsProcessingParameterString, QgsApplication, QgsProcessingParameterCrs, QgsVectorLayer, QgsField, \
@@ -72,7 +72,7 @@ class QuickProjectSetup(MappyProcessingAlgorithm):
         pts_fields = [["unit_name", QVariant.String]]
         line_fields = [["certainty", QVariant.String]]
 
-        self.generate_and_load_geopackage_layer(vector_file.as_posix(), crs, type="Point", name="source_indicators",
+        indicators_layer = self.generate_and_load_geopackage_layer(vector_file.as_posix(), crs, type="Point", name="source_indicators",
                                                 fields=pts_fields)
         self.generate_and_load_geopackage_layer(vector_file.as_posix(), crs, type="Linestring", name="source_contacts",
                                                 fields=line_fields)
@@ -95,7 +95,17 @@ class QuickProjectSetup(MappyProcessingAlgorithm):
         w = dock.get_widget_by_name("output")
         restoreWidgetContent(w, vector_file)
 
+        w = dock.get_widget_by_name("points")
+        restoreWidgetContent(w, indicators_layer)
+
+        # Setting "points" above triggers the dock's own points->units_field
+        # wiring via a Qt signal, but its delivery isn't guaranteed to be
+        # synchronous in every context (e.g. a live GUI event loop), so don't
+        # rely on it here: bind units_field to the layer directly before
+        # selecting the field, otherwise the combo can end up with no layer
+        # (and thus no fields) bound to it at all.
         w = dock.get_widget_by_name("units_field")
+        w.setLayer(indicators_layer)
         restoreWidgetContent(w, "unit_name")
 
 

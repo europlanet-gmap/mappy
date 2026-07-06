@@ -1,7 +1,7 @@
 
 from pathlib import Path
 
-from PyQt5.QtCore import QSettings
+from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtGui import QIcon
 from qgis._core import QgsProcessingParameterFolderDestination, QgsProcessingFeedback, QgsStyle, \
     QgsProcessingParameterString, QgsApplication
