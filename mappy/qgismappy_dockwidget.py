@@ -80,6 +80,7 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         proj = QgsProject.instance()
         proj.readProject.connect(self.restoreSettingsFromProject)
+        proj.writeProject.connect(self.saveSettingsToProject)
 
         self.infobox.setTextInteractionFlags(
             QtCore.Qt.TextInteractionFlag.TextBrowserInteraction
@@ -166,6 +167,25 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         proj.writeEntry("mappy", name, asstring)
         log.debug("Wrote to settings")
 
+    def saveSettingsToProject(self, *args):
+        """Write every current widget value to the project, regardless of
+        whether each one individually went through value_changed() since the
+        project was last loaded. Connected to QgsProject.writeProject so the
+        dock's current state is always captured on save, not just on change.
+        """
+        log.debug("Saving all current dock settings to project")
+
+        proj = QgsProject.instance()
+
+        from .mappy_utils import collect_parameters
+
+        pars = collect_parameters(self)
+        for name, value in pars.items():
+            asstring = serialize_value_for_settings(value)
+            proj.writeEntry("mappy", name, asstring)
+
+        log.debug(f"Saved pars {pars}")
+
     def restoreSettingsFromProject(self):
 
         log.debug("Restoring values from settings")
@@ -191,8 +211,12 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 pars[k] = bool(value)
             elif ptype in [QgsVectorLayer]:
                 root = proj.layerTreeRoot()
-                l = root.findLayer(pars[k])
-                if l:
+                l = root.findLayer(value)
+                # QgsLayerTreeLayer is a leaf node (no children), and falls
+                # back to __len__ for truthiness, which is 0 -- "if l:" is
+                # falsy even when a real node was found, so it must be an
+                # explicit None check
+                if l is not None:
                     pars[k] = l.layer()
                 log.debug(f"found layer {l}")
 
@@ -208,6 +232,14 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 log.debug(
                     f"Could not restore the value for the widget from the settings.\n Error: {e}"
                 )
+
+            if k == "points":
+                # QgsMapLayerComboBox can end up already showing the correct
+                # layer without ever firing layerChanged (e.g. it auto-selects
+                # a project's only point layer on its own), so units_field
+                # would never learn about it through that signal chain -- bind
+                # it explicitly rather than depending on that reentrant call
+                self.units_field.setLayer(self.points.currentLayer())
 
         log.debug(f"resulting pars {pars}")
 

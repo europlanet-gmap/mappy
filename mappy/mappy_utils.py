@@ -1,6 +1,6 @@
 from qgis.PyQt.QtCore import QFile, QTextStream
 from qgis.PyQt.QtWidgets import QLineEdit, QCheckBox
-from qgis.core import QgsVectorLayer, QgsMapLayer, QgsApplication, QgsLayerTreeLayer
+from qgis.core import QgsFeatureRequest, QgsVectorLayer, QgsMapLayer, QgsApplication, QgsLayerTreeLayer
 from qgis.core import QgsVectorFileWriter, QgsProject, QgsCategorizedSymbolRenderer, QgsSymbol, QgsRendererCategory
 from qgis.gui import QgsFileWidget
 from qgis.gui import QgsFieldComboBox, QgsDoubleSpinBox, QgsMapLayerComboBox
@@ -61,7 +61,7 @@ def restoreWidgetContent(widget, value):
     elif isinstance(widget, QgsFieldComboBox):
         exists = widget.findText(str(value))
         if exists == -1:
-            raise ValueError(f"You are trying to set the widget {widget.name()} to value {value}. but combo box does not contain this value")
+            raise ValueError(f"You are trying to set the widget {widget.objectName()} to value {value}. but combo box does not contain this value")
 
         widget.setField(str(value))
 
@@ -148,6 +148,28 @@ def add_layer_from_geopackage(gpkgfile, layer_name, categories_field=None, inser
         QgsProject.instance().addMapLayer(l)
 
     return l
+
+def drop_duplicate_points_per_polygon(points_layer, polygons_layer):
+    """When more than one point falls within the same polygon, only the
+    first one (lowest feature id) was actually used by the join that assigns
+    attributes to that polygon; delete the rest from points_layer so leftover
+    duplicate indicator points don't linger.
+    """
+    to_delete = set()
+    for poly_feature in polygons_layer.getFeatures():
+        poly_geom = poly_feature.geometry()
+        request = QgsFeatureRequest().setFilterRect(poly_geom.boundingBox())
+        candidates = [f for f in points_layer.getFeatures(request) if poly_geom.intersects(f.geometry())]
+        if len(candidates) > 1:
+            candidates.sort(key=lambda f: f.id())
+            to_delete.update(f.id() for f in candidates[1:])
+
+    if to_delete:
+        points_layer.dataProvider().deleteFeatures(list(to_delete))
+        points_layer.dataProvider().reloadData()
+        points_layer.triggerRepaint()
+
+    return to_delete
 
 def load_mappy_info_text():
     file = QFile(":/plugins/qgismappy/INFO.html")

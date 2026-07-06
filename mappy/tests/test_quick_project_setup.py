@@ -43,7 +43,7 @@ class TestQuickProjectSetup(ExtendedUnitTesting):
         points_widget = dock.get_widget_by_name("points")
         points_layer = points_widget.currentLayer()
         self.assertIsNotNone(points_layer)
-        self.asser  tEqual(points_layer.name(), "source_indicators")
+        self.assertEqual(points_layer.name(), "source_indicators")
 
         units_widget = dock.get_widget_by_name("units_field")
         self.assertEqual(units_widget.layer(), points_layer)

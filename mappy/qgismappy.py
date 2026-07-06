@@ -90,6 +90,9 @@ class Mappy:
         self.provider = None
         self.info_text = load_mappy_info_text()
 
+        self.assign_unit_tool = None
+        self.assign_unit_action = None
+
         self.config_dock = MappyDockWidget()
         self.config_dock.closingPlugin.connect(self.close_config)
         # print(f"setting infobox text to {self.info_text}")
@@ -184,6 +187,14 @@ class Mappy:
             callback=self.recompute_map,
             parent=self.iface.mainWindow())
 
+
+        icon_path = ':/plugins/qgismappy/icons/create_points.png'
+        self.assign_unit_action = self.add_action(
+            icon_path,
+            text=self.tr(u'Assign unit to polygon'),
+            callback=self.toggle_assign_unit_tool,
+            parent=self.iface.mainWindow())
+        self.assign_unit_action.setCheckable(True)
 
         icon_path = None
         self.add_action(
@@ -320,6 +331,12 @@ class Mappy:
         unmatched = o["UNMATCHED"]
         points_layer = pars["points"]
 
+        # the join that assigned attributes to polygons only used the first
+        # matching point where more than one fell inside the same polygon;
+        # drop the rest so leftover duplicate indicator points don't linger
+        from .mappy_utils import drop_duplicate_points_per_polygon
+        drop_duplicate_points_per_polygon(points_layer, layer)
+
         if pars["add_indicators"]:
             newpoints = processing.run("mappy:labelspointsfrompolygons", {
                 'IN_LAYER': unmatched,
@@ -384,6 +401,114 @@ class Mappy:
 
                 # layerTreeView().refreshLayerSymbology(vlayer.id())
 
+    def toggle_assign_unit_tool(self, checked):
+        canvas = self.iface.mapCanvas()
+        if checked:
+            if self.assign_unit_tool is None:
+                from .assign_unit_map_tool import AssignUnitMapTool
+                self.assign_unit_tool = AssignUnitMapTool(canvas, self)
+            canvas.setMapTool(self.assign_unit_tool)
+        else:
+            canvas.unsetMapTool(self.assign_unit_tool)
+
+    def on_assign_unit_tool_deactivated(self):
+        if self.assign_unit_action is not None:
+            self.assign_unit_action.setChecked(False)
+
+    def assign_unit_at_point(self, point):
+        """Called by AssignUnitMapTool with the clicked point (canvas CRS).
+
+        Finds the polygon at that location in the current final map layer,
+        looks up (or creates) the indicator point associated with it, lets
+        the user pick/type a unit name for it, then recomputes the map so
+        the polygon layer reflects the change.
+        """
+        from qgis.core import QgsCoordinateTransform, QgsFeature, QgsFeatureRequest, QgsGeometry, QgsRectangle
+        from qgis.PyQt.QtWidgets import QInputDialog
+
+        from .mappy_utils import collect_parameters
+
+        pars = collect_parameters(self.config_dock)
+
+        points_layer = pars.get("points")
+        units_field = pars.get("units_field")
+
+        if points_layer is None or not units_field:
+            self.alert_box("Error", "Missing points layer or units field. Please configure them in Mappy settings.")
+            return
+
+        polygons_layer = self.findLayer(pars["output"], pars["out_polygons_layer_name"])
+        if polygons_layer is None:
+            self.alert_box("Error", "The map hasn't been generated yet. Run map construction first.")
+            return
+
+        # the click comes in the canvas CRS; both the points and polygons
+        # layers are always created with the same CRS by Quick Project Setup,
+        # so a single transform into that shared CRS is enough
+        canvas_crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        if canvas_crs != polygons_layer.crs():
+            xform = QgsCoordinateTransform(canvas_crs, polygons_layer.crs(), QgsProject.instance())
+            point = xform.transform(point)
+
+        click_geom = QgsGeometry.fromPointXY(point)
+
+        matched_polygon = None
+        request = QgsFeatureRequest().setFilterRect(QgsRectangle(point, point))
+        for f in polygons_layer.getFeatures(request):
+            if f.geometry().intersects(click_geom):
+                matched_polygon = f
+                break
+
+        if matched_polygon is None:
+            self.iface.messageBar().pushInfo("Mappy", "No polygon at that location.")
+            return
+
+        candidates = []
+        preq = QgsFeatureRequest().setFilterRect(matched_polygon.geometry().boundingBox())
+        for f in points_layer.getFeatures(preq):
+            if matched_polygon.geometry().intersects(f.geometry()):
+                candidates.append(f)
+
+        target_point_feature = None
+        current_value = None
+        if candidates:
+            target_point_feature = min(candidates, key=lambda f: f.geometry().distance(click_geom))
+            current_value = target_point_feature[units_field]
+
+        field_index = points_layer.fields().indexFromName(units_field)
+        existing_values = sorted({
+            str(v) for v in points_layer.uniqueValues(field_index)
+            if v not in (None, "")
+        })
+
+        current_index = existing_values.index(str(current_value)) if str(current_value) in existing_values else 0
+
+        text, ok = QInputDialog.getItem(
+            self.iface.mainWindow(),
+            "Assign unit",
+            "Unit name:",
+            existing_values,
+            current_index,
+            True,
+        )
+
+        if not ok or not text:
+            return
+
+        if not points_layer.isEditable():
+            points_layer.startEditing()
+
+        if target_point_feature is not None:
+            points_layer.changeAttributeValue(target_point_feature.id(), field_index, text)
+        else:
+            newf = QgsFeature(points_layer.fields())
+            newf.setGeometry(click_geom)
+            newf[units_field] = text
+            points_layer.addFeature(newf)
+
+        points_layer.commitChanges()
+
+        self.recompute_map()
 
     def load_layer_if_not_loaded(self, gpkgfile, layername, field_style=None, insert_after=None) -> QgsVectorLayer:
         l: QgsVectorLayer = self.findLayer(gpkgfile, layername)
@@ -443,9 +568,25 @@ class Mappy:
                 self.tr(u'&Mappy'),
                 action)
             self.iface.removeToolBarIcon(action)
-        # remove the toolbar
-        del self.toolbar
+
+        if self.assign_unit_tool is not None:
+            self.iface.mapCanvas().unsetMapTool(self.assign_unit_tool)
+
+        # the dock widget stays connected to QgsProject.instance() (a
+        # long-lived singleton that outlives plugin reloads) via
+        # readProject/writeProject, and stays embedded in the main window
+        # unless explicitly removed -- otherwise a reload leaves this old,
+        # never-refreshed instance alive and docked alongside the new one
+        proj = QgsProject.instance()
+        proj.readProject.disconnect(self.config_dock.restoreSettingsFromProject)
+        proj.writeProject.disconnect(self.config_dock.saveSettingsToProject)
+        self.iface.removeDockWidget(self.config_dock)
+        self.config_dock.deleteLater()
         del self.config_dock
+
+        # remove the toolbar
+        self.iface.mainWindow().removeToolBar(self.toolbar)
+        del self.toolbar
 
         QgsApplication.processingRegistry().removeProvider(self.provider)
 
