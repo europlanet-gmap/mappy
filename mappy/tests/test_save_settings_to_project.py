@@ -88,3 +88,12 @@ class TestSaveSettingsOnProjectWrite(ExtendedUnitTesting):
         finally:
             proj.readProject.disconnect(fresh_dock.restoreSettingsFromProject)
             proj.writeProject.disconnect(fresh_dock.saveSettingsToProject)
+            # connect_widgets() (called from MappyDockWidget.__init__) wires
+            # each parameter widget's change signal to a bound method of
+            # fresh_dock; that connection holds a live C++-side reference to
+            # the bound method (and hence to fresh_dock) regardless of
+            # Python refcounting, so plain garbage collection would never
+            # actually destroy it -- force it now instead of leaking a
+            # fully-wired extra dock for the rest of the test session.
+            from qgis.PyQt import sip
+            sip.delete(fresh_dock)
