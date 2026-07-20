@@ -57,12 +57,10 @@ jobs:
         uv venv --system-site-packages
         uv sync
 
-    - name: Lint with flake8
+    - name: Lint and format-check with ruff
       run: |
-        # stop the build if there are Python syntax errors or undefined names
-        uvx flake8 . --extend-exclude=.venv --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        uvx flake8 . --extend-exclude=.venv --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        uv run ruff check mappy scripts
+        uv run ruff format --check mappy scripts
 
     - name: Test with pytest
       run: uv run just test
