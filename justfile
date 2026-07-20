@@ -48,6 +48,40 @@ update-info:
 update-version:
     sed -i 's/version=[.a-zA-Z0-9]*/version={{VERSION}}/g' mappy/metadata.txt
 
+# Bump the version (major, minor, patch) in pyproject.toml and mappy/metadata.txt,
+# release the Unreleased changelog section, then commit and tag.
+bump version_kind:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    current=$(grep -m1 '^version = ' pyproject.toml | sed -E 's/version = "([^"]+)"/\1/')
+    IFS='.' read -r major minor patch <<< "$current"
+    case "{{version_kind}}" in
+        major) major=$((major + 1)); minor=0; patch=0 ;;
+        minor) minor=$((minor + 1)); patch=0 ;;
+        patch) patch=$((patch + 1)) ;;
+        *) echo "Unknown version kind '{{version_kind}}' (expected major, minor, or patch)" >&2; exit 1 ;;
+    esac
+    new_version="$major.$minor.$patch"
+    echo "Bumping {{version_kind}} version: $current -> $new_version"
+
+    uv run kacl-cli verify
+
+    sed -i "s/^version = \".*\"/version = \"$new_version\"/" pyproject.toml
+    sed -i "s/version=[.a-zA-Z0-9]*/version=$new_version/g" mappy/metadata.txt
+
+    just release-changelog "$new_version"
+
+    git add pyproject.toml mappy/metadata.txt CHANGELOG.md
+    git commit -m "Bump version to $new_version and update changelog"
+    git tag "v$new_version"
+    echo "Version bump and changelog update complete."
+
+# Release the Unreleased changelog section under the given version
+release-changelog version:
+    @echo "Releasing changelog for version {{version}}..."
+    uv run kacl-cli release {{version}} -m --allow-no-changes
+
 # Deploy the plugin locally using pb_tool
 deploy: clean update-info compile-resources
     cd mappy && pb_tool deploy -y

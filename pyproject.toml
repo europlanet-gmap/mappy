@@ -1,7 +1,7 @@
 
 [project]
 name = "mappy"
-version = "0.2.0"
+version = "0.3.2"
 description = ""
 authors = [
     {name = "Luca Penasa", email = "luca.penasa@gmail.com"}
@@ -19,8 +19,7 @@ dependencies = [
     "Markdown>=3.4.1,<4.0.0",
     "pb-tool>=3.1.0,<4.0.0",
     "sphinxcontrib-bibtex>=2.4.2,<3.0.0",
-    "bumpversion>=0.6.0,<0.7.0",
-    "bump2version>=1.0.1,<2.0.0",
+    "python-kacl>=0.7.0,<0.8.0",
     "numpy>=2.4.6",
     "qgis-stubs>=0.4.0",
 ]
