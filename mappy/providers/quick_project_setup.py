@@ -25,7 +25,11 @@ class QuickProjectSetup(MappyProcessingAlgorithm):
                                                             defaultValue=Path.home().joinpath(
                                                                 "Mapping Projects").as_posix()))
 
-        pars.append(QgsProcessingParameterCrs("CRS", "Project Reference System", defaultValue="ProjectCrs"))
+        # optional, no defaultValue: relying on the "ProjectCrs" magic default
+        # string fails QGIS's own parameter validation (checkParameterValues)
+        # on QGIS < 3.32 when the parameter is omitted entirely -- resolve to
+        # the project CRS explicitly in processAlgorithm instead.
+        pars.append(QgsProcessingParameterCrs("CRS", "Project Reference System", optional=True))
 
         pars.append(QgsProcessingParameterBoolean("LinearFeaturesLayer", "Create an additional line layer for structural mapping or linear features", defaultValue=True))
 
@@ -55,6 +59,8 @@ class QuickProjectSetup(MappyProcessingAlgorithm):
 
         ofolder = Path(parameters["OutFolder"]).joinpath(project_name)
         crs = self.parameterAsCrs(parameters, "CRS", context)
+        if not crs.isValid():
+            crs = QgsProject.instance().crs()
 
         vector_folder = ofolder.joinpath("vector")
         vector_file = vector_folder.joinpath(project_name.lower()).with_suffix(".gpkg")

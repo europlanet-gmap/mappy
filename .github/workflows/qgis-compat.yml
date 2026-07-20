@@ -1,7 +1,9 @@
 # Verifies the plugin actually works across the QGIS version range declared
 # in mappy/metadata.txt (qgisMinimumVersion / qgisMaximumVersion). That range
-# was previously just an untested claim -- 3.16 (the old declared minimum)
-# already failed 12 of 58 tests before qgisMinimumVersion was raised to 3.34.
+# was previously just an untested claim -- 3.16 (the original declared
+# minimum) failed 12 of 58 tests, before qgisMinimumVersion was raised to
+# 3.30 and mappy/providers/quick_project_setup.py's CRS parameter fixed to
+# actually work on it (see CHANGELOG.md).
 #
 # Runs directly inside the official qgis/qgis Docker images (which pin exact
 # QGIS versions, unlike Ubuntu's apt package), so this is decoupled from
@@ -26,8 +28,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - qgis_tag: release-3_34
-            label: "QGIS 3.34 (declared minimum)"
+          - qgis_tag: release-3_30
+            label: "QGIS 3.30 (declared minimum)"
             allow_failure: false
           - qgis_tag: latest
             label: "QGIS 4 / master (declared ceiling; pre-release upstream)"

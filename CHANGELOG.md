@@ -6,12 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+### Fixed
+
+- Quick Project Setup's CRS parameter relied on QGIS's "ProjectCrs" magic default
+  string, which fails parameter validation on QGIS < 3.32 when the parameter is
+  omitted. Resolve to the project CRS explicitly instead, restoring support back
+  to QGIS 3.30.
+
 ### Changed
 
-- Raised `qgisMinimumVersion` from 3.16 to 3.34 (the current LTR): the declared floor
-  was untested and already broken by newer QGIS API usage adopted since (verified: 12
-  of 58 tests fail on 3.16, down to 0 by 3.32/3.34). CI now tests both 3.34 and current
-  QGIS 4 against every push.
+- Raised `qgisMinimumVersion` from 3.16 to 3.30: the declared floor was untested and
+  already broken by newer QGIS API usage adopted since (verified: 12 of 58 tests fail
+  on 3.16, 10 fail on 3.24/3.28 due to unsupported scoped-enum access, down to 0 by
+  3.30 after the CRS fix above). CI now tests both 3.30 and current QGIS 4 against
+  every push.
 
 ## 0.4.1 - 2026-07-20
 
