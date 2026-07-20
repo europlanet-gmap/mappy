@@ -103,6 +103,25 @@ package: clean update-info compile-resources
 test:
     QT_QPA_PLATFORM=offscreen pytest mappy/tests -vs --order-dependencies
 
+# Build the Docker image that mirrors the release CI's test environment (see
+# Dockerfile for the full rationale). Defaults to the same Ubuntu/QGIS
+# version CI uses; pass a different release to try that combination instead,
+# e.g. `just docker-build 22.04` -- see the Dockerfile header for which
+# releases actually work (the system Python has to satisfy requires-python).
+docker-build ubuntu_version="24.04":
+    docker build --build-arg UBUNTU_VERSION={{ubuntu_version}} -t mappy-test:{{ubuntu_version}} .
+
+# Run the full test suite inside that Docker image -- this is how CI-only
+# failures under Ubuntu's PyQt5-based QGIS (unlike this machine's Qt6 one)
+# get reproduced and debugged locally instead of guessing from CI logs.
+docker-test ubuntu_version="24.04": (docker-build ubuntu_version)
+    docker run --rm mappy-test:{{ubuntu_version}}
+
+# Get an interactive shell in that image instead, e.g. to attach gdb after a
+# crash: gdb -batch -ex run -ex "bt full" --args .venv/bin/python -m pytest mappy/tests -vs --order-dependencies
+docker-shell ubuntu_version="24.04": (docker-build ubuntu_version)
+    docker run --rm -it mappy-test:{{ubuntu_version}} bash
+
 # Live-reload documentation server
 docs:
     uv run sphinx-autobuild docs/source docs/build

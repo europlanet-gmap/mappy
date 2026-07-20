@@ -3,11 +3,20 @@
 # only shows up under Ubuntu's apt-packaged (PyQt5-based) QGIS can be
 # investigated without waiting on an actual GitHub Actions run.
 #
+# Prefer the `just docker-build` / `just docker-test` / `just docker-shell`
+# recipes over calling docker directly -- see the justfile for the exact
+# commands. Equivalent raw docker usage:
+#
 # Build (defaults to the same Ubuntu/QGIS version CI uses):
 #   docker build -t mappy-test .
-# Build against an older Ubuntu release (and whatever QGIS/PyQt5 combination
-# its universe repo carries) instead:
+# Build against a different Ubuntu release (and whatever QGIS/PyQt5
+# combination its universe repo carries) instead:
 #   docker build --build-arg UBUNTU_VERSION=22.04 -t mappy-test:22.04 .
+# NOTE: this only works for Ubuntu releases whose system Python satisfies
+# pyproject.toml's requires-python (>=3.11) -- e.g. 22.04 ships Python 3.10
+# and fails at the `uv sync` step below with a clear version-mismatch error,
+# it is not silently broken. 24.04 (Python 3.12) is the oldest one that
+# actually works today.
 #
 # Run the full suite (equivalent to `just test` in CI):
 #   docker run --rm mappy-test
