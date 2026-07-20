@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+import pytest
 from qgis.core import QgsProject
 from qgis.PyQt.QtWidgets import QMainWindow, QToolBar
 
@@ -7,6 +8,13 @@ from mappy.tests import ExtendedUnitTesting
 
 
 class TestPluginReload(ExtendedUnitTesting):
+    # Reloading the plugin mutates global QGIS/Mappy state (Mappy.instance,
+    # the project-wide readProject/writeProject connections) and leaves the
+    # old dock's C++ object without a live Python reference once this test
+    # returns. Any later test touching the old dock's widgets afterward
+    # would be operating on a stale/possibly-destroyed C++ object -- run
+    # this last so no other test can ever land after it.
+    @pytest.mark.order("last")
     def test_reload_leaves_only_new_dock_wired(self):
         import qgis.utils
         from mappy.qgismappy import Mappy
