@@ -96,4 +96,5 @@ class TestSaveSettingsOnProjectWrite(ExtendedUnitTesting):
             # actually destroy it -- force it now instead of leaking a
             # fully-wired extra dock for the rest of the test session.
             from qgis.PyQt import sip
+
             sip.delete(fresh_dock)

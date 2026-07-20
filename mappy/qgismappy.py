@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  Mappy
@@ -21,18 +20,18 @@
  *                                                                         *
  ***************************************************************************/
 """
+
 from qgis.PyQt.QtCore import QUrl
 from qgis.PyQt.QtGui import QDesktopServices
-from qgis.utils import showPluginHelp
 
-from .resources import * # DO NOT DELETE
+from .resources import *  # DO NOT DELETE  # noqa: F403
 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
+
 # Initialize Qt resources from file resources.py
-from qgis.core import QgsVectorFileWriter, QgsProject, QgsVectorLayer,  \
-    QgsFeature, QgsMessageLog, Qgis
+from qgis.core import QgsProject, QgsVectorLayer, QgsFeature, QgsMessageLog, Qgis
 
 
 from .mappy_utils import load_mappy_info_text
@@ -43,6 +42,7 @@ from .providers import MappyProvider
 import os.path
 
 from .log_helper import log
+
 
 class Mappy:
     """QGIS Plugin Implementation."""
@@ -64,11 +64,8 @@ class Mappy:
         self.plugin_dir = os.path.dirname(__file__)
 
         # initialize locale
-        locale = (QSettings().value('locale/userLocale') or 'en')[0:2]
-        locale_path = os.path.join(
-            self.plugin_dir,
-            'i18n',
-            'Mappy_{}.qm'.format(locale))
+        locale = (QSettings().value("locale/userLocale") or "en")[0:2]
+        locale_path = os.path.join(self.plugin_dir, "i18n", f"Mappy_{locale}.qm")
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()
@@ -77,10 +74,10 @@ class Mappy:
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&Mappy')
+        self.menu = self.tr("&Mappy")
         # TODO: We are going to let the user set this up in a future iteration
-        self.toolbar = self.iface.addToolBar(u'Mappy')
-        self.toolbar.setObjectName(u'Mappy')
+        self.toolbar = self.iface.addToolBar("Mappy")
+        self.toolbar.setObjectName("Mappy")
 
         # print "** INITIALIZING Mappy"
 
@@ -110,45 +107,40 @@ class Mappy:
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
-        """Get the translation for a string using Qt translation API.
-        """
+        """Get the translation for a string using Qt translation API."""
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
-        return QCoreApplication.translate('Mappy', message)
-
-
+        return QCoreApplication.translate("Mappy", message)
 
     def getVersion(self):
         import mappy
         from pathlib import Path
+
         f = Path(mappy.__file__).parent.joinpath("metadata.txt")
         self.log_message(f"Reading version from  {f}")
 
         try:
             with open(f) as file:
-                for l in file.readlines():
-                    if l.startswith("version"):
-                        return l.split("=")[1]
-        except Exception as e:
+                for line in file.readlines():
+                    if line.startswith("version"):
+                        return line.split("=")[1]
+        except Exception:
             self.log_message("cannot determine version of mappy")
 
     def log_message(self, message, level=Qgis.MessageLevel.Info, notifyUser=True):
         QgsMessageLog.logMessage(message, "Mappy", level, notifyUser)
 
-
-
-
-
     def add_action(
-            self,
-            icon_path,
-            text,
-            callback,
-            enabled_flag=True,
-            add_to_menu=True,
-            add_to_toolbar=True,
-            status_tip=None,
-            whats_this=None,
-            parent=None):
+        self,
+        icon_path,
+        text,
+        callback,
+        enabled_flag=True,
+        add_to_menu=True,
+        add_to_toolbar=True,
+        status_tip=None,
+        whats_this=None,
+        parent=None,
+    ):
 
         icon = QIcon(icon_path)
         action = QAction(icon, text, parent)
@@ -165,9 +157,7 @@ class Mappy:
             self.toolbar.addAction(action)
 
         if add_to_menu:
-            self.iface.addPluginToMenu(
-                self.menu,
-                action)
+            self.iface.addPluginToMenu(self.menu, action)
 
         self.actions.append(action)
 
@@ -176,52 +166,46 @@ class Mappy:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/qgismappy/icons/settings.png'
+        icon_path = ":/plugins/qgismappy/icons/settings.png"
         self.add_action(
-            icon_path,
-            text=self.tr(u'Toggle Mappy config'),
-            callback=self.toggle_config_dock,
-            parent=self.iface.mainWindow())
+            icon_path, text=self.tr("Toggle Mappy config"), callback=self.toggle_config_dock, parent=self.iface.mainWindow()
+        )
 
-        icon_path = ':/plugins/qgismappy/icons/reload.png'
+        icon_path = ":/plugins/qgismappy/icons/reload.png"
         self.recompute_action = self.add_action(
             icon_path,
-            text=self.tr(u'Recompute map. Will overwrite data, hence pay attention to the config settings.'),
+            text=self.tr("Recompute map. Will overwrite data, hence pay attention to the config settings."),
             callback=self.recompute_map,
-            parent=self.iface.mainWindow())
+            parent=self.iface.mainWindow(),
+        )
         # registerMainWindowAction (rather than a plain setShortcut) is what
         # makes the shortcut show up in Settings > Keyboard Shortcuts and in
         # the toolbar tooltip, and lets the user remap it if it clashes
         self.iface.registerMainWindowAction(self.recompute_action, "Ctrl+Shift+F5")
 
-
-        icon_path = ':/plugins/qgismappy/icons/assign_unit.png'
+        icon_path = ":/plugins/qgismappy/icons/assign_unit.png"
         self.assign_unit_action = self.add_action(
             icon_path,
-            text=self.tr(u'Assign unit to polygon'),
+            text=self.tr("Assign unit to polygon"),
             callback=self.toggle_assign_unit_tool,
-            parent=self.iface.mainWindow())
+            parent=self.iface.mainWindow(),
+        )
         self.assign_unit_action.setCheckable(True)
 
         # reuse QGIS's own "Toggle Editing" pencil rather than a custom icon
-        icon_path = ':/images/themes/default/mActionToggleEditing.svg'
+        icon_path = ":/images/themes/default/mActionToggleEditing.svg"
         self.quick_edit_mode_action = self.add_action(
             icon_path,
-            text=self.tr(u'Quick enable editing'),
+            text=self.tr("Quick enable editing"),
             callback=self.trigger_quick_edit_mode,
-            parent=self.iface.mainWindow())
+            parent=self.iface.mainWindow(),
+        )
         # self.quick_edit_mode_action.setCheckable(True)
 
-
         icon_path = None
-        self.add_action(
-            icon_path,
-            text=self.tr(u'Online Help'),
-            callback=self.openHelp,
-            parent=self.iface.mainWindow())
+        self.add_action(icon_path, text=self.tr("Online Help"), callback=self.openHelp, parent=self.iface.mainWindow())
 
         self.initProcessing()
-
 
     def openHelp(self):
         QDesktopServices.openUrl(QUrl("https://mappy.readthedocs.io"))
@@ -259,17 +243,15 @@ class Mappy:
         print(pars)
         try:
             lines = pars["lines"]
-        except:
+        except KeyError:
             self.alert_box("Error", "Missing lines layer. Please select it in the settings.")
             return False
 
-
         try:
             points = pars["points"]
-        except:
+        except KeyError:
             self.alert_box("Error", "Missing points layer. Please select it in the settings.")
             return False
-
 
         # points = pars["points"]
         lines: QgsVectorLayer
@@ -288,9 +270,7 @@ class Mappy:
             self.alert_box(f"Line layer {status}", "The layer is missing or invalid")
             return False
 
-
-
-        lines_is_mod =lines.isModified()
+        lines_is_mod = lines.isModified()
         points_is_mod = points.isModified()
 
         layers = ""
@@ -303,16 +283,12 @@ class Mappy:
             else:
                 layers += " and points"
 
-
-
         if lines.isModified() or points.isModified():
             dlg = QMessageBox()
             dlg.setWindowTitle("Unsaved changes")
-            dlg.setText(f"Input layer(s) \"{layers}\" have unsaved changes. Click ok to save and proceed with map creation")
+            dlg.setText(f'Input layer(s) "{layers}" have unsaved changes. Click ok to save and proceed with map creation')
             dlg.setStandardButtons(QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel)
             button = dlg.exec()
-
-
 
             if button == QMessageBox.StandardButton.Save:
                 lines.commitChanges(False)
@@ -337,11 +313,12 @@ class Mappy:
         olayername = pars["out_polygons_layer_name"]
         o_cont_name = pars["out_contacts_layer_name"]
 
-
-        args = {"IN_LINES": pars["lines"],
-                "IN_POINTS": pars["points"],
-                "OUTPUT": "TEMPORARY_OUTPUT",
-                "UNMATCHED": "TEMPORARY_OUTPUT"}
+        args = {
+            "IN_LINES": pars["lines"],
+            "IN_POINTS": pars["points"],
+            "OUTPUT": "TEMPORARY_OUTPUT",
+            "UNMATCHED": "TEMPORARY_OUTPUT",
+        }
         o = processing.run("mappy:mapconstruction", args)
 
         layer = o["OUTPUT"]
@@ -352,12 +329,13 @@ class Mappy:
         # matching point where more than one fell inside the same polygon;
         # drop the rest so leftover duplicate indicator points don't linger
         from .mappy_utils import drop_duplicate_points_per_polygon
+
         drop_duplicate_points_per_polygon(points_layer, layer)
 
         if pars["add_indicators"]:
-            newpoints = processing.run("mappy:labelspointsfrompolygons", {
-                'IN_LAYER': unmatched,
-                'TOLERANCE': 1, 'OUTPUT': 'TEMPORARY_OUTPUT'})["OUTPUT"]
+            newpoints = processing.run(
+                "mappy:labelspointsfrompolygons", {"IN_LAYER": unmatched, "TOLERANCE": 1, "OUTPUT": "TEMPORARY_OUTPUT"}
+            )["OUTPUT"]
 
             newfeats = []
             for feature in newpoints.getFeatures():
@@ -376,19 +354,21 @@ class Mappy:
 
         self.write_layer_to_gpkg(layer, ofile, olayername)
         self.load_layer_if_not_loaded(
-            ofile, olayername, field_style=pars["units_field"],
+            ofile,
+            olayername,
+            field_style=pars["units_field"],
             insert_after=["source_contacts", "source_indicators"],
             points_layer=points_layer,
         )
 
-
-
-
         if pars["generate_clean_contacts"]:
-            opts = {'Extenddistance': 0, 'PrecisionjoinBuffer': 0.001,
-                    'contacts': pars["lines"],
-                    'polygonized': layer,
-                    'OUTPUT': 'TEMPORARY_OUTPUT'}
+            opts = {
+                "Extenddistance": 0,
+                "PrecisionjoinBuffer": 0.001,
+                "contacts": pars["lines"],
+                "polygonized": layer,
+                "OUTPUT": "TEMPORARY_OUTPUT",
+            }
             layer = processing.run("mappy:removedangles", opts)["OUTPUT"]
             self.write_layer_to_gpkg(layer, ofile, o_cont_name)
             layer = self.load_layer_if_not_loaded(ofile, o_cont_name, None)
@@ -401,7 +381,7 @@ class Mappy:
 
                 # newrend = type(linelayer.renderer())()
 
-                newrend = linelayer.renderer().clone() # we clone the renderer
+                newrend = linelayer.renderer().clone()  # we clone the renderer
                 # renderer.copyRendererData(newrend)
 
                 layer.setRenderer(newrend)
@@ -424,16 +404,15 @@ class Mappy:
         if checked:
             if self.assign_unit_tool is None:
                 from .assign_unit_map_tool import AssignUnitMapTool
+
                 self.assign_unit_tool = AssignUnitMapTool(canvas, self)
             canvas.setMapTool(self.assign_unit_tool)
         else:
             canvas.unsetMapTool(self.assign_unit_tool)
 
-
     def trigger_quick_edit_mode(self):
         print("trigger_quick_edit_mode")
 
-        
         from .mappy_utils import collect_parameters
 
         pars = collect_parameters(self.config_dock)
@@ -443,19 +422,13 @@ class Mappy:
         if line_layer is None:
             self.alert_box("Error", "Missing lines layer. Please select it in the settings.")
             return
-        
+
         self.iface.layerTreeView().setCurrentLayer(line_layer)
 
         if not line_layer.isEditable():
             line_layer.startEditing()
 
         self.iface.actionAddFeature().trigger()
-            
-
-
-
-
-        
 
     def on_assign_unit_tool_deactivated(self):
         if self.assign_unit_action is not None:
@@ -527,10 +500,7 @@ class Mappy:
             current_value = target_point_feature[units_field]
 
         field_index = points_layer.fields().indexFromName(units_field)
-        existing_values = sorted({
-            str(v) for v in points_layer.uniqueValues(field_index)
-            if v not in (None, "")
-        })
+        existing_values = sorted({str(v) for v in points_layer.uniqueValues(field_index) if v not in (None, "")})
 
         current_value_str = str(current_value) if str(current_value) in existing_values else None
         color_table = get_or_create_color_table(points_layer, units_field)
@@ -587,6 +557,7 @@ class Mappy:
             polygons_layer.setReadOnly(was_read_only)
 
             from .mappy_utils import enable_default_labels, sync_unit_colors
+
             sync_unit_colors(points_layer, polygons_layer, units_field, explicit_overrides=color_updates)
             enable_default_labels(polygons_layer, units_field)
         elif color_updates:
@@ -602,39 +573,43 @@ class Mappy:
                 "Unit assigned. Recompute the map to update the point/polygon join, dangle cleanup, etc.",
             )
 
-    def load_layer_if_not_loaded(self, gpkgfile, layername, field_style=None, insert_after=None, points_layer=None) -> QgsVectorLayer:
-        l: QgsVectorLayer = self.findLayer(gpkgfile, layername)
-        if l is None:
-            l = self.addLayerFromGeopackage(gpkgfile, layername, insert_after=insert_after)
+    def load_layer_if_not_loaded(
+        self, gpkgfile, layername, field_style=None, insert_after=None, points_layer=None
+    ) -> QgsVectorLayer:
+        layer: QgsVectorLayer | None = self.findLayer(gpkgfile, layername)
+        if layer is None:
+            layer = self.addLayerFromGeopackage(gpkgfile, layername, insert_after=insert_after)
         else:
-            l.dataProvider().reloadData()
-            l.triggerRepaint()
+            layer.dataProvider().reloadData()
+            layer.triggerRepaint()
 
-        l.setReadOnly()
+        layer.setReadOnly()
 
         if field_style:
             from .mappy_utils import resetCategoriesIfNeeded, enable_default_labels, sync_unit_colors
-            if points_layer is not None:
-                sync_unit_colors(points_layer, l, field_style)
-            else:
-                resetCategoriesIfNeeded(l, field_style)
-            enable_default_labels(l, field_style)
 
-        return l
+            if points_layer is not None:
+                sync_unit_colors(points_layer, layer, field_style)
+            else:
+                resetCategoriesIfNeeded(layer, field_style)
+            enable_default_labels(layer, field_style)
+
+        return layer
 
     def write_layer_to_gpkg(self, layer, gpkgfile, layername):
         self.log_message(f"Writing layer {layer} to file {gpkgfile} with layername {layername}")
 
         from .mappy_utils import write_layer_to_gpkg2
+
         write_layer_to_gpkg2(layer, gpkgfile, layername)
 
-    def findLayer(self, gpkg, layer_name):
+    def findLayer(self, gpkg, layer_name) -> QgsVectorLayer | None:
         gpkg = os.path.abspath(gpkg)
 
         gpkg += f"|layername={layer_name}"
         layers = QgsProject.instance().mapLayers()
 
-        for name, layer in layers.items():
+        for layer in layers.values():
             luri = layer.dataProvider().dataSourceUri()
 
             r = os.path.realpath
@@ -643,18 +618,10 @@ class Mappy:
 
         return None
 
-    def addLayerFromGeopackage(self, gpkgfile, layer_name, categories_field=None, insert_after=None):
+    def addLayerFromGeopackage(self, gpkgfile, layer_name, categories_field=None, insert_after=None) -> QgsVectorLayer:
         from .mappy_utils import add_layer_from_geopackage
-        l = add_layer_from_geopackage(gpkgfile, layer_name, categories_field=None, insert_after=insert_after)
 
-
-        # if categories_field is not None:
-        #     self.resetCategoriesIfNeeded(l, categories_field)
-
-        # l.triggerRepaint()
-        # l.dataChanged.emit()  # or dataSourceChanged?
-        # l.dataSourceChanged.emit()
-        return l
+        return add_layer_from_geopackage(gpkgfile, layer_name, categories_field=None, insert_after=insert_after)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -662,9 +629,7 @@ class Mappy:
         self.iface.unregisterMainWindowAction(self.recompute_action)
 
         for action in self.actions:
-            self.iface.removePluginMenu(
-                self.tr(u'&Mappy'),
-                action)
+            self.iface.removePluginMenu(self.tr("&Mappy"), action)
             self.iface.removeToolBarIcon(action)
 
         if self.assign_unit_tool is not None:

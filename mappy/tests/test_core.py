@@ -1,17 +1,14 @@
 from qgis.PyQt.QtCore import QVariant
-from qgis.core import QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsPointXY, QgsProject, QgsLineString, \
-    QgsVectorFileWriter, QgsApplication
+from qgis.core import QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsPointXY, QgsProject, QgsApplication
 from qgis.analysis import QgsNativeAlgorithms
 import pytest
-
-from mappy.tests.conftest import qgis_app
-
 
 
 from . import ExtendedUnitTesting
 
 
 dep = pytest.mark.dependency
+
 
 class Storage:
     points = None
@@ -26,15 +23,15 @@ class TestCore(ExtendedUnitTesting):
 
     def test_mappy_plugin_is_loaded(self):
         import qgis.utils
+
         self.assertIn("mappy", qgis.utils.plugins, "mappy plugin not found in qgis.utils.plugins")
 
     def test_mappy_plugin_path_registered(self):
         import qgis.utils
         from pathlib import Path
-        project_root = str(Path(__file__).resolve().parents[2])
-        self.assertIn(project_root, qgis.utils.plugin_paths,
-                      f"{project_root} not in qgis.utils.plugin_paths")
 
+        project_root = str(Path(__file__).resolve().parents[2])
+        self.assertIn(project_root, qgis.utils.plugin_paths, f"{project_root} not in qgis.utils.plugin_paths")
 
     def _test_provider_can_be_loaded(self, prov, id):
         app = QgsApplication.instance()
@@ -44,10 +41,8 @@ class TestCore(ExtendedUnitTesting):
         pp = r.providerById(id)
         print(pp.id())
         print(pp.name())
-        self.assertIs(str(pp.id()) == id,True)
+        self.assertIs(str(pp.id()) == id, True)
         self.assertIsNotNone(pp)
-
-
 
     def test_load_native_provider(self):
         n = QgsNativeAlgorithms()
@@ -56,6 +51,7 @@ class TestCore(ExtendedUnitTesting):
 
     def test_load_mappy_provider(self):
         from mappy.providers.MappyProvider import MappyProvider
+
         p = MappyProvider()
         self._test_provider_can_be_loaded(p, "mappy")
         for alg in QgsApplication.processingRegistry().algorithms():
@@ -102,8 +98,6 @@ class TestCore(ExtendedUnitTesting):
         f.setGeometry(QgsGeometry.fromWkt("LINESTRING (0.5 -0.25, 0.5 1.25)"))
         pr.addFeature(f)
 
-
-
         vl.updateExtents()
         QgsProject.instance().addMapLayer(vl)
 
@@ -111,14 +105,13 @@ class TestCore(ExtendedUnitTesting):
 
     @dep(name="ret", depends=["points", "lines"])
     def test_retrieve(self):
-        l = QgsProject.instance().mapLayersByName("lines")
-        self.assertIs(len(l), 1)
-        l = QgsProject.instance().mapLayersByName("points")
-        self.assertIs(len(l), 1)
+        layers = QgsProject.instance().mapLayersByName("lines")
+        self.assertIs(len(layers), 1)
+        layers = QgsProject.instance().mapLayersByName("points")
+        self.assertIs(len(layers), 1)
 
-        l = QgsProject.instance().mapLayersByName("miss")
-        self.assertIs(len(l), 0)
-
+        layers = QgsProject.instance().mapLayersByName("miss")
+        self.assertIs(len(layers), 0)
 
     @dep(depends=["points", "lines"])
     def test_save(self):
@@ -129,16 +122,14 @@ class TestCore(ExtendedUnitTesting):
         o = save_to_geopackage2("out.gpkg", Storage.lines, "lines")
         print(o)
 
-
         self.assertFileExists("out.gpkg")
 
     @pytest.mark.order(3)
-    @dep(name = "mapc",depends=["points", "lines"])
+    @dep(name="mapc", depends=["points", "lines"])
     def test_map_construction(self):
-        from qgis.core import QgsApplication, QgsProcessingFeedback
-        from qgis.analysis import QgsNativeAlgorithms
 
         import sys
+
         sys.path.append("/usr/share/qgis/python/plugins/")
         from qgis import processing
         # import processing
@@ -147,21 +138,22 @@ class TestCore(ExtendedUnitTesting):
         # QgsApplication.processingRegistry().addProvider(MappyProvider())
 
         # Processing.initialize()
-        o: QgsVectorLayer = processing.run("mappy:mapconstruction", {"IN_LINES": Storage.lines, "IN_POINTS": Storage.points, "OUTPUT": "TEMPORARY_OUTPUT"})["OUTPUT"]
+        o: QgsVectorLayer = processing.run(
+            "mappy:mapconstruction", {"IN_LINES": Storage.lines, "IN_POINTS": Storage.points, "OUTPUT": "TEMPORARY_OUTPUT"}
+        )["OUTPUT"]
         print(o)
         self.assertIsNotNone(o)
         Storage.map = o
-
-
 
     @dep(name="map", depends=["mapc"])
     def test_map(self):
         n = Storage.map.featureCount()
         self.assertIs(n, 2)
         from .utils import save_to_geopackage2
+
         o = save_to_geopackage2("out.gpkg", Storage.map, "map")
         self.assertTrue(o[0] == 0)
 
-        ff = [Storage.map.getFeature(i)["geo_unit"] for i in [1,2]]
+        ff = [Storage.map.getFeature(i)["geo_unit"] for i in [1, 2]]
         self.assertIn("UNIT_A", ff)
         self.assertIn("UNIT_B", ff)

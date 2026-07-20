@@ -34,6 +34,7 @@ class TestPluginReload(ExtendedUnitTesting):
         print("RELOAD OK:", ok)
 
         from mappy.qgismappy import Mappy as ReloadedMappy
+
         new_mappy = ReloadedMappy.instance
         new_dock = new_mappy.config_dock
 

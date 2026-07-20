@@ -1,5 +1,4 @@
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import QgsApplication
 from qgis.core import QgsProcessingUtils
 from qgis.core import QgsProcessingException, QgsFeatureSink
 from qgis.core import QgsProcessingAlgorithm
@@ -11,14 +10,7 @@ class MappyProcessingAlgorithm(QgsProcessingAlgorithm):
         if isinstance(layer, str):
             layer = QgsProcessingUtils.mapLayerFromString(layer, context, False)
 
-        (sink, dest_id) = self.parameterAsSink(
-            parameters,
-            oname,
-            context,
-            layer.fields(),
-            layer.wkbType(),
-            layer.sourceCrs()
-        )
+        (sink, dest_id) = self.parameterAsSink(parameters, oname, context, layer.fields(), layer.wkbType(), layer.sourceCrs())
 
         if sink is None:
             raise QgsProcessingException(self.invalidSinkError(parameters, oname))
@@ -28,14 +20,11 @@ class MappyProcessingAlgorithm(QgsProcessingAlgorithm):
             sink.addFeature(feature, QgsFeatureSink.FastInsert)
 
         # layer = QgsProcessingUtils.mapLayerFromString(dest_id, context, False)
-        
 
         return dest_id
-
-
 
     def tr(self, string):
         """
         Returns a translatable string with the self.tr() function.
         """
-        return QCoreApplication.translate('Processing', string)
+        return QCoreApplication.translate("Processing", string)

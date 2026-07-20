@@ -1,12 +1,9 @@
 import os
 import numpy as np
 import unittest
-from qgis.core import QgsApplication
-import os
-from qgis.core import *
+
 
 class ExtendedUnitTesting(unittest.TestCase):
-
     @staticmethod
     def clean_up(clean_up_files):
         for file in clean_up_files:
@@ -53,4 +50,5 @@ class ExtendedUnitTesting(unittest.TestCase):
 
     def assertFileExists(self, path):
         from pathlib import Path
+
         self.assertIs(Path(path).exists(), True)

@@ -5,6 +5,7 @@ if __name__ == "__main__":
     file = "../INFO.md"
 
     from pathlib import Path
+
     f = Path(file)
     if not f.exists():
         print("FIle not found")
@@ -13,7 +14,8 @@ if __name__ == "__main__":
     ofile = "../mappy/INFO.html"
 
     import markdown
-    with open(file, "r") as f:
+
+    with open(file) as f:
         o = markdown.markdown(f.read(), extensions=["tables"])
 
     with open(ofile, "w") as f:

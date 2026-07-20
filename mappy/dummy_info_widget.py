@@ -1,18 +1,18 @@
 ""
+
 import os
 
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'qgismappy_dockwidget_dummy.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgismappy_dockwidget_dummy.ui"))
 
 
 class DummyInfoWidget(QtWidgets.QDockWidget, FORM_CLASS):
     closingPlugin = pyqtSignal()
 
     def __init__(self, parent=None):
-        super(DummyInfoWidget, self).__init__(parent)
+        super().__init__(parent)
         # Set up the user interface from Designer.
         # After setupUI you can access any designer object by doing
         # self.<objectname>, and you can use autoconnect slots - see

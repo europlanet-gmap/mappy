@@ -2,7 +2,6 @@ from unittest.mock import patch
 
 from qgis.PyQt.QtCore import QVariant
 from qgis.core import (
-    QgsCoordinateReferenceSystem,
     QgsFeature,
     QgsField,
     QgsGeometry,
@@ -25,8 +24,6 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
         # from the documented default (auto-recompute off) regardless of
         # what an earlier test in this run left it as
         dock.get_widget_by_name("auto_recompute_on_assign_unit").setChecked(False)
-
-        crs = QgsCoordinateReferenceSystem("EPSG:4326")
 
         points = QgsVectorLayer("Point?crs=EPSG:4326", "zzz_points", "memory")
         points.dataProvider().addAttributes([QgsField("unit_name", QVariant.String)])
@@ -63,6 +60,7 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
         dock.get_widget_by_name("units_field").setField("unit_name")
 
         from mappy.mappy_utils import restoreWidgetContent
+
         restoreWidgetContent(dock.get_widget_by_name("output"), "/tmp/zzz_assign_unit_test.gpkg")
         dock.get_widget_by_name("out_polygons_layer_name").setText("zzz_final_map")
 
@@ -71,9 +69,11 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
     def test_updates_existing_point_in_clicked_polygon(self):
         mappy, points, polygons = self._make_setup()
 
-        with patch.object(mappy, "recompute_map") as recompute, \
-             patch.object(mappy, "findLayer", return_value=polygons), \
-             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_B", "#123456", {}, True)):
+        with (
+            patch.object(mappy, "recompute_map") as recompute,
+            patch.object(mappy, "findLayer", return_value=polygons),
+            patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_B", "#123456", {}, True)),
+        ):
             mappy.assign_unit_at_point(QgsPointXY(0.5, 0.5))
 
         # auto-recompute is disabled by default, so assigning a unit must
@@ -84,16 +84,22 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
 
         # the clicked polygon's own attribute is updated directly, in sync
         # with the point, even without a full recompute
-        poly_values = [f["unit_name"] for f in polygons.getFeatures() if f.geometry().intersects(QgsGeometry.fromPointXY(QgsPointXY(0.5, 0.5)))]
+        poly_values = [
+            f["unit_name"]
+            for f in polygons.getFeatures()
+            if f.geometry().intersects(QgsGeometry.fromPointXY(QgsPointXY(0.5, 0.5)))
+        ]
         self.assertEqual(poly_values, ["UNIT_B"])
         self.assertFalse(polygons.isEditable())
 
     def test_creates_new_point_when_polygon_has_none(self):
         mappy, points, polygons = self._make_setup()
 
-        with patch.object(mappy, "recompute_map") as recompute, \
-             patch.object(mappy, "findLayer", return_value=polygons), \
-             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_C", "#654321", {}, True)):
+        with (
+            patch.object(mappy, "recompute_map") as recompute,
+            patch.object(mappy, "findLayer", return_value=polygons),
+            patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_C", "#654321", {}, True)),
+        ):
             mappy.assign_unit_at_point(QgsPointXY(2.5, 0.5))
 
         recompute.assert_not_called()
@@ -105,9 +111,11 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
         mappy, points, polygons = self._make_setup()
         mappy.config_dock.get_widget_by_name("auto_recompute_on_assign_unit").setChecked(True)
 
-        with patch.object(mappy, "recompute_map") as recompute, \
-             patch.object(mappy, "findLayer", return_value=polygons), \
-             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_B", "#123456", {}, True)):
+        with (
+            patch.object(mappy, "recompute_map") as recompute,
+            patch.object(mappy, "findLayer", return_value=polygons),
+            patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_B", "#123456", {}, True)),
+        ):
             mappy.assign_unit_at_point(QgsPointXY(0.5, 0.5))
 
         recompute.assert_called_once()
@@ -119,12 +127,14 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
         # those must still be written to the points layer, not dropped
         mappy, points, polygons = self._make_setup()
 
-        with patch.object(mappy, "recompute_map"), \
-             patch.object(mappy, "findLayer", return_value=polygons), \
-             patch(
-                 "mappy.assign_unit_dialog.AssignUnitDialog.getUnit",
-                 return_value=("UNIT_D", "#dddddd", {"UNIT_A": "#aaaaaa"}, True),
-             ):
+        with (
+            patch.object(mappy, "recompute_map"),
+            patch.object(mappy, "findLayer", return_value=polygons),
+            patch(
+                "mappy.assign_unit_dialog.AssignUnitDialog.getUnit",
+                return_value=("UNIT_D", "#dddddd", {"UNIT_A": "#aaaaaa"}, True),
+            ),
+        ):
             mappy.assign_unit_at_point(QgsPointXY(2.5, 0.5))
 
         colors = {f["unit_name"]: f["color"] for f in points.getFeatures()}
@@ -141,14 +151,18 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
         # the old color.
         mappy, points, polygons = self._make_setup()
 
-        with patch.object(mappy, "recompute_map"), \
-             patch.object(mappy, "findLayer", return_value=polygons), \
-             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_A", "#ff0000", {}, True)):
+        with (
+            patch.object(mappy, "recompute_map"),
+            patch.object(mappy, "findLayer", return_value=polygons),
+            patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_A", "#ff0000", {}, True)),
+        ):
             mappy.assign_unit_at_point(QgsPointXY(0.5, 0.5))
 
-        with patch.object(mappy, "recompute_map"), \
-             patch.object(mappy, "findLayer", return_value=polygons), \
-             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_A", "#0000ff", {}, True)):
+        with (
+            patch.object(mappy, "recompute_map"),
+            patch.object(mappy, "findLayer", return_value=polygons),
+            patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_A", "#0000ff", {}, True)),
+        ):
             mappy.assign_unit_at_point(QgsPointXY(0.5, 0.5))
 
         for f in points.getFeatures():
@@ -164,9 +178,11 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
     def test_click_outside_any_polygon_does_nothing(self):
         mappy, points, polygons = self._make_setup()
 
-        with patch.object(mappy, "recompute_map") as recompute, \
-             patch.object(mappy, "findLayer", return_value=polygons), \
-             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit") as getitem:
+        with (
+            patch.object(mappy, "recompute_map") as recompute,
+            patch.object(mappy, "findLayer", return_value=polygons),
+            patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit") as getitem,
+        ):
             mappy.assign_unit_at_point(QgsPointXY(10, 10))
 
         recompute.assert_not_called()

@@ -1,10 +1,14 @@
-
 from pathlib import Path
 
 from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtGui import QIcon
-from qgis._core import QgsProcessingParameterFolderDestination, QgsProcessingFeedback, QgsStyle, \
-    QgsProcessingParameterString, QgsApplication
+from qgis._core import (
+    QgsProcessingParameterFolderDestination,
+    QgsProcessingFeedback,
+    QgsStyle,
+    QgsProcessingParameterString,
+    QgsApplication,
+)
 
 from .MappyProcessingAlgorithm import MappyProcessingAlgorithm
 
@@ -13,18 +17,21 @@ symbols_url_zip = "https://github.com/afrigeri/geologic-symbols-qgis/releases/do
 file_to_load = "geologic_symbols_qgis/geologic_symblib.xml"
 default_svg_path = "geologic_symbols_qgis/svg"
 
+
 class DownloadSymbology(MappyProcessingAlgorithm):
     """Quick download planetary geology symbology"""
+
     def initAlgorithm(self, config=None):
         from pathlib import Path
-        default = Path.home().joinpath("qgis_symbols").as_posix()
-        dest = QgsProcessingParameterFolderDestination("DestinationFolder", "Destination folder of the svg files", defaultValue=default)
-        self.addParameter(dest)
 
+        default = Path.home().joinpath("qgis_symbols").as_posix()
+        dest = QgsProcessingParameterFolderDestination(
+            "DestinationFolder", "Destination folder of the svg files", defaultValue=default
+        )
+        self.addParameter(dest)
 
         url = QgsProcessingParameterString("Url", "Source Zip Url", defaultValue=symbols_url_zip)
         self.addParameter(url)
-
 
     def next_step(self):
         self.feedback.setCurrentStep(self.current_step)
@@ -39,7 +46,7 @@ class DownloadSymbology(MappyProcessingAlgorithm):
 
         full_svg_path = s.joinpath(default_svg_path).as_posix()
 
-        svg_paths = QSettings().value('svg/searchPathsForSVG')
+        svg_paths = QSettings().value("svg/searchPathsForSVG")
 
         if not svg_paths:
             svg_paths = QgsApplication.svgPaths()
@@ -49,19 +56,14 @@ class DownloadSymbology(MappyProcessingAlgorithm):
         else:
             model_feedback.pushCommandInfo(f"Adding svg path {full_svg_path} to the settings")
             svg_paths.append(full_svg_path)
-            QSettings().setValue('svg/searchPathsForSVG', svg_paths)
-
-
-
-
-
+            QSettings().setValue("svg/searchPathsForSVG", svg_paths)
 
         if not s.exists():
             model_feedback.pushCommandInfo(f"Folder does not exists. Creating it at {s}")
             s.mkdir(parents=True)
 
         else:
-            model_feedback.pushCommandInfo(f"Folder already exists.")
+            model_feedback.pushCommandInfo("Folder already exists.")
 
         import requests
 
@@ -72,16 +74,18 @@ class DownloadSymbology(MappyProcessingAlgorithm):
         model_feedback.pushCommandInfo(fname)
 
         import tempfile
+
         tdir = Path(tempfile.gettempdir())
 
         newfname = tdir.joinpath(fname)
 
-        with open(newfname, 'wb') as f:
+        with open(newfname, "wb") as f:
             f.write(myfile.content)
 
         # now we decompress it
         from zipfile import ZipFile
-        with ZipFile(newfname, 'r') as zf:
+
+        with ZipFile(newfname, "r") as zf:
             dest_root = s.resolve()
             for member in zf.namelist():
                 member_path = dest_root.joinpath(member).resolve()
@@ -90,6 +94,7 @@ class DownloadSymbology(MappyProcessingAlgorithm):
             zf.extractall(s)
 
         from .symbol_xml_extractor import SymbolXMLExtractor
+
         extractor = SymbolXMLExtractor(s.joinpath(file_to_load).as_posix())
         extractor.parse_xml()
 
@@ -103,33 +108,29 @@ class DownloadSymbology(MappyProcessingAlgorithm):
             tag = style.addTag(tag_name)
 
         for symbol in symbols:
-            symbol_name = '%s (%s)' % (symbol['name'],
-                                       "Planetary Symbols")
+            symbol_name = "{} ({})".format(symbol["name"], "Planetary Symbols")
             style.addSymbol(symbol_name, symbol["symbol"], True)
-            style.tagSymbol(QgsStyle.SymbolEntity, symbol_name,
-                                [tag_name])
-
-
+            style.tagSymbol(QgsStyle.SymbolEntity, symbol_name, [tag_name])
 
         return {}
 
     def name(self):
-        return 'downloadsymbology'
+        return "downloadsymbology"
 
     def icon(self):
-        return QIcon(':/plugins/qgismappy/icons/download.png')
+        return QIcon(":/plugins/qgismappy/icons/download.png")
 
     def displayName(self):
-        return 'Auto download and setup mapping symbology'
+        return "Auto download and setup mapping symbology"
 
     def shortHelpString(self):
         return self.tr("This will automatically download and install the planetary symbology set from Ale Frigeri repo.")
 
     def group(self):
-        return 'Mapping'
+        return "Mapping"
 
     def groupId(self):
-        return 'mapping'
+        return "mapping"
 
     def createInstance(self):
         return DownloadSymbology()

@@ -1,9 +1,12 @@
 from qgis import processing
-from qgis.core import QgsProcessingParameterBoolean, QgsProcessingUtils, QgsApplication
-from qgis.core import (QgsProcessing,
-                       QgsProcessingException,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink, QgsProcessingParameterDistance, QgsWkbTypes, QgsFeatureSink)
+from qgis.core import QgsProcessingParameterBoolean, QgsProcessingUtils
+from qgis.core import (
+    QgsProcessing,
+    QgsProcessingException,
+    QgsProcessingParameterFeatureSource,
+    QgsProcessingParameterFeatureSink,
+    QgsProcessingParameterDistance,
+)
 
 from qgis.PyQt.QtGui import QIcon
 
@@ -16,17 +19,17 @@ class MapConstructionProcessingAlgorithm(MappyProcessingAlgorithm):
     """
 
     def icon(self):
-        return QIcon(':/plugins/qgismappy/icons/mapconstruction.png')
+        return QIcon(":/plugins/qgismappy/icons/mapconstruction.png")
 
     # Constants used to refer to parameters and outputs. They will be
     # used when calling the algorithm from another algorithm, or when
     # calling from the QGIS console.
 
-    IN_LINES = 'IN_LINES'
-    IN_POINTS = 'IN_POINTS'
+    IN_LINES = "IN_LINES"
+    IN_POINTS = "IN_POINTS"
     # CAT_FIELD = "CAT_FIELD"
     EXT_DISTANCE = "EXT_DISTANCE"
-    OUTPUT = 'OUTPUT'
+    OUTPUT = "OUTPUT"
     DROP_UNMATCHED = "DROP_UNMATCHED"
     UNMATCHED = "UNMATCHED"
 
@@ -36,16 +39,16 @@ class MapConstructionProcessingAlgorithm(MappyProcessingAlgorithm):
         return MapConstructionProcessingAlgorithm()
 
     def name(self):
-        return 'mapconstruction'
+        return "mapconstruction"
 
     def displayName(self):
-        return self.tr('Map Construction (lines and points to polygons)')
+        return self.tr("Map Construction (lines and points to polygons)")
 
     def group(self):
-        return self.tr('Mapping')
+        return self.tr("Mapping")
 
     def groupId(self):
-        return 'mapping'
+        return "mapping"
 
     def shortHelpString(self):
         return self.tr(
@@ -55,79 +58,60 @@ class MapConstructionProcessingAlgorithm(MappyProcessingAlgorithm):
             "- extend lines to grant intersection\n"
             "- polygonize the lines\n"
             "- assign fields to polygons using the points layer (via a spatial join)\n"
-            "The output is a polygonal layer with granted topological consistency (no overalps, holes, duplicated geometries etc), perfect for a geological map.")
+            "The output is a polygonal layer with granted topological consistency (no overalps, holes, duplicated geometries etc), perfect for a geological map."
+        )
 
     def initAlgorithm(self, config=None):
         self.addParameter(
-            QgsProcessingParameterFeatureSource(
-                self.IN_LINES,
-                self.tr('Input Lines'),
-                [QgsProcessing.TypeVectorLine]
-            )
+            QgsProcessingParameterFeatureSource(self.IN_LINES, self.tr("Input Lines"), [QgsProcessing.TypeVectorLine])
         )
 
         self.addParameter(
-            QgsProcessingParameterFeatureSource(
-                self.IN_POINTS,
-                self.tr('Input Points'),
-                [QgsProcessing.TypeVectorPoint]
-            )
+            QgsProcessingParameterFeatureSource(self.IN_POINTS, self.tr("Input Points"), [QgsProcessing.TypeVectorPoint])
         )
 
         self.addParameter(
-            QgsProcessingParameterDistance(self.EXT_DISTANCE, self.tr('Extend Lines Distance'), defaultValue=0.0,
-                                           minValue=0.0, optional=True, parentParameterName=self.IN_LINES))
-
-        self.addParameter(
-            QgsProcessingParameterBoolean(self.DROP_UNMATCHED, self.tr("Drop unassigned polygons"), defaultValue=False))
-
-        self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                self.OUTPUT,
-                self.tr('Constructed Map')
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                self.UNMATCHED,
-                self.tr('Unmatched Polygons'),
+            QgsProcessingParameterDistance(
+                self.EXT_DISTANCE,
+                self.tr("Extend Lines Distance"),
+                defaultValue=0.0,
+                minValue=0.0,
                 optional=True,
-                defaultValue=None,
-                createByDefault=False
+                parentParameterName=self.IN_LINES,
+            )
+        )
 
+        self.addParameter(
+            QgsProcessingParameterBoolean(self.DROP_UNMATCHED, self.tr("Drop unassigned polygons"), defaultValue=False)
+        )
+
+        self.addParameter(QgsProcessingParameterFeatureSink(self.OUTPUT, self.tr("Constructed Map")))
+
+        self.addParameter(
+            QgsProcessingParameterFeatureSink(
+                self.UNMATCHED, self.tr("Unmatched Polygons"), optional=True, defaultValue=None, createByDefault=False
             )
         )
 
     def checkSavedState(self, parameters, context, name):
-        layer = self.parameterAsLayer(parameters,
-                                      name,
-                                      context)
+        layer = self.parameterAsLayer(parameters, name, context)
 
         if layer.isModified():
             import os
+
             basename = os.path.splitext(os.path.basename(layer.source()))[0]
             raise QgsProcessingException(
-                f"Input layer {basename} for input parameter {name} was modified but not saved. Please be sure to save your edits before generating the polygons")
-
-
+                f"Input layer {basename} for input parameter {name} was modified but not saved. Please be sure to save your edits before generating the polygons"
+            )
 
     def processAlgorithm(self, parameters, context, feedback):
         pname = "native:polygonize"
         spiname = "native:createspatialindex"
         jname = "native:joinattributesbylocation"
 
-        source_lines = self.parameterAsSource(
-            parameters,
-            self.IN_LINES,
-            context
-        )
+        source_lines = self.parameterAsSource(parameters, self.IN_LINES, context)
 
-        source_pts = self.parameterAsSource(
-            parameters,
-            self.IN_POINTS,
-            context
-        )
+        source_pts = self.parameterAsSource(parameters, self.IN_POINTS, context)
 
         self.checkSavedState(parameters, context, self.IN_POINTS)
         self.checkSavedState(parameters, context, self.IN_LINES)
@@ -144,49 +128,59 @@ class MapConstructionProcessingAlgorithm(MappyProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        nonnull = processing.run("native:removenullgeometries",
-                                 {'INPUT': parameters[self.IN_LINES],
-                                  'OUTPUT': 'memory:', 'REMOVE_EMPTY': True}, context=context,
-                                 feedback=feedback, is_child_algorithm=True)
+        nonnull = processing.run(
+            "native:removenullgeometries",
+            {"INPUT": parameters[self.IN_LINES], "OUTPUT": "memory:", "REMOVE_EMPTY": True},
+            context=context,
+            feedback=feedback,
+            is_child_algorithm=True,
+        )
 
-        nodups = processing.run("native:removeduplicatevertices",
-                                {'INPUT': nonnull["OUTPUT"],
-                                 'OUTPUT': 'memory:', "TOLERANCE": 1e-06,
-                                 'USE_Z_VALUE=': False}, context=context,
-                                feedback=feedback, is_child_algorithm=True)
+        nodups = processing.run(
+            "native:removeduplicatevertices",
+            {"INPUT": nonnull["OUTPUT"], "OUTPUT": "memory:", "TOLERANCE": 1e-06, "USE_Z_VALUE=": False},
+            context=context,
+            feedback=feedback,
+            is_child_algorithm=True,
+        )
 
-        extended_layer = processing.run("native:extendlines",
-                                        {'END_DISTANCE': distance,
-                                         'INPUT': nodups["OUTPUT"],
-                                         'OUTPUT': 'memory:', 'START_DISTANCE': distance}, context=context,
-                                        feedback=feedback, is_child_algorithm=True)
+        extended_layer = processing.run(
+            "native:extendlines",
+            {"END_DISTANCE": distance, "INPUT": nodups["OUTPUT"], "OUTPUT": "memory:", "START_DISTANCE": distance},
+            context=context,
+            feedback=feedback,
+            is_child_algorithm=True,
+        )
 
-        feedback.pushInfo(f"polygonizing")
+        feedback.pushInfo("polygonizing")
 
-        polygonized_layer = processing.run(pname, {
-            'INPUT': extended_layer["OUTPUT"],
-            "OUTPUT": QgsProcessingUtils.generateTempFilename("polygonize.gpkg")
-        }, context=context, feedback=feedback, is_child_algorithm=True)
+        polygonized_layer = processing.run(
+            pname,
+            {"INPUT": extended_layer["OUTPUT"], "OUTPUT": QgsProcessingUtils.generateTempFilename("polygonize.gpkg")},
+            context=context,
+            feedback=feedback,
+            is_child_algorithm=True,
+        )
 
         feedback.pushInfo(f"output of polygonize at {polygonized_layer['OUTPUT']}")
         feedback.pushInfo(f"processing {type(processing)}")
 
-        feedback.pushInfo(f"generating spatial index")
+        feedback.pushInfo("generating spatial index")
 
-        polygons_wspatial = processing.run(spiname,
-                                           {"INPUT": polygonized_layer["OUTPUT"]}, is_child_algorithm=True,
-                                           feedback=feedback)
+        # native:createspatialindex builds the index in place and returns
+        # the same layer reference, so the result doesn't need capturing --
+        # later code keeps using polygonized_layer/parameters[IN_POINTS]
+        # directly, now with a spatial index built in.
+        processing.run(spiname, {"INPUT": polygonized_layer["OUTPUT"]}, is_child_algorithm=True, feedback=feedback)
 
-        points_wspatial = processing.run(spiname,
-                                         {"INPUT": parameters[self.IN_POINTS]}, is_child_algorithm=True,
-                                         feedback=feedback)
+        processing.run(spiname, {"INPUT": parameters[self.IN_POINTS]}, is_child_algorithm=True, feedback=feedback)
 
         points_layer = self.parameterAsLayer(parameters, self.IN_POINTS, context)
         feedback.pushInfo(str(points_layer))
 
         drop = self.parameterAsBool(parameters, self.DROP_UNMATCHED, context)
 
-        feedback.pushInfo(f"joining")
+        feedback.pushInfo("joining")
 
         # [2021 - 06 - 09 17: 0
         # 9: 58] processing.run("native:joinattributesbylocation", {'INPUT': '/home/luca/geomap.gpkg|layername=final_map',
@@ -196,29 +190,23 @@ class MapConstructionProcessingAlgorithm(MappyProcessingAlgorithm):
         #                                                           'OUTPUT': 'TEMPORARY_OUTPUT',
         #                                                           'NON_MATCHING': 'TEMPORARY_OUTPUT'})
 
-
-
-
-        pars = {'DISCARD_NONMATCHING': drop,
-                'INPUT': polygonized_layer["OUTPUT"],
-                'JOIN': parameters[self.IN_POINTS],
-                'JOIN_FIELDS': [],
-                'METHOD': 1,
-                'OUTPUT': 'TEMPORARY_OUTPUT',
-                # 'NON_MATCHING': 'TEMPORARY_OUTPUT',
-                'PREDICATE': [0],
-                'PREFIX': ''}
+        pars = {
+            "DISCARD_NONMATCHING": drop,
+            "INPUT": polygonized_layer["OUTPUT"],
+            "JOIN": parameters[self.IN_POINTS],
+            "JOIN_FIELDS": [],
+            "METHOD": 1,
+            "OUTPUT": "TEMPORARY_OUTPUT",
+            # 'NON_MATCHING': 'TEMPORARY_OUTPUT',
+            "PREDICATE": [0],
+            "PREFIX": "",
+        }
 
         if self.UNMATCHED in parameters.keys():
-            pars["NON_MATCHING"] = 'TEMPORARY_OUTPUT'
+            pars["NON_MATCHING"] = "TEMPORARY_OUTPUT"
 
-        joined_layer = processing.run(jname,
-                                      pars
-                                      , context=context, feedback=feedback, is_child_algorithm=False)
+        joined_layer = processing.run(jname, pars, context=context, feedback=feedback, is_child_algorithm=False)
         # feedback.pushInfo(f"layer is {joined_layer}")
-
-
-
 
         dest_id = self.copy_output_to_sink(parameters, context, joined_layer["OUTPUT"], self.OUTPUT)
 

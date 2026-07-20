@@ -64,9 +64,7 @@ class AssignUnitDialog(QDialog):
                 item.setIcon(_swatch_icon(color))
             self.list_widget.addItem(item)
 
-        self.button_box = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
-        )
+        self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
 
         top_row = QHBoxLayout()
         top_row.addWidget(self.filter_edit)

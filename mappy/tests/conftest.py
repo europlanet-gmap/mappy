@@ -37,6 +37,7 @@ def qgis_app():
 
     sys.path.append("/usr/share/qgis/python/plugins/")
     from processing.core.Processing import Processing
+
     Processing.initialize()
 
     # Register and start the plugin using QGIS's own mechanism.
@@ -44,6 +45,7 @@ def qgis_app():
     # GUI calls (addToolBar, addDockWidget, etc.) in headless mode.
     from unittest.mock import MagicMock
     import qgis.utils
+
     if _PROJECT_ROOT not in qgis.utils.plugin_paths:
         qgis.utils.plugin_paths.insert(0, _PROJECT_ROOT)
     # Scan plugin_paths for metadata.txt files — required before startPlugin

@@ -1,4 +1,3 @@
-
 from qgis.core import QgsMessageLog, Qgis
 
 import logging
@@ -19,13 +18,11 @@ class QgsLogHandler(logging.StreamHandler):
             self.flush()
         except (KeyboardInterrupt, SystemExit):
             raise
-        except:
+        except Exception:
             self.handleError(record)
 
-try:
-    prev_handlers = log.handlers
-except:
-    prev_handlers = []
+
+prev_handlers = log.handlers
 
 if len(prev_handlers) == 0:  # when reloading a plugin the python interpreter is the same so we dont want to duplicate
     # logging handlers. Not a clean way to do so, but it is just for development

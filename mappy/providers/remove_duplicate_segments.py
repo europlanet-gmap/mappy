@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 ***************************************************************************
 *                                                                         *
@@ -12,11 +10,15 @@
 """
 
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.PyQt.QtGui import QIcon
-from qgis.core import (QgsProcessing,
-                       QgsProcessingException,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink, QgsProcessingParameterDistance, QgsWkbTypes, QgsFeatureSink)
+from qgis.core import (
+    QgsProcessing,
+    QgsProcessingException,
+    QgsProcessingParameterFeatureSource,
+    QgsProcessingParameterFeatureSink,
+    QgsProcessingParameterDistance,
+    QgsWkbTypes,
+    QgsFeatureSink,
+)
 from qgis.core import QgsSpatialIndex
 
 from .MappyProcessingAlgorithm import MappyProcessingAlgorithm
@@ -26,28 +28,28 @@ class RemoveDuplicateSegmentsProcessingAlgorithm(MappyProcessingAlgorithm):
     """
     Helper to remove duplicated segments from a line layer
     """
+
     IN_SEGMENTS = "IN_SEGMENTS"
     THRESHOLD = "THRESHOLD"
     OUTPUT = "OUTPUT"
 
-
     def tr(self, string):
-        return QCoreApplication.translate('Processing', string)
+        return QCoreApplication.translate("Processing", string)
 
     def createInstance(self):
         return RemoveDuplicateSegmentsProcessingAlgorithm()
 
     def name(self):
-        return 'removeduplicatedsegments'
+        return "removeduplicatedsegments"
 
     def displayName(self):
-        return self.tr('Remove Duplicated Segments')
+        return self.tr("Remove Duplicated Segments")
 
     def group(self):
-        return self.tr('Utils')
+        return self.tr("Utils")
 
     def groupId(self):
-        return 'utils'
+        return "utils"
 
     def shortHelpString(self):
         return self.tr("""Remove duplicated segments using a threshold""")
@@ -55,28 +57,16 @@ class RemoveDuplicateSegmentsProcessingAlgorithm(MappyProcessingAlgorithm):
     def initAlgorithm(self, config=None):
 
         self.addParameter(
-            QgsProcessingParameterFeatureSource(
-                self.IN_SEGMENTS,
-                self.tr('Input Segments)'),
-                [QgsProcessing.TypeVectorLine]
-            )
+            QgsProcessingParameterFeatureSource(self.IN_SEGMENTS, self.tr("Input Segments)"), [QgsProcessing.TypeVectorLine])
         )
 
         self.addParameter(
             QgsProcessingParameterDistance(
-                self.THRESHOLD,
-                self.tr('Precision'),
-                parentParameterName=self.IN_SEGMENTS,
-                defaultValue=1e-6
+                self.THRESHOLD, self.tr("Precision"), parentParameterName=self.IN_SEGMENTS, defaultValue=1e-6
             )
         )
 
-        self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                self.OUTPUT,
-                self.tr('Cleaned segments')
-            )
-        )
+        self.addParameter(QgsProcessingParameterFeatureSink(self.OUTPUT, self.tr("Cleaned segments")))
 
     def equal_segments(self, seg1, seg2, threshold=1e-6):
         s1_s, s1_e = seg1.vertices()
@@ -91,11 +81,7 @@ class RemoveDuplicateSegmentsProcessingAlgorithm(MappyProcessingAlgorithm):
             return False
 
     def processAlgorithm(self, parameters, context, feedback):
-        segments_layer = self.parameterAsLayer(
-            parameters,
-            self.IN_SEGMENTS,
-            context
-        )
+        segments_layer = self.parameterAsLayer(parameters, self.IN_SEGMENTS, context)
 
         t = self.parameterAsDouble(parameters, self.THRESHOLD, context)
 
@@ -125,7 +111,7 @@ class RemoveDuplicateSegmentsProcessingAlgorithm(MappyProcessingAlgorithm):
             context,
             segments_layer.fields(),  # QgsFields() for an empty fields list or source_lines.fields()
             QgsWkbTypes.MultiLineString,
-            segments_layer.sourceCrs()
+            segments_layer.sourceCrs(),
         )
 
         if sink is None:

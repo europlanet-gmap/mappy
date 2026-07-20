@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  Mappy
@@ -54,11 +53,12 @@
 from qgis.core import QgsApplication
 import sys
 
-if 'sphinx' in sys.modules:
+if "sphinx" in sys.modules:
     qgs = QgsApplication([], False)
 
     # load providers
     qgs.initQgis()
+
 
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
@@ -69,10 +69,8 @@ def classFactory(iface):  # pylint: disable=invalid-name
     """
     #
     from .qgismappy import Mappy
+
     return Mappy(iface)
 
 
-
-
-
-print('LOADED FROM CODE: mappy/__init__.py')
+print("LOADED FROM CODE: mappy/__init__.py")

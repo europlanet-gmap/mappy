@@ -31,7 +31,7 @@ parameters_widgets = [
 ]
 
 
-def readWidgetContent(widget):
+def readWidgetContent(widget) -> QgsMapLayer | str | float | bool | None:
     if isinstance(widget, QgsMapLayerComboBox):
         return widget.currentLayer()
 
@@ -54,12 +54,10 @@ def readWidgetContent(widget):
         return None
 
 
-def restoreWidgetContent(widget, value):
+def restoreWidgetContent(widget, value) -> None:
     if isinstance(widget, QgsMapLayerComboBox):
         if not isinstance(value, QgsMapLayer):
-            raise TypeError(
-                f"{type(value)} is a wrong type for widget QgsMapLayerComboBox"
-            )
+            raise TypeError(f"{type(value)} is a wrong type for widget QgsMapLayerComboBox")
         widget.setLayer(value)
 
     elif isinstance(widget, QgsFieldComboBox):
@@ -110,14 +108,14 @@ def getChangeSignal(widget):
         return None
 
 
-def serialize_value_for_settings(value):
+def serialize_value_for_settings(value) -> str:
     if type(value) in [QgsVectorLayer]:
         return value.id()
     else:
         return str(value)
 
 
-def collect_parameters(qt_obj):  # -> dict[Any, Any]:
+def collect_parameters(qt_obj) -> dict:
     pars = {}
     for name in qt_obj.__dict__:
         val = readWidgetContent(getattr(qt_obj, name))
@@ -127,7 +125,7 @@ def collect_parameters(qt_obj):  # -> dict[Any, Any]:
     return pars
 
 
-def insert_layer_after(layer, after_layer_names):
+def insert_layer_after(layer, after_layer_names) -> None:
     """Insert `layer` into the layer tree root, directly after whichever of
     `after_layer_names` currently sits lowest (last) among the root's direct
     children. Falls back to the default top-of-tree position if none of those
@@ -146,23 +144,21 @@ def insert_layer_after(layer, after_layer_names):
         root.insertLayer(anchor_index + 1, layer)
 
 
-def add_layer_from_geopackage(
-    gpkgfile, layer_name, categories_field=None, insert_after=None
-):
+def add_layer_from_geopackage(gpkgfile, layer_name, categories_field=None, insert_after=None) -> QgsVectorLayer:
     gpkgfile += f"|layername={layer_name}"
-    l = QgsVectorLayer(gpkgfile)
-    l.setName(layer_name)
+    layer = QgsVectorLayer(gpkgfile)
+    layer.setName(layer_name)
 
     if insert_after:
-        QgsProject.instance().addMapLayer(l, False)
-        insert_layer_after(l, insert_after)
+        QgsProject.instance().addMapLayer(layer, False)
+        insert_layer_after(layer, insert_after)
     else:
-        QgsProject.instance().addMapLayer(l)
+        QgsProject.instance().addMapLayer(layer)
 
-    return l
+    return layer
 
 
-def drop_duplicate_points_per_polygon(points_layer, polygons_layer):
+def drop_duplicate_points_per_polygon(points_layer, polygons_layer) -> set:
     """When more than one point falls within the same polygon, only the
     first one (lowest feature id) was actually used by the join that assigns
     attributes to that polygon; delete the rest from points_layer so leftover
@@ -172,11 +168,7 @@ def drop_duplicate_points_per_polygon(points_layer, polygons_layer):
     for poly_feature in polygons_layer.getFeatures():
         poly_geom = poly_feature.geometry()
         request = QgsFeatureRequest().setFilterRect(poly_geom.boundingBox())
-        candidates = [
-            f
-            for f in points_layer.getFeatures(request)
-            if poly_geom.intersects(f.geometry())
-        ]
+        candidates = [f for f in points_layer.getFeatures(request) if poly_geom.intersects(f.geometry())]
         if len(candidates) > 1:
             candidates.sort(key=lambda f: f.id())
             to_delete.update(f.id() for f in candidates[1:])
@@ -189,7 +181,7 @@ def drop_duplicate_points_per_polygon(points_layer, polygons_layer):
     return to_delete
 
 
-def load_mappy_info_text():
+def load_mappy_info_text() -> str:
     file = QFile(":/plugins/qgismappy/INFO.html")
     file.open(QFile.OpenModeFlag.ReadOnly | QFile.OpenModeFlag.Text)
     stream = QTextStream(file)
@@ -211,12 +203,10 @@ def write_layer_to_gpkg2(layer, gpkgfile, layername):
     options.layerName = layername
     context = QgsProject.instance().transformContext()
 
-    return QgsVectorFileWriter.writeAsVectorFormatV3(
-        layer, gpkgfile, context, options
-    )
+    return QgsVectorFileWriter.writeAsVectorFormatV3(layer, gpkgfile, context, options)
 
 
-def resetCategoriesIfNeeded(layer, units_field, color_table=None):
+def resetCategoriesIfNeeded(layer, units_field, color_table=None) -> None:
     """color_table is an optional {str(value): "#rrggbb"} mapping (see
     get_or_create_color_table) used to give a category its persisted color
     instead of QgsSymbol.defaultSymbol's randomly-generated one, so a unit's
@@ -330,7 +320,7 @@ def sequential_color(index):
     return QColor.fromHsvF(hue / 360, 0.55, 0.85)
 
 
-def get_or_create_color_table(points_layer, units_field, color_field="color"):
+def get_or_create_color_table(points_layer, units_field, color_field="color") -> dict[str, str]:
     """Returns a {str(unit_value): "#rrggbb"} color table, sourced from and
     kept in sync with a `color_field` attribute stored directly on
     points_layer -- so a unit's color is a durable property of the data
@@ -360,10 +350,13 @@ def get_or_create_color_table(points_layer, units_field, color_field="color"):
         if color not in (None, "") and unit not in color_table:
             color_table[unit] = color
 
-    missing_units = sorted({
-        str(f[unit_index]) for f in points_layer.getFeatures()
-        if f[unit_index] not in (None, "") and str(f[unit_index]) not in color_table
-    })
+    missing_units = sorted(
+        {
+            str(f[unit_index])
+            for f in points_layer.getFeatures()
+            if f[unit_index] not in (None, "") and str(f[unit_index]) not in color_table
+        }
+    )
 
     start = len(color_table)
     for i, unit in enumerate(missing_units):
@@ -374,7 +367,7 @@ def get_or_create_color_table(points_layer, units_field, color_field="color"):
     return color_table
 
 
-def write_colors_to_points(points_layer, units_field, color_field, color_table):
+def write_colors_to_points(points_layer, units_field, color_field, color_table) -> None:
     """Backfills/corrects color_field on every point so it matches
     color_table, leaving points whose unit already has the right color
     untouched."""
@@ -398,7 +391,7 @@ def write_colors_to_points(points_layer, units_field, color_field, color_table):
         points_layer.startEditing()
 
 
-def _current_category_overrides(layer, baseline):
+def _current_category_overrides(layer, baseline) -> dict[str, str]:
     """Returns {str(value): current_color} for every existing category on
     layer's categorized renderer whose color differs from baseline -- i.e.
     a manual recolor made directly in QGIS's Symbology panel since the last
@@ -425,7 +418,9 @@ def _current_category_overrides(layer, baseline):
     return overrides
 
 
-def sync_unit_colors(points_layer, polygons_layer, units_field, color_field="color", explicit_overrides=None):
+def sync_unit_colors(
+    points_layer, polygons_layer, units_field, color_field="color", explicit_overrides=None
+) -> dict[str, str]:
     """Reconciles unit colors across points_layer, polygons_layer and the
     persisted color_field, then applies the result to both layers.
 
@@ -466,7 +461,7 @@ def sync_unit_colors(points_layer, polygons_layer, units_field, color_field="col
     return final_table
 
 
-def enable_default_labels(layer, field_name):
+def enable_default_labels(layer, field_name) -> None:
     """Turn on simple labeling using field_name as the default for a freshly
     created/loaded layer.
 
@@ -495,7 +490,7 @@ def enable_default_labels(layer, field_name):
     layer.triggerRepaint()
 
 
-def style_simple_black_line(layer):
+def style_simple_black_line(layer) -> None:
     """Give a freshly created line layer a plain solid black line style."""
     symbol = QgsLineSymbol.createSimple({"color": "black", "style": "solid"})
     layer.renderer().setSymbol(symbol)

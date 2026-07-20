@@ -16,9 +16,7 @@ class TestAssignUnitDialog(ExtendedUnitTesting):
         dlg = AssignUnitDialog(values, current_value="Regolith")
 
         visible = [
-            dlg.list_widget.item(i).text()
-            for i in range(dlg.list_widget.count())
-            if not dlg.list_widget.item(i).isHidden()
+            dlg.list_widget.item(i).text() for i in range(dlg.list_widget.count()) if not dlg.list_widget.item(i).isHidden()
         ]
         self.assertEqual(visible, values)
         self.assertEqual(dlg.filter_edit.text(), "Regolith")
@@ -30,9 +28,7 @@ class TestAssignUnitDialog(ExtendedUnitTesting):
         dlg.filter_edit.setText("RI")
 
         visible = [
-            dlg.list_widget.item(i).text()
-            for i in range(dlg.list_widget.count())
-            if not dlg.list_widget.item(i).isHidden()
+            dlg.list_widget.item(i).text() for i in range(dlg.list_widget.count()) if not dlg.list_widget.item(i).isHidden()
         ]
         self.assertEqual(visible, ["Ridge", "Rille"])
 
@@ -149,9 +145,7 @@ class TestAssignUnitDialog(ExtendedUnitTesting):
         # whichever unit ended up confirmed on OK. Recoloring "Basalt" and
         # then picking/confirming "Breccia" silently dropped the Basalt
         # change -- changed_colors() must carry every edit made this session
-        dlg = AssignUnitDialog(
-            ["Basalt", "Breccia"], color_table={"Basalt": "#ff0000", "Breccia": "#00ff00"}
-        )
+        dlg = AssignUnitDialog(["Basalt", "Breccia"], color_table={"Basalt": "#ff0000", "Breccia": "#00ff00"})
 
         dlg.filter_edit.setText("Basalt")
         with patch("mappy.assign_unit_dialog.QColorDialog.getColor", return_value=QColor("#111111")):

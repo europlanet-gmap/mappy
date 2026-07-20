@@ -1,13 +1,12 @@
 from qgis._core import QgsCoordinateReferenceSystem
-from qgis.core import (QgsProcessingException,
-                       QgsProcessingParameterRasterLayer)
+from qgis.core import QgsProcessingException, QgsProcessingParameterRasterLayer
 
 from .MappyProcessingAlgorithm import MappyProcessingAlgorithm
 
 
 class RemoveScalingFromCrs(MappyProcessingAlgorithm):
-    INPUT = 'INPUT'
-    OUTPUT = 'OUTPUT'
+    INPUT = "INPUT"
+    OUTPUT = "OUTPUT"
 
     def createInstance(self):
         return RemoveScalingFromCrs()
@@ -20,21 +19,21 @@ class RemoveScalingFromCrs(MappyProcessingAlgorithm):
         lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'fix_ode_ctx_crs'
+        return "fix_ode_ctx_crs"
 
     def displayName(self):
         """
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return self.tr('Remove Scaling From CRS definition')
+        return self.tr("Remove Scaling From CRS definition")
 
     def group(self):
         """
         Returns the name of the group this algorithm belongs to. This string
         should be localised.
         """
-        return self.tr('Fixies')
+        return self.tr("Fixies")
 
     def groupId(self):
         """
@@ -44,7 +43,7 @@ class RemoveScalingFromCrs(MappyProcessingAlgorithm):
         contain lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'fixies'
+        return "fixies"
 
     def shortHelpString(self):
         """
@@ -62,23 +61,14 @@ class RemoveScalingFromCrs(MappyProcessingAlgorithm):
 
         # We add the input vector features source. It can have any kind of
         # geometry.
-        self.addParameter(
-            QgsProcessingParameterRasterLayer(
-                self.INPUT,
-                self.tr('Input layer')
-            )
-        )
+        self.addParameter(QgsProcessingParameterRasterLayer(self.INPUT, self.tr("Input layer")))
 
     def processAlgorithm(self, parameters, context, feedback):
         """
         Here is where the processing itself takes place.
         """
 
-        source = self.parameterAsLayer(
-            parameters,
-            self.INPUT,
-            context
-        )
+        source = self.parameterAsLayer(parameters, self.INPUT, context)
 
         feedback.pushInfo(f"source {source}")
 
@@ -87,7 +77,8 @@ class RemoveScalingFromCrs(MappyProcessingAlgorithm):
 
         curcrs = source.crs().toProj()
         import re
-        mm = re.compile("\+k.*")
+
+        mm = re.compile(r"\+k.*")
 
         newcrs = [c for c in curcrs.split(" ") if not mm.match(c)]
 

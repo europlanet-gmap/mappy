@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  MappyDockWidget
@@ -23,22 +22,15 @@
 """
 
 import os
-from typing import List, Tuple
 
 import numpy as np
-from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt import QtWidgets, uic, QtCore
 from qgis.PyQt.QtCore import pyqtSignal
-from qgis.PyQt.QtWidgets import QFileDialog, QLineEdit, QCheckBox
-from qgis._core import QgsMessageLog, QgsExpressionContextUtils
-from qgis._gui import QgsFileWidget
-from qgis.core import QgsCategorizedSymbolRenderer
-from qgis.gui import QgsMapLayerComboBox, QgsFieldComboBox, QgsDoubleSpinBox
+from qgis._core import QgsMessageLog
+from qgis.gui import QgsFieldComboBox
 from qgis.core import (
     QgsProject,
     QgsMapLayerProxyModel,
-    QgsSymbol,
-    QgsRendererCategory,
     QgsVectorLayer,
     Qgis,
 )
@@ -58,9 +50,7 @@ from mappy.mappy_utils import (
     serialize_value_for_settings,
 )
 
-FORM_CLASS, _ = uic.loadUiType(
-    os.path.join(os.path.dirname(__file__), "qgismappy_dockwidget_base.ui")
-)
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgismappy_dockwidget_base.ui"))
 
 
 class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
@@ -69,7 +59,7 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def __init__(self, parent=None):
         """Constructor."""
 
-        super(MappyDockWidget, self).__init__(parent)
+        super().__init__(parent)
 
         self.setupUi(self)
         self.log_message("Initializing Mappy")
@@ -82,13 +72,10 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         proj.readProject.connect(self.restoreSettingsFromProject)
         proj.writeProject.connect(self.saveSettingsToProject)
 
-        self.infobox.setTextInteractionFlags(
-            QtCore.Qt.TextInteractionFlag.TextBrowserInteraction
-        )
+        self.infobox.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextBrowserInteraction)
         self.infobox.setOpenExternalLinks(True)
 
         self.connect_widgets()
-        import mappy
 
     def get_available_settings(self):
         settings = []
@@ -161,9 +148,7 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         if name == "units_field":
             # we store also this preference for being connected to this specific layer of points
-            points_layer = serialize_value_for_settings(
-                self.get_current_parameter_value("points")
-            )
+            points_layer = serialize_value_for_settings(self.get_current_parameter_value("points"))
             key = points_layer + "_preferred_field"
             proj.writeEntry("mappy", key, value)
             log.debug(f"stored preference with value {value} to key {key}")
@@ -206,7 +191,7 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         pars = collect_parameters(self)
         log.debug(f"found pars {pars}")
 
-        for k, item in pars.items():
+        for k in pars:
             value, found = proj.readEntry("mappy", k, None)
             log.debug(f"just read {k}: {value}")
             if not found:
@@ -223,14 +208,14 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 pars[k] = str(value).strip().lower() == "true"
             elif ptype in [QgsVectorLayer]:
                 root = proj.layerTreeRoot()
-                l = root.findLayer(value)
+                layer_node = root.findLayer(value)
                 # QgsLayerTreeLayer is a leaf node (no children), and falls
-                # back to __len__ for truthiness, which is 0 -- "if l:" is
-                # falsy even when a real node was found, so it must be an
+                # back to __len__ for truthiness, which is 0 -- "if layer_node:"
+                # is falsy even when a real node was found, so it must be an
                 # explicit None check
-                if l is not None:
-                    pars[k] = l.layer()
-                log.debug(f"found layer {l}")
+                if layer_node is not None:
+                    pars[k] = layer_node.layer()
+                log.debug(f"found layer {layer_node}")
 
             else:
                 raise TypeError(f"cannot convert type {type(value)} to {type(pars[k])}")
@@ -241,9 +226,7 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             try:
                 restoreWidgetContent(w, pars[k])
             except Exception as e:
-                log.debug(
-                    f"Could not restore the value for the widget from the settings.\n Error: {e}"
-                )
+                log.debug(f"Could not restore the value for the widget from the settings.\n Error: {e}")
 
             if k == "points":
                 # QgsMapLayerComboBox can end up already showing the correct

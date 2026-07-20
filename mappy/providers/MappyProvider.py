@@ -17,10 +17,12 @@ from .quick_project_setup import QuickProjectSetup
 
 from .import_polygons import ImportPolgonalMap
 
+
 class MappyProvider(QgsProcessingProvider):
     """
     The Mappy provider for QGIS processing framework
     """
+
     def loadAlgorithms(self, *args, **kwargs):
 
         self.addAlgorithm(MapConstructionProcessingAlgorithm())
@@ -39,10 +41,10 @@ class MappyProvider(QgsProcessingProvider):
 
     def load_models_as_algorithms(self):
         """currently not used, but helper for dev"""
-        for dirpath, dirnames, files in os.walk(os.path.dirname(__file__)):
+        for dirpath, _dirnames, files in os.walk(os.path.dirname(__file__)):
             for file_name in files:
                 print(file_name)
-                if file_name.lower().endswith('.model3'):
+                if file_name.lower().endswith(".model3"):
                     print(dirpath)
                     print(file_name)
                     alg = QgsProcessingModelAlgorithm()
@@ -68,7 +70,7 @@ class MappyProvider(QgsProcessingProvider):
         This string should be a unique, short, character only string,
         eg "qgis" or "gdal". This string should not be localised.
         """
-        return 'mappy'
+        return "mappy"
 
     def name(self, *args, **kwargs):
         """The human friendly name of your plugin in Processing.
@@ -76,10 +78,10 @@ class MappyProvider(QgsProcessingProvider):
         This string should be as short as possible (e.g. "Lastools", not
         "Lastools version 1.0.1 64-bit") and localised.
         """
-        return self.tr('Mappy')
+        return self.tr("Mappy")
 
     def icon(self):
         """Should return a QIcon which is used for your provider inside
         the Processing toolbox.
         """
-        return QIcon(':/plugins/qgismappy/icons/icon.png')
+        return QIcon(":/plugins/qgismappy/icons/icon.png")

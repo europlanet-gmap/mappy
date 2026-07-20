@@ -65,9 +65,7 @@ class TestColorTable(ExtendedUnitTesting):
         for i, name in enumerate(unit_names):
             x = i * 2
             f = QgsFeature(layer.fields())
-            f.setGeometry(QgsGeometry.fromWkt(
-                f"POLYGON(({x} 0, {x+1} 0, {x+1} 1, {x} 1, {x} 0))"
-            ))
+            f.setGeometry(QgsGeometry.fromWkt(f"POLYGON(({x} 0, {x + 1} 0, {x + 1} 1, {x} 1, {x} 0))"))
             f["unit_name"] = name
             layer.dataProvider().addFeature(f)
         return layer

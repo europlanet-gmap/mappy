@@ -12,17 +12,17 @@ class TestRestoreMultipleLayers(ExtendedUnitTesting):
         proj = QgsProject.instance()
 
         def make_pts(name):
-            l = QgsVectorLayer("Point", name, "memory")
-            l.dataProvider().addAttributes([QgsField("unit_name", QVariant.String)])
-            l.updateFields()
-            QgsProject.instance().addMapLayer(l)
-            return l
+            layer = QgsVectorLayer("Point", name, "memory")
+            layer.dataProvider().addAttributes([QgsField("unit_name", QVariant.String)])
+            layer.updateFields()
+            QgsProject.instance().addMapLayer(layer)
+            return layer
 
         # target layer added in the middle, so it's neither first nor last,
         # and isn't whatever the combo happens to auto-select
-        layer_a = make_pts("restore_multi_layer_a")
+        _layer_a = make_pts("restore_multi_layer_a")
         layer_b_target = make_pts("restore_multi_layer_b_target")
-        layer_c = make_pts("restore_multi_layer_c")
+        _layer_c = make_pts("restore_multi_layer_c")
 
         proj.writeEntry("mappy", "points", layer_b_target.id())
         proj.writeEntry("mappy", "units_field", "unit_name")

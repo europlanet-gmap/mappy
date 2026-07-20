@@ -14,8 +14,6 @@ def save_to_geopackage(gpkg_filename, layer, layername="layer"):
         print("file exsists")
         opts.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
 
-
-
     return QgsVectorFileWriter.writeAsVectorFormatV2(layer, gpkg_filename, QgsCoordinateTransformContext(), opts)
 
 
@@ -31,7 +29,5 @@ def save_to_geopackage2(gpkg_filename, layer, layername="layer"):
     else:
         print("file exsists")
         opts.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
-
-
 
     return QgsVectorFileWriter.writeAsVectorFormatV3(layer, gpkg_filename, QgsCoordinateTransformContext(), opts)

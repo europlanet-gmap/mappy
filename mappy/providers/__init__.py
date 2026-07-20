@@ -1,1 +1,1 @@
-from .MappyProvider import MappyProvider
+from .MappyProvider import MappyProvider as MappyProvider
