@@ -73,7 +73,7 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
 
         with patch.object(mappy, "recompute_map") as recompute, \
              patch.object(mappy, "findLayer", return_value=polygons), \
-             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_B", True)):
+             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_B", "#123456", {}, True)):
             mappy.assign_unit_at_point(QgsPointXY(0.5, 0.5))
 
         # auto-recompute is disabled by default, so assigning a unit must
@@ -93,7 +93,7 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
 
         with patch.object(mappy, "recompute_map") as recompute, \
              patch.object(mappy, "findLayer", return_value=polygons), \
-             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_C", True)):
+             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_C", "#654321", {}, True)):
             mappy.assign_unit_at_point(QgsPointXY(2.5, 0.5))
 
         recompute.assert_not_called()
@@ -107,10 +107,59 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
 
         with patch.object(mappy, "recompute_map") as recompute, \
              patch.object(mappy, "findLayer", return_value=polygons), \
-             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_B", True)):
+             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_B", "#123456", {}, True)):
             mappy.assign_unit_at_point(QgsPointXY(0.5, 0.5))
 
         recompute.assert_called_once()
+
+    def test_recoloring_a_different_unit_during_the_dialog_still_propagates(self):
+        # regression test: the dialog can report color changes for units
+        # other than the one confirmed (e.g. the user tweaked an existing
+        # unit's color while browsing before picking a different one) --
+        # those must still be written to the points layer, not dropped
+        mappy, points, polygons = self._make_setup()
+
+        with patch.object(mappy, "recompute_map"), \
+             patch.object(mappy, "findLayer", return_value=polygons), \
+             patch(
+                 "mappy.assign_unit_dialog.AssignUnitDialog.getUnit",
+                 return_value=("UNIT_D", "#dddddd", {"UNIT_A": "#aaaaaa"}, True),
+             ):
+            mappy.assign_unit_at_point(QgsPointXY(2.5, 0.5))
+
+        colors = {f["unit_name"]: f["color"] for f in points.getFeatures()}
+        self.assertEqual(colors["UNIT_D"], "#dddddd")
+        self.assertEqual(colors["UNIT_A"], "#aaaaaa")
+
+    def test_recoloring_the_confirmed_existing_unit_actually_sticks(self):
+        # regression test: writing the dialog's chosen color to points_layer
+        # *before* calling sync_unit_colors made sync_unit_colors's baseline
+        # already reflect the new color, while the polygon layer's renderer
+        # (not yet touched) still showed the old one -- that mismatch was
+        # misread as a manual Symbology override on the polygon layer, which
+        # then "won" and silently reverted the just-applied change back to
+        # the old color.
+        mappy, points, polygons = self._make_setup()
+
+        with patch.object(mappy, "recompute_map"), \
+             patch.object(mappy, "findLayer", return_value=polygons), \
+             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_A", "#ff0000", {}, True)):
+            mappy.assign_unit_at_point(QgsPointXY(0.5, 0.5))
+
+        with patch.object(mappy, "recompute_map"), \
+             patch.object(mappy, "findLayer", return_value=polygons), \
+             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_A", "#0000ff", {}, True)):
+            mappy.assign_unit_at_point(QgsPointXY(0.5, 0.5))
+
+        for f in points.getFeatures():
+            self.assertEqual(f["color"], "#0000ff")
+
+        renderer = polygons.renderer()
+        index = renderer.categoryIndexForValue("UNIT_A")
+        categories = renderer.categories()
+        category = categories[index]
+        symbol = category.symbol()
+        self.assertEqual(symbol.color().name(), "#0000ff")
 
     def test_click_outside_any_polygon_does_nothing(self):
         mappy, points, polygons = self._make_setup()

@@ -377,6 +377,7 @@ class Mappy:
         self.load_layer_if_not_loaded(
             ofile, olayername, field_style=pars["units_field"],
             insert_after=["source_contacts", "source_indicators"],
+            points_layer=points_layer,
         )
 
 
@@ -475,7 +476,7 @@ class Mappy:
         from qgis.core import QgsCoordinateTransform, QgsFeature, QgsFeatureRequest, QgsGeometry, QgsRectangle
 
         from .assign_unit_dialog import AssignUnitDialog
-        from .mappy_utils import collect_parameters
+        from .mappy_utils import collect_parameters, get_or_create_color_table, write_colors_to_points
 
         pars = collect_parameters(self.config_dock)
 
@@ -531,11 +532,13 @@ class Mappy:
         })
 
         current_value_str = str(current_value) if str(current_value) in existing_values else None
+        color_table = get_or_create_color_table(points_layer, units_field)
 
-        text, ok = AssignUnitDialog.getUnit(
+        text, color, changed_colors, ok = AssignUnitDialog.getUnit(
             self.iface.mainWindow(),
             existing_values,
             current_value_str,
+            color_table,
         )
 
         if not ok or not text:
@@ -554,6 +557,22 @@ class Mappy:
 
         points_layer.commitChanges()
 
+        # the confirmed unit's color (proposed-and-kept for a new unit, or
+        # hand-picked) plus every *other* unit recolored during the same
+        # dialog session -- both become authoritative for every point
+        # sharing that unit, not just the one the user ended up confirming.
+        #
+        # These are passed into sync_unit_colors as explicit overrides
+        # rather than written to points_layer directly here: the polygon
+        # layer's renderer hasn't been told about them yet at this point,
+        # and writing to points_layer first would make sync_unit_colors
+        # mistake that staleness for a manual Symbology edit on the
+        # *polygon* layer and let the old, stale color win, reverting the
+        # very change just made.
+        color_updates = dict(changed_colors)
+        if color:
+            color_updates[text] = color
+
         # only the attribute changes here, not the polygon's geometry, so
         # update the clicked polygon directly too instead of waiting for a
         # full recompute -- this keeps its color/label in sync immediately
@@ -566,9 +585,13 @@ class Mappy:
             polygons_layer.commitChanges()
             polygons_layer.setReadOnly(was_read_only)
 
-            from .mappy_utils import resetCategoriesIfNeeded, enable_default_labels
-            resetCategoriesIfNeeded(polygons_layer, units_field)
+            from .mappy_utils import enable_default_labels, sync_unit_colors
+            sync_unit_colors(points_layer, polygons_layer, units_field, explicit_overrides=color_updates)
             enable_default_labels(polygons_layer, units_field)
+        elif color_updates:
+            # polygon layer has no units_field yet (map never recomputed) --
+            # nothing to sync colors with, but still persist the choice
+            write_colors_to_points(points_layer, units_field, "color", color_updates)
 
         if pars.get("auto_recompute_on_assign_unit"):
             self.recompute_map()
@@ -578,7 +601,7 @@ class Mappy:
                 "Unit assigned. Recompute the map to update the point/polygon join, dangle cleanup, etc.",
             )
 
-    def load_layer_if_not_loaded(self, gpkgfile, layername, field_style=None, insert_after=None) -> QgsVectorLayer:
+    def load_layer_if_not_loaded(self, gpkgfile, layername, field_style=None, insert_after=None, points_layer=None) -> QgsVectorLayer:
         l: QgsVectorLayer = self.findLayer(gpkgfile, layername)
         if l is None:
             l = self.addLayerFromGeopackage(gpkgfile, layername, insert_after=insert_after)
@@ -589,8 +612,11 @@ class Mappy:
         l.setReadOnly()
 
         if field_style:
-            from .mappy_utils import resetCategoriesIfNeeded, enable_default_labels
-            resetCategoriesIfNeeded(l, field_style)
+            from .mappy_utils import resetCategoriesIfNeeded, enable_default_labels, sync_unit_colors
+            if points_layer is not None:
+                sync_unit_colors(points_layer, l, field_style)
+            else:
+                resetCategoriesIfNeeded(l, field_style)
             enable_default_labels(l, field_style)
 
         return l
