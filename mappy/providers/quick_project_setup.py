@@ -25,7 +25,7 @@ class QuickProjectSetup(MappyProcessingAlgorithm):
                                                             defaultValue=Path.home().joinpath(
                                                                 "Mapping Projects").as_posix()))
 
-        pars.append(QgsProcessingParameterCrs("CRS", "Project Reference System", defaultValue=None))
+        pars.append(QgsProcessingParameterCrs("CRS", "Project Reference System", defaultValue="ProjectCrs"))
 
         pars.append(QgsProcessingParameterBoolean("LinearFeaturesLayer", "Create an additional line layer for structural mapping or linear features", defaultValue=True))
 
@@ -54,7 +54,7 @@ class QuickProjectSetup(MappyProcessingAlgorithm):
             parameters["OutFolder"] = tempfile.gettempdir()
 
         ofolder = Path(parameters["OutFolder"]).joinpath(project_name)
-        crs = parameters["CRS"]
+        crs = self.parameterAsCrs(parameters, "CRS", context)
 
         vector_folder = ofolder.joinpath("vector")
         vector_file = vector_folder.joinpath(project_name.lower()).with_suffix(".gpkg")

@@ -93,6 +93,9 @@ class Mappy:
         self.assign_unit_tool = None
         self.assign_unit_action = None
 
+        self.quick_draw_line_tool = None
+        self.quick_edit_mode_action = None
+
         self.config_dock = MappyDockWidget()
         self.config_dock.closingPlugin.connect(self.close_config)
         # print(f"setting infobox text to {self.info_text}")
@@ -181,11 +184,15 @@ class Mappy:
             parent=self.iface.mainWindow())
 
         icon_path = ':/plugins/qgismappy/icons/reload.png'
-        self.add_action(
+        self.recompute_action = self.add_action(
             icon_path,
             text=self.tr(u'Recompute map. Will overwrite data, hence pay attention to the config settings.'),
             callback=self.recompute_map,
             parent=self.iface.mainWindow())
+        # registerMainWindowAction (rather than a plain setShortcut) is what
+        # makes the shortcut show up in Settings > Keyboard Shortcuts and in
+        # the toolbar tooltip, and lets the user remap it if it clashes
+        self.iface.registerMainWindowAction(self.recompute_action, "Ctrl+Shift+F5")
 
 
         icon_path = ':/plugins/qgismappy/icons/create_points.png'
@@ -195,6 +202,15 @@ class Mappy:
             callback=self.toggle_assign_unit_tool,
             parent=self.iface.mainWindow())
         self.assign_unit_action.setCheckable(True)
+
+        icon_path = ':/plugins/qgismappy/icons/edit_mode.png'
+        self.quick_edit_mode_action = self.add_action(
+            icon_path,
+            text=self.tr(u'Quick enable editing'),
+            callback=self.trigger_quick_edit_mode,
+            parent=self.iface.mainWindow())
+        # self.quick_edit_mode_action.setCheckable(True)
+
 
         icon_path = None
         self.add_action(
@@ -411,6 +427,34 @@ class Mappy:
         else:
             canvas.unsetMapTool(self.assign_unit_tool)
 
+
+    def trigger_quick_edit_mode(self):
+        print("trigger_quick_edit_mode")
+
+        
+        from .mappy_utils import collect_parameters
+
+        pars = collect_parameters(self.config_dock)
+
+        line_layer = pars.get("lines")
+
+        if line_layer is None:
+            self.alert_box("Error", "Missing lines layer. Please select it in the settings.")
+            return
+        
+        self.iface.layerTreeView().setCurrentLayer(line_layer)
+
+        if not line_layer.isEditable():
+            line_layer.startEditing()
+
+        self.iface.actionAddFeature().trigger()
+            
+
+
+
+
+        
+
     def on_assign_unit_tool_deactivated(self):
         if self.assign_unit_action is not None:
             self.assign_unit_action.setChecked(False)
@@ -421,7 +465,9 @@ class Mappy:
         Finds the polygon at that location in the current final map layer,
         looks up (or creates) the indicator point associated with it, lets
         the user pick/type a unit name for it, then recomputes the map so
-        the polygon layer reflects the change.
+        the polygon layer reflects the change -- unless the
+        "auto_recompute_on_assign_unit" setting is disabled (the default),
+        in which case the user is left to trigger a recompute manually.
         """
         from qgis.core import QgsCoordinateTransform, QgsFeature, QgsFeatureRequest, QgsGeometry, QgsRectangle
         from qgis.PyQt.QtWidgets import QInputDialog
@@ -508,7 +554,13 @@ class Mappy:
 
         points_layer.commitChanges()
 
-        self.recompute_map()
+        if pars.get("auto_recompute_on_assign_unit"):
+            self.recompute_map()
+        else:
+            self.iface.messageBar().pushInfo(
+                "Mappy",
+                "Unit assigned. Recompute the map to update the polygon layer.",
+            )
 
     def load_layer_if_not_loaded(self, gpkgfile, layername, field_style=None, insert_after=None) -> QgsVectorLayer:
         l: QgsVectorLayer = self.findLayer(gpkgfile, layername)
@@ -562,6 +614,8 @@ class Mappy:
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
+
+        self.iface.unregisterMainWindowAction(self.recompute_action)
 
         for action in self.actions:
             self.iface.removePluginMenu(

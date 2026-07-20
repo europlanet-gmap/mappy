@@ -1,11 +1,30 @@
 from qgis.PyQt.QtCore import QFile, QTextStream
 from qgis.PyQt.QtWidgets import QLineEdit, QCheckBox
-from qgis.core import QgsFeatureRequest, QgsVectorLayer, QgsMapLayer, QgsApplication, QgsLayerTreeLayer
-from qgis.core import QgsVectorFileWriter, QgsProject, QgsCategorizedSymbolRenderer, QgsSymbol, QgsRendererCategory
+from qgis.core import (
+    QgsFeatureRequest,
+    QgsVectorLayer,
+    QgsMapLayer,
+    QgsApplication,
+    QgsLayerTreeLayer,
+)
+from qgis.core import (
+    QgsVectorFileWriter,
+    QgsProject,
+    QgsCategorizedSymbolRenderer,
+    QgsSymbol,
+    QgsRendererCategory,
+)
 from qgis.gui import QgsFileWidget
 from qgis.gui import QgsFieldComboBox, QgsDoubleSpinBox, QgsMapLayerComboBox
 
-parameters_widgets = [QgsMapLayerComboBox, QgsFieldComboBox, QgsDoubleSpinBox, QLineEdit, QCheckBox, QgsFileWidget]
+parameters_widgets = [
+    QgsMapLayerComboBox,
+    QgsFieldComboBox,
+    QgsDoubleSpinBox,
+    QLineEdit,
+    QCheckBox,
+    QgsFileWidget,
+]
 
 
 def hasAlgo(name):
@@ -16,6 +35,7 @@ def hasAlgo(name):
     else:
         return False
 
+
 def matchAlgo(name):
     if hasAlgo(name):
         return name
@@ -24,10 +44,9 @@ def matchAlgo(name):
         if hasAlgo(newname):
             return newname
         else:
-            raise NameError(f"Cannot match algorithm with name {name}. This is possibly due to using this plugin on an older version of QGIS.")
-
-
-
+            raise NameError(
+                f"Cannot match algorithm with name {name}. This is possibly due to using this plugin on an older version of QGIS."
+            )
 
 
 def readWidgetContent(widget):
@@ -44,7 +63,7 @@ def readWidgetContent(widget):
         return widget.text()
 
     elif isinstance(widget, QCheckBox):
-        return bool(widget.checkState())
+        return widget.isChecked()
 
     elif isinstance(widget, QgsFileWidget):
         return widget.filePath()
@@ -52,16 +71,21 @@ def readWidgetContent(widget):
     else:
         return None
 
+
 def restoreWidgetContent(widget, value):
     if isinstance(widget, QgsMapLayerComboBox):
         if not isinstance(value, QgsMapLayer):
-            raise TypeError(f"{type(value)} is a wrong type for widget QgsMapLayerComboBox")
+            raise TypeError(
+                f"{type(value)} is a wrong type for widget QgsMapLayerComboBox"
+            )
         widget.setLayer(value)
 
     elif isinstance(widget, QgsFieldComboBox):
         exists = widget.findText(str(value))
         if exists == -1:
-            raise ValueError(f"You are trying to set the widget {widget.objectName()} to value {value}. but combo box does not contain this value")
+            raise ValueError(
+                f"You are trying to set the widget {widget.objectName()} to value {value}. but combo box does not contain this value"
+            )
 
         widget.setField(str(value))
 
@@ -103,13 +127,15 @@ def getChangeSignal(widget):
     else:
         return None
 
+
 def serialize_value_for_settings(value):
     if type(value) in [QgsVectorLayer]:
         return value.id()
     else:
         return str(value)
 
-def collect_parameters(qt_obj):
+
+def collect_parameters(qt_obj):  # -> dict[Any, Any]:
     pars = {}
     for name in qt_obj.__dict__:
         val = readWidgetContent(getattr(qt_obj, name))
@@ -117,6 +143,7 @@ def collect_parameters(qt_obj):
             pars[name] = val
 
     return pars
+
 
 def insert_layer_after(layer, after_layer_names):
     """Insert `layer` into the layer tree root, directly after whichever of
@@ -136,7 +163,10 @@ def insert_layer_after(layer, after_layer_names):
     else:
         root.insertLayer(anchor_index + 1, layer)
 
-def add_layer_from_geopackage(gpkgfile, layer_name, categories_field=None, insert_after=None):
+
+def add_layer_from_geopackage(
+    gpkgfile, layer_name, categories_field=None, insert_after=None
+):
     gpkgfile += f"|layername={layer_name}"
     l = QgsVectorLayer(gpkgfile)
     l.setName(layer_name)
@@ -149,6 +179,7 @@ def add_layer_from_geopackage(gpkgfile, layer_name, categories_field=None, inser
 
     return l
 
+
 def drop_duplicate_points_per_polygon(points_layer, polygons_layer):
     """When more than one point falls within the same polygon, only the
     first one (lowest feature id) was actually used by the join that assigns
@@ -159,7 +190,11 @@ def drop_duplicate_points_per_polygon(points_layer, polygons_layer):
     for poly_feature in polygons_layer.getFeatures():
         poly_geom = poly_feature.geometry()
         request = QgsFeatureRequest().setFilterRect(poly_geom.boundingBox())
-        candidates = [f for f in points_layer.getFeatures(request) if poly_geom.intersects(f.geometry())]
+        candidates = [
+            f
+            for f in points_layer.getFeatures(request)
+            if poly_geom.intersects(f.geometry())
+        ]
         if len(candidates) > 1:
             candidates.sort(key=lambda f: f.id())
             to_delete.update(f.id() for f in candidates[1:])
@@ -171,6 +206,7 @@ def drop_duplicate_points_per_polygon(points_layer, polygons_layer):
 
     return to_delete
 
+
 def load_mappy_info_text():
     file = QFile(":/plugins/qgismappy/INFO.html")
     file.open(QFile.OpenModeFlag.ReadOnly | QFile.OpenModeFlag.Text)
@@ -180,17 +216,18 @@ def load_mappy_info_text():
     return text
 
 
-def write_layer_to_gpkg(layer, gpkgfile,  layername):
+def write_layer_to_gpkg(layer, gpkgfile, layername):
     options = QgsVectorFileWriter.SaveVectorOptions()
     options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
     options.layerName = layername
     context = QgsProject.instance().transformContext()
     QgsVectorFileWriter.writeAsVectorFormatV2(layer, gpkgfile, context, options)
 
-def write_layer_to_gpkg2(layer, gpkgfile, layername):
 
+def write_layer_to_gpkg2(layer, gpkgfile, layername):
     options = QgsVectorFileWriter.SaveVectorOptions()
     from pathlib import Path
+
     if Path(gpkgfile).exists():
         options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
     else:
@@ -201,12 +238,13 @@ def write_layer_to_gpkg2(layer, gpkgfile, layername):
     context = QgsProject.instance().transformContext()
 
     if hasattr(QgsVectorFileWriter, "writeAsVectorFormatV3"):
-        return QgsVectorFileWriter.writeAsVectorFormatV3(layer, gpkgfile, context, options)
+        return QgsVectorFileWriter.writeAsVectorFormatV3(
+            layer, gpkgfile, context, options
+        )
     else:
-        return QgsVectorFileWriter.writeAsVectorFormatV2(layer, gpkgfile, context, options)
-
-
-
+        return QgsVectorFileWriter.writeAsVectorFormatV2(
+            layer, gpkgfile, context, options
+        )
 
 
 def resetCategoriesIfNeeded(layer, units_field):
@@ -274,4 +312,3 @@ def resetCategoriesIfNeeded(layer, units_field):
     layer.dataSourceChanged.emit()
 
     layer.triggerRepaint()
-

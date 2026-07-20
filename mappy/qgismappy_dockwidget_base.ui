@@ -157,6 +157,16 @@
              </property>
             </widget>
            </item>
+           <item row="3" column="0">
+            <widget class="QCheckBox" name="auto_recompute_on_assign_unit">
+             <property name="text">
+              <string>Automatically regenerate the map when assigning a unit</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>

@@ -21,6 +21,11 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
         mappy = Mappy.instance
         dock = mappy.config_dock
 
+        # tests run against the shared dock singleton -- start every test
+        # from the documented default (auto-recompute off) regardless of
+        # what an earlier test in this run left it as
+        dock.get_widget_by_name("auto_recompute_on_assign_unit").setChecked(False)
+
         crs = QgsCoordinateReferenceSystem("EPSG:4326")
 
         points = QgsVectorLayer("Point?crs=EPSG:4326", "zzz_points", "memory")
@@ -66,7 +71,9 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
              patch("qgis.PyQt.QtWidgets.QInputDialog.getItem", return_value=("UNIT_B", True)):
             mappy.assign_unit_at_point(QgsPointXY(0.5, 0.5))
 
-        recompute.assert_called_once()
+        # auto-recompute is disabled by default, so assigning a unit must
+        # not trigger a full map regeneration
+        recompute.assert_not_called()
         values = [f["unit_name"] for f in points.getFeatures()]
         self.assertEqual(values, ["UNIT_B"])
 
@@ -78,10 +85,21 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
              patch("qgis.PyQt.QtWidgets.QInputDialog.getItem", return_value=("UNIT_C", True)):
             mappy.assign_unit_at_point(QgsPointXY(2.5, 0.5))
 
-        recompute.assert_called_once()
+        recompute.assert_not_called()
         values = sorted(f["unit_name"] for f in points.getFeatures())
         self.assertEqual(values, ["UNIT_A", "UNIT_C"])
         self.assertEqual(points.featureCount(), 2)
+
+    def test_recomputes_map_when_setting_enabled(self):
+        mappy, points, polygons = self._make_setup()
+        mappy.config_dock.get_widget_by_name("auto_recompute_on_assign_unit").setChecked(True)
+
+        with patch.object(mappy, "recompute_map") as recompute, \
+             patch.object(mappy, "findLayer", return_value=polygons), \
+             patch("qgis.PyQt.QtWidgets.QInputDialog.getItem", return_value=("UNIT_B", True)):
+            mappy.assign_unit_at_point(QgsPointXY(0.5, 0.5))
+
+        recompute.assert_called_once()
 
     def test_click_outside_any_polygon_does_nothing(self):
         mappy, points, polygons = self._make_setup()

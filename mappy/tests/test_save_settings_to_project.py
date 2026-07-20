@@ -44,6 +44,36 @@ class TestSaveSettingsOnProjectWrite(ExtendedUnitTesting):
         self.assertTrue(found)
         self.assertEqual(value, "zzz_via_real_signal")
 
+    def test_unchecked_checkbox_survives_real_toggle_save_and_reload(self):
+        # Qt.CheckState is a plain Enum (not IntEnum) in this PyQt6 binding,
+        # so bool(widget.checkState()) is True for every state including
+        # Unchecked -- any enum member is truthy unless it defines __bool__.
+        # readWidgetContent must use widget.isChecked() instead, otherwise
+        # every checkbox is reported (and persisted) as checked no matter
+        # its actual on-screen state.
+        from mappy.qgismappy import Mappy
+
+        dock = Mappy.instance.config_dock
+        proj = QgsProject.instance()
+
+        # real user interaction: click the checkbox (fires the real
+        # stateChanged signal), then a real project save
+        dock.auto_recompute_on_assign_unit.setChecked(True)
+        proj.writeProject.emit(QDomDocument())
+        value, found = proj.readEntry("mappy", "auto_recompute_on_assign_unit", None)
+        self.assertEqual(value, "True")
+
+        dock.auto_recompute_on_assign_unit.setChecked(False)
+        proj.writeProject.emit(QDomDocument())
+        value, found = proj.readEntry("mappy", "auto_recompute_on_assign_unit", None)
+        self.assertEqual(value, "False")
+
+        # simulate reopening the project: flip the live widget to the wrong
+        # state first, then let the project's stored value win
+        dock.auto_recompute_on_assign_unit.setChecked(True)
+        proj.readProject.emit(QDomDocument())
+        self.assertFalse(dock.auto_recompute_on_assign_unit.isChecked())
+
     def test_new_dock_reloads_settings_already_in_project_at_construction(self):
         from mappy.qgismappy_dockwidget import MappyDockWidget
 

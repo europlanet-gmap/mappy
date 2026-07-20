@@ -208,7 +208,10 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             elif ptype in [float, np.double]:
                 pars[k] = np.double(value)
             elif ptype in [bool]:
-                pars[k] = bool(value)
+                # value is always a str here (serialize_value_for_settings
+                # stores everything as str(value)); bool(value) would be
+                # True for the non-empty string "False" too
+                pars[k] = str(value).strip().lower() == "true"
             elif ptype in [QgsVectorLayer]:
                 root = proj.layerTreeRoot()
                 l = root.findLayer(value)
