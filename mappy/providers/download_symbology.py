@@ -67,7 +67,7 @@ class DownloadSymbology(MappyProcessingAlgorithm):
 
         url = parameters["Url"]
 
-        myfile = requests.get(url)
+        myfile = requests.get(url, timeout=30)
         fname = Path(url).name
         model_feedback.pushCommandInfo(fname)
 
@@ -82,6 +82,11 @@ class DownloadSymbology(MappyProcessingAlgorithm):
         # now we decompress it
         from zipfile import ZipFile
         with ZipFile(newfname, 'r') as zf:
+            dest_root = s.resolve()
+            for member in zf.namelist():
+                member_path = dest_root.joinpath(member).resolve()
+                if dest_root not in member_path.parents and member_path != dest_root:
+                    raise ValueError(f"Unsafe path in zip archive: {member}")
             zf.extractall(s)
 
         from .symbol_xml_extractor import SymbolXMLExtractor
