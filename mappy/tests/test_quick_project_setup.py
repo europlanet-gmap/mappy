@@ -48,3 +48,16 @@ class TestQuickProjectSetup(ExtendedUnitTesting):
         units_widget = dock.get_widget_by_name("units_field")
         self.assertEqual(units_widget.layer(), points_layer)
         self.assertEqual(units_widget.currentField(), "unit_name")
+
+        # source_indicators should be labeled with unit_name by default
+        self.assertTrue(points_layer.labelsEnabled())
+        self.assertEqual(points_layer.labeling().settings().fieldName, "unit_name")
+
+        # source_contacts should default to a plain black line
+        from mappy.qgismappy import Mappy as _Mappy
+
+        contacts_layer = _Mappy.instance.findLayer(
+            points_layer.dataProvider().dataSourceUri().split("|")[0], "source_contacts"
+        )
+        self.assertIsNotNone(contacts_layer)
+        self.assertEqual(contacts_layer.renderer().symbol().color().name(), "#000000")

@@ -1,6 +1,6 @@
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis._core import QgsProcessingParameterDistance, QgsProcessingParameterFeatureSink, QgsProcessingMultiStepFeedback
-from qgis.core import QgsProcessingParameterBoolean
+from qgis.core import QgsProcessingParameterBoolean, QgsProperty
 from qgis.core import (QgsProcessing,
                        QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterNumber,
@@ -92,8 +92,20 @@ class LabelPointsFromPolygonsProcessingAlgorithm(MappyProcessingAlgorithm):
                          feedback=feedback,
                          is_child_algorithm=True)
 
+        # A fixed TOLERANCE that's too coarse relative to a thin/complex
+        # polygon can make native:poleofinaccessibility return a point
+        # outside the polygon entirely (the search never subdivides finely
+        # enough to find a properly interior cell). Cap it per-feature to a
+        # small fraction of that feature's own bounding-box size, so the
+        # tolerance is always sensible relative to the shape it's computed
+        # for, regardless of how coarse the caller-supplied value is.
+        capped_tolerance = QgsProperty.fromExpression(
+            f"min({tolerance}, max(min(x_max($geometry) - x_min($geometry), "
+            f"y_max($geometry) - y_min($geometry)) * 0.001, 0.000001))"
+        )
+
         pars = {'INPUT':polygons_layer,
-                'TOLERANCE':tolerance,
+                'TOLERANCE':capped_tolerance,
                 'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT}
 
         feedback.setCurrentStep(1)

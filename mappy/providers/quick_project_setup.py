@@ -74,8 +74,12 @@ class QuickProjectSetup(MappyProcessingAlgorithm):
 
         indicators_layer = self.generate_and_load_geopackage_layer(vector_file.as_posix(), crs, type="Point", name="source_indicators",
                                                 fields=pts_fields)
-        self.generate_and_load_geopackage_layer(vector_file.as_posix(), crs, type="Linestring", name="source_contacts",
+        contacts_layer = self.generate_and_load_geopackage_layer(vector_file.as_posix(), crs, type="Linestring", name="source_contacts",
                                                 fields=line_fields)
+
+        from ..mappy_utils import enable_default_labels, style_simple_black_line
+        enable_default_labels(indicators_layer, "unit_name")
+        style_simple_black_line(contacts_layer)
 
         if create_linear_features_layer:
             structure_fields = [["certainty", QVariant.String], ["type", QVariant.String] ]

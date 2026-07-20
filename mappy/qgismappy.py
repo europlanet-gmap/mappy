@@ -464,10 +464,13 @@ class Mappy:
 
         Finds the polygon at that location in the current final map layer,
         looks up (or creates) the indicator point associated with it, lets
-        the user pick/type a unit name for it, then recomputes the map so
-        the polygon layer reflects the change -- unless the
-        "auto_recompute_on_assign_unit" setting is disabled (the default),
-        in which case the user is left to trigger a recompute manually.
+        the user pick/type a unit name for it, updates both the point and
+        (since only the attribute changes, not the polygon geometry) the
+        clicked polygon's own attribute directly so its color/label update
+        immediately on screen. A full recompute_map() -- which redoes the
+        point/polygon join, dangle cleanup, etc. -- only additionally runs
+        if the "auto_recompute_on_assign_unit" setting is enabled (off by
+        default); otherwise the user is left to trigger it manually.
         """
         from qgis.core import QgsCoordinateTransform, QgsFeature, QgsFeatureRequest, QgsGeometry, QgsRectangle
         from qgis.PyQt.QtWidgets import QInputDialog
@@ -554,12 +557,28 @@ class Mappy:
 
         points_layer.commitChanges()
 
+        # only the attribute changes here, not the polygon's geometry, so
+        # update the clicked polygon directly too instead of waiting for a
+        # full recompute -- this keeps its color/label in sync immediately
+        poly_field_index = polygons_layer.fields().indexFromName(units_field)
+        if poly_field_index != -1:
+            was_read_only = polygons_layer.readOnly()
+            polygons_layer.setReadOnly(False)
+            polygons_layer.startEditing()
+            polygons_layer.changeAttributeValue(matched_polygon.id(), poly_field_index, text)
+            polygons_layer.commitChanges()
+            polygons_layer.setReadOnly(was_read_only)
+
+            from .mappy_utils import resetCategoriesIfNeeded, enable_default_labels
+            resetCategoriesIfNeeded(polygons_layer, units_field)
+            enable_default_labels(polygons_layer, units_field)
+
         if pars.get("auto_recompute_on_assign_unit"):
             self.recompute_map()
         else:
             self.iface.messageBar().pushInfo(
                 "Mappy",
-                "Unit assigned. Recompute the map to update the polygon layer.",
+                "Unit assigned. Recompute the map to update the point/polygon join, dangle cleanup, etc.",
             )
 
     def load_layer_if_not_loaded(self, gpkgfile, layername, field_style=None, insert_after=None) -> QgsVectorLayer:
@@ -573,8 +592,9 @@ class Mappy:
         l.setReadOnly()
 
         if field_style:
-            from .mappy_utils import resetCategoriesIfNeeded
+            from .mappy_utils import resetCategoriesIfNeeded, enable_default_labels
             resetCategoriesIfNeeded(l, field_style)
+            enable_default_labels(l, field_style)
 
         return l
 

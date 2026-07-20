@@ -33,14 +33,19 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
         points.updateFields()
         QgsProject.instance().addMapLayer(points)
 
+        # mirrors the real final_map layer, which carries a copy of the
+        # units_field attribute from the join done at map construction time
         polygons = QgsVectorLayer("Polygon?crs=EPSG:4326", "zzz_final_map", "memory")
+        polygons.dataProvider().addAttributes([QgsField("unit_name", QVariant.String)])
+        polygons.updateFields()
         QgsProject.instance().addMapLayer(polygons)
 
-        f1 = QgsFeature()
+        f1 = QgsFeature(polygons.fields())
         f1.setGeometry(QgsGeometry.fromWkt("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))"))
+        f1["unit_name"] = "UNIT_A"
         polygons.dataProvider().addFeature(f1)
 
-        f2 = QgsFeature()
+        f2 = QgsFeature(polygons.fields())
         f2.setGeometry(QgsGeometry.fromWkt("POLYGON((2 0, 3 0, 3 1, 2 1, 2 0))"))
         polygons.dataProvider().addFeature(f2)
 
@@ -76,6 +81,12 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
         recompute.assert_not_called()
         values = [f["unit_name"] for f in points.getFeatures()]
         self.assertEqual(values, ["UNIT_B"])
+
+        # the clicked polygon's own attribute is updated directly, in sync
+        # with the point, even without a full recompute
+        poly_values = [f["unit_name"] for f in polygons.getFeatures() if f.geometry().intersects(QgsGeometry.fromPointXY(QgsPointXY(0.5, 0.5)))]
+        self.assertEqual(poly_values, ["UNIT_B"])
+        self.assertFalse(polygons.isEditable())
 
     def test_creates_new_point_when_polygon_has_none(self):
         mappy, points, polygons = self._make_setup()
