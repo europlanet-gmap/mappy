@@ -73,10 +73,11 @@ bump version_kind:
 
     sed -i "s/^version = \".*\"/version = \"$new_version\"/" pyproject.toml
     sed -i "s/version=[.a-zA-Z0-9]*/version=$new_version/g" mappy/metadata.txt
+    uv lock
 
     just release-changelog "$new_version"
 
-    git add pyproject.toml mappy/metadata.txt CHANGELOG.md
+    git add pyproject.toml mappy/metadata.txt CHANGELOG.md uv.lock
     git commit -m "Bump version to $new_version and update changelog"
     git tag "v$new_version"
     echo "Version bump and changelog update complete."
