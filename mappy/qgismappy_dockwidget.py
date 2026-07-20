@@ -113,16 +113,25 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             if wtype not in parameters_widgets:
                 continue
 
-            def generate_method(name):
-                def call_trigger(self, value):
+            # A plain closure bound to this instance only -- no shared
+            # state on self.__class__. The previous approach dynamically
+            # setattr'd a same-named method onto the (shared!) class on
+            # every dock construction, so a second dock instance would
+            # silently replace the method an earlier, still-live dock's
+            # widget signal was connected to. That is suspected to be
+            # behind a PyQt5-only segfault reproduced in Docker (see
+            # test_new_dock_reloads_settings_already_in_project_at_construction):
+            # constructing (and even properly deleting) a second
+            # MappyDockWidget corrupted a later signal emission on the
+            # first, still-alive dock's checkbox.
+            def make_slot(name):
+                def slot(value):
                     self.value_changed(name, value)
 
-                return call_trigger
+                return slot
 
-            slot_name = f"widget_parameter_{name}_changed"
-            setattr(self.__class__, slot_name, generate_method(name))
             s = getChangeSignal(w)
-            s.connect(getattr(self, slot_name))
+            s.connect(make_slot(name))
 
     def value_changed(self, name, value):
         print(value)
