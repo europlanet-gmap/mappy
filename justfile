@@ -88,14 +88,15 @@ release-changelog version:
 
 # Deploy the plugin locally using pb_tool
 deploy: clean update-info compile-resources
-    cd mappy && pb_tool deploy -y
+    cd mappy && uv run pb_tool deploy -y
 
 # Build a distributable zip archive
 package: clean update-info compile-resources
     @echo "VERSION: {{VERSION}}"
     cd mappy && \
-    pb_tool zip && \
-    cp zip_build/mappy.zip zip_build/mappy-{{VERSION}}.zip
+    echo y | uv run pb_tool zip && \
+    mkdir -p zip_build && \
+    cp mappy.zip zip_build/mappy-{{VERSION}}.zip
 
 # Run the test suite (headless, offscreen Qt platform)
 test:
