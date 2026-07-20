@@ -245,11 +245,60 @@ to disable this feature and use it only at the end for finalizing the map.
   {guilabel}`Clean Contacts` layer (if generated). In this way you can work
   with correctly styled layers and have the style copied to final version of
   your contacts.
+- **Automatically regenerate the map when assigning a unit**: off by default.
+  When enabled, a full {guilabel}`Recompute Map` is triggered every time you
+  assign a unit with the {guilabel}`Assign unit to polygon` tool (see
+  {ref}`assigning_units` below), instead of only updating the clicked polygon.
 
 ---
 
 After setting and double-checking your config you can now press the
 {guilabel}`Recompute Map` toolbar button and have your polygons computed.
+
+(assigning_units)=
+## Assigning units and quick editing
+
+Once a map has been generated at least once, two additional toolbar tools let
+you keep refining it without going back through the full recompute cycle every
+time:
+
+:::{tip}
+Both tools live on the same Mappy toolbar as {guilabel}`Recompute Map`
+(see the toolbar screenshot above).
+:::
+
+### Assign unit to polygon
+
+The {guilabel}`Assign unit to polygon` tool (the map-pin icon) lets you
+directly (re)assign the unit of an existing polygon on the generated map,
+without re-digitizing or moving any indicator point by hand:
+
+1. Click the {guilabel}`Assign unit to polygon` button to activate the tool
+   (it stays active, like other QGIS map tools, until you click it again or
+   switch tools).
+2. Click anywhere inside a polygon of the generated map layer.
+3. A dialog opens with a searchable list of every unit currently in use. Start
+   typing to filter it live, or type a name that doesn't exist yet to create a
+   new unit. Use the swatch button next to the filter box to pick or change
+   that unit's color on the spot — no separate styling step needed.
+4. Confirm with {guilabel}`OK` (or by double-clicking/pressing Enter on a list
+   entry).
+
+Mappy then updates the clicked polygon's unit and color immediately, keeps the
+underlying indicator point in sync, and applies default labeling. Unit colors
+are stored per-project, so once a unit has a color it stays consistent across
+every polygon and every layer that uses it, even after the map is
+regenerated. If you'd rather have the whole map recomputed after every
+assignment instead, enable {guilabel}`Automatically regenerate the map when
+assigning a unit` in the config dialog.
+
+### Quick enable editing
+
+The {guilabel}`Quick enable editing` button (QGIS's own pencil icon) is a
+shortcut for the contacts layer: it switches to your configured lines layer,
+turns on editing if it isn't already, and immediately activates the
+{guilabel}`Add Line Feature` tool — the same three steps you'd otherwise do by
+hand every time you want to add a new contact.
 
 ## Styling the map
 

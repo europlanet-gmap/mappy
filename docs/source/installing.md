@@ -6,9 +6,8 @@ The plugin has now been contributed to the
 [QGIS Python Plugins Repository](https://plugins.qgis.org/plugins/mappy/) 
 to make installation easier. To install it just launch QGIS and find the 
 Plugin Manager under {guilabel}`Plugins ► Manage and Install`. 
-Under {guilabel}`Settings` remember to enable {guilabel}`Show also experimental plugins` 
-and refresh the plugin database with {guilabel}`Reload Repository`. 
-Under {guilabel}`All` you should now be able to find {guilabel}`mappy`
+Under {guilabel}`All` you should now be able to find {guilabel}`mappy` and
+install it directly.
 
 
 :::{warning}
