@@ -73,7 +73,7 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
 
         with patch.object(mappy, "recompute_map") as recompute, \
              patch.object(mappy, "findLayer", return_value=polygons), \
-             patch("qgis.PyQt.QtWidgets.QInputDialog.getItem", return_value=("UNIT_B", True)):
+             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_B", True)):
             mappy.assign_unit_at_point(QgsPointXY(0.5, 0.5))
 
         # auto-recompute is disabled by default, so assigning a unit must
@@ -93,7 +93,7 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
 
         with patch.object(mappy, "recompute_map") as recompute, \
              patch.object(mappy, "findLayer", return_value=polygons), \
-             patch("qgis.PyQt.QtWidgets.QInputDialog.getItem", return_value=("UNIT_C", True)):
+             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_C", True)):
             mappy.assign_unit_at_point(QgsPointXY(2.5, 0.5))
 
         recompute.assert_not_called()
@@ -107,7 +107,7 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
 
         with patch.object(mappy, "recompute_map") as recompute, \
              patch.object(mappy, "findLayer", return_value=polygons), \
-             patch("qgis.PyQt.QtWidgets.QInputDialog.getItem", return_value=("UNIT_B", True)):
+             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("UNIT_B", True)):
             mappy.assign_unit_at_point(QgsPointXY(0.5, 0.5))
 
         recompute.assert_called_once()
@@ -117,7 +117,7 @@ class TestAssignUnitAtPoint(ExtendedUnitTesting):
 
         with patch.object(mappy, "recompute_map") as recompute, \
              patch.object(mappy, "findLayer", return_value=polygons), \
-             patch("qgis.PyQt.QtWidgets.QInputDialog.getItem") as getitem:
+             patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit") as getitem:
             mappy.assign_unit_at_point(QgsPointXY(10, 10))
 
         recompute.assert_not_called()

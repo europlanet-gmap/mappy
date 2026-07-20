@@ -473,8 +473,8 @@ class Mappy:
         default); otherwise the user is left to trigger it manually.
         """
         from qgis.core import QgsCoordinateTransform, QgsFeature, QgsFeatureRequest, QgsGeometry, QgsRectangle
-        from qgis.PyQt.QtWidgets import QInputDialog
 
+        from .assign_unit_dialog import AssignUnitDialog
         from .mappy_utils import collect_parameters
 
         pars = collect_parameters(self.config_dock)
@@ -530,15 +530,12 @@ class Mappy:
             if v not in (None, "")
         })
 
-        current_index = existing_values.index(str(current_value)) if str(current_value) in existing_values else 0
+        current_value_str = str(current_value) if str(current_value) in existing_values else None
 
-        text, ok = QInputDialog.getItem(
+        text, ok = AssignUnitDialog.getUnit(
             self.iface.mainWindow(),
-            "Assign unit",
-            "Unit name:",
             existing_values,
-            current_index,
-            True,
+            current_value_str,
         )
 
         if not ok or not text:
