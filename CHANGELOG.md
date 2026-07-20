@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+### Changed
+
+- Raised `qgisMinimumVersion` from 3.16 to 3.34 (the current LTR): the declared floor
+  was untested and already broken by newer QGIS API usage adopted since (verified: 12
+  of 58 tests fail on 3.16, down to 0 by 3.32/3.34). CI now tests both 3.34 and current
+  QGIS 4 against every push.
+
 ## 0.4.1 - 2026-07-20
 
 ## 0.4.0 - 2026-07-20

@@ -4,7 +4,7 @@
 
 [general]
 name=mappy
-qgisMinimumVersion=3.16
+qgisMinimumVersion=3.34
 qgisMaximumVersion=4.99
 description=Helper plugin for easy and consistent geological map generation
 version=0.4.1

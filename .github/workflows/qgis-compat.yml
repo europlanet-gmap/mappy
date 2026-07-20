@@ -1,0 +1,51 @@
+# Verifies the plugin actually works across the QGIS version range declared
+# in mappy/metadata.txt (qgisMinimumVersion / qgisMaximumVersion). That range
+# was previously just an untested claim -- 3.16 (the old declared minimum)
+# already failed 12 of 58 tests before qgisMinimumVersion was raised to 3.34.
+#
+# Runs directly inside the official qgis/qgis Docker images (which pin exact
+# QGIS versions, unlike Ubuntu's apt package), so this is decoupled from
+# whatever the release-CI workflows' Ubuntu runner happens to bundle.
+#
+# Only the bare test-running dependencies are installed here (not the full
+# `uv sync`/pyproject.toml install): the declared minimum's Python is often
+# older than this project's own requires-python floor, and the plugin loads
+# via QGIS's own plugin-path mechanism in conftest.py rather than needing
+# "mappy" pip-installed as a package.
+name: QGIS Compatibility
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - qgis_tag: release-3_34
+            label: "QGIS 3.34 (declared minimum)"
+            allow_failure: false
+          - qgis_tag: latest
+            label: "QGIS 4 / master (declared ceiling; pre-release upstream)"
+            allow_failure: true
+
+    name: ${{ matrix.label }}
+    runs-on: ubuntu-24.04
+    continue-on-error: ${{ matrix.allow_failure }}
+    container:
+      image: qgis/qgis:${{ matrix.qgis_tag }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install test dependencies
+        run: pip3 install pytest pytest-order pytest-dependency numpy
+
+      - name: Run tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: python3 -m pytest mappy/tests -v --order-dependencies
