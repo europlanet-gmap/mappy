@@ -19,6 +19,20 @@ jobs:
 
     runs-on: ubuntu-24.04
 
+    env:
+      # Pin uv to the system interpreter for every uv command in this job:
+      # left to its own preference, uv happily downloads and uses its own
+      # managed CPython build instead of the system interpreter
+      # python3-qgis actually installed into, silently pointing
+      # --system-site-packages at the wrong (empty) site-packages
+      # directory -- confirmed locally in Docker, where the initial
+      # `uv venv --python ...` correctly picked the system interpreter but
+      # a later bare `uv sync` silently re-resolved and recreated the venv
+      # against its own downloaded build instead. Job-level (not just the
+      # install step) so it also covers the later `uv run just test` /
+      # `uv run just package` steps.
+      UV_PYTHON: /usr/bin/python3
+
     steps:
     - uses: actions/checkout@v7
       with:
