@@ -13,7 +13,6 @@ from qgis import processing
 
 
 from .MappyProcessingAlgorithm import MappyProcessingAlgorithm
-from ..mappy_utils import matchAlgo
 
 
 class LabelPointsFromPolygonsProcessingAlgorithm(MappyProcessingAlgorithm):
@@ -120,7 +119,7 @@ class LabelPointsFromPolygonsProcessingAlgorithm(MappyProcessingAlgorithm):
         pars = {
             'INPUT': out["OUTPUT"],
             'COLUMN': ['dist_pole'], 'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT}
-        out = processing.run(matchAlgo("native:deletecolumn"), pars, **step_pars )
+        out = processing.run("native:deletecolumn", pars, **step_pars )
 
 
         id = self.copy_output_to_sink(parameters, context, out["OUTPUT"])

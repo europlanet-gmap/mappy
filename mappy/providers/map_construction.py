@@ -8,7 +8,6 @@ from qgis.core import (QgsProcessing,
 from qgis.PyQt.QtGui import QIcon
 
 from .MappyProcessingAlgorithm import MappyProcessingAlgorithm
-from ..mappy_utils import matchAlgo
 
 
 class MapConstructionProcessingAlgorithm(MappyProcessingAlgorithm):
@@ -114,10 +113,9 @@ class MapConstructionProcessingAlgorithm(MappyProcessingAlgorithm):
 
 
     def processAlgorithm(self, parameters, context, feedback):
-        pname = matchAlgo("native:polygonize")
-        spiname = matchAlgo("native:createspatialindex")
-        jname = matchAlgo("native:joinattributesbylocation")
-        # jname = self.matchAlgo("native:joinbylocationsummary")
+        pname = "native:polygonize"
+        spiname = "native:createspatialindex"
+        jname = "native:joinattributesbylocation"
 
         source_lines = self.parameterAsSource(
             parameters,

@@ -6,7 +6,6 @@ With QGIS : 31802
 """
 from qgis.PyQt.QtGui import QIcon
 from qgis import processing
-from qgis._core import QgsProcessingUtils
 from qgis.core import QgsProcessing
 from qgis.core import QgsProcessingMultiStepFeedback
 from qgis.core import QgsProcessingParameterBoolean
@@ -16,7 +15,6 @@ from qgis.core import QgsProcessingParameterFeatureSink
 from qgis.core import QgsProcessingParameterVectorLayer
 
 from .MappyProcessingAlgorithm import MappyProcessingAlgorithm
-from ..mappy_utils import matchAlgo, hasAlgo
 
 
 class RemoveDangles(MappyProcessingAlgorithm):
@@ -148,40 +146,17 @@ class RemoveDangles(MappyProcessingAlgorithm):
         if self.next_step():
             return {}
 
-        if hasAlgo('native:retainfields'):
+        # Retain no fields
+        alg_params = {
+            'FIELDS': [''],
+            'INPUT': outputs['AddSelfIntersectionPoints']['OUTPUT'],
+            'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
+        }
+        outputs['RetainFields'] = processing.run('native:retainfields', alg_params, context=context, feedback=feedback,
+                                                 is_child_algorithm=True)
 
-            # Retain no fields
-            alg_params = {
-                'FIELDS': [''],
-                'INPUT': outputs['AddSelfIntersectionPoints']['OUTPUT'],
-                'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
-            }
-            outputs['RetainFields'] = processing.run(matchAlgo('native:retainfields'), alg_params, context=context, feedback=feedback,
-                                                     is_child_algorithm=True)
-
-            if self.next_step():
-                return {}
-
-        else: # for older qgis versions prior ~3.20
-            # Retain no fields
-
-            fnames = QgsProcessingUtils.mapLayerFromString(outputs['AddSelfIntersectionPoints']['OUTPUT'], context, False).fields().names()
-            print(f"field names {fnames}")
-
-            alg_params = {
-                'COLUMN': fnames,
-                'INPUT': outputs['AddSelfIntersectionPoints']['OUTPUT'],
-                'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
-            }
-            outputs['RetainFields'] = processing.run(matchAlgo('native:deletecolumn'), alg_params, context=context,
-                                                     feedback=feedback,
-                                                     is_child_algorithm=True)
-
-            if self.next_step():
-                return {}
-
-
-            # outputs['RetainFields'] = {'OUTPUT': outputs['AddSelfIntersectionPoints']['OUTPUT']}
+        if self.next_step():
+            return {}
 
         # Explode contacts lines
         alg_params = {
@@ -294,7 +269,7 @@ class RemoveDangles(MappyProcessingAlgorithm):
             'INPUT': outputs['Dissolve']['OUTPUT'],
             'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
         }
-        outputs['DropFields'] = processing.run(matchAlgo('native:deletecolumn'), alg_params, context=context, feedback=feedback,
+        outputs['DropFields'] = processing.run('native:deletecolumn', alg_params, context=context, feedback=feedback,
                                                is_child_algorithm=True)
 
         id = self.copy_output_to_sink(parameters, context, outputs["DropFields"]["OUTPUT"])

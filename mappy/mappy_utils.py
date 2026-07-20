@@ -4,7 +4,6 @@ from qgis.core import (
     QgsFeatureRequest,
     QgsVectorLayer,
     QgsMapLayer,
-    QgsApplication,
     QgsLayerTreeLayer,
 )
 from qgis.core import (
@@ -30,28 +29,6 @@ parameters_widgets = [
     QCheckBox,
     QgsFileWidget,
 ]
-
-
-def hasAlgo(name):
-    reg = QgsApplication.processingRegistry()
-    found = reg.algorithmById(name)
-    if found:
-        return True
-    else:
-        return False
-
-
-def matchAlgo(name):
-    if hasAlgo(name):
-        return name
-    else:
-        newname = "qgis:" + name.split(":")[1]
-        if hasAlgo(newname):
-            return newname
-        else:
-            raise NameError(
-                f"Cannot match algorithm with name {name}. This is possibly due to using this plugin on an older version of QGIS."
-            )
 
 
 def readWidgetContent(widget):
@@ -221,14 +198,6 @@ def load_mappy_info_text():
     return text
 
 
-def write_layer_to_gpkg(layer, gpkgfile, layername):
-    options = QgsVectorFileWriter.SaveVectorOptions()
-    options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
-    options.layerName = layername
-    context = QgsProject.instance().transformContext()
-    QgsVectorFileWriter.writeAsVectorFormatV2(layer, gpkgfile, context, options)
-
-
 def write_layer_to_gpkg2(layer, gpkgfile, layername):
     options = QgsVectorFileWriter.SaveVectorOptions()
     from pathlib import Path
@@ -242,14 +211,9 @@ def write_layer_to_gpkg2(layer, gpkgfile, layername):
     options.layerName = layername
     context = QgsProject.instance().transformContext()
 
-    if hasattr(QgsVectorFileWriter, "writeAsVectorFormatV3"):
-        return QgsVectorFileWriter.writeAsVectorFormatV3(
-            layer, gpkgfile, context, options
-        )
-    else:
-        return QgsVectorFileWriter.writeAsVectorFormatV2(
-            layer, gpkgfile, context, options
-        )
+    return QgsVectorFileWriter.writeAsVectorFormatV3(
+        layer, gpkgfile, context, options
+    )
 
 
 def resetCategoriesIfNeeded(layer, units_field, color_table=None):
