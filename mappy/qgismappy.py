@@ -195,7 +195,7 @@ class Mappy:
         self.iface.registerMainWindowAction(self.recompute_action, "Ctrl+Shift+F5")
 
 
-        icon_path = ':/plugins/qgismappy/icons/create_points.png'
+        icon_path = ':/plugins/qgismappy/icons/assign_unit.png'
         self.assign_unit_action = self.add_action(
             icon_path,
             text=self.tr(u'Assign unit to polygon'),
@@ -203,7 +203,8 @@ class Mappy:
             parent=self.iface.mainWindow())
         self.assign_unit_action.setCheckable(True)
 
-        icon_path = ':/plugins/qgismappy/icons/edit_mode.png'
+        # reuse QGIS's own "Toggle Editing" pencil rather than a custom icon
+        icon_path = ':/images/themes/default/mActionToggleEditing.svg'
         self.quick_edit_mode_action = self.add_action(
             icon_path,
             text=self.tr(u'Quick enable editing'),
