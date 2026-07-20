@@ -1,5 +1,9 @@
 VERSION := `git describe --tags --abbrev=0`
 
+# Show available recipes
+default:
+    @just --list
+
 # Start QGIS with the project root on QGIS_PLUGINPATH so the under-dev plugin is found
 qgis:
     QGIS_PLUGINPATH={{justfile_directory()}} qgis
