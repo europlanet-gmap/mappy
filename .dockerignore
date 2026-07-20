@@ -1,0 +1,12 @@
+.venv
+.mypy_cache
+__pycache__
+*.pyc
+mappy/zip_build
+mappy/mappy.zip
+mappy/tests/out.gpkg
+out.gpkg
+demo_data
+docs/build
+.idea
+.vscode
