@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## 0.4.0 - 2026-07-20
+
 ### Added
 
 - Assign-unit map tool for setting the map unit of selected polygons, with a searchable unit-picker dialog
