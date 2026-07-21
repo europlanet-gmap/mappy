@@ -6,7 +6,7 @@ from mappy.tests import ExtendedUnitTesting
 
 class TestDefaultStyling(ExtendedUnitTesting):
     def test_polygon_labels_are_forced_inside_the_polygon(self):
-        from mappy.mappy_utils import enable_default_labels
+        from mappy.engine.styling import enable_default_labels
 
         polygons = QgsVectorLayer("Polygon?crs=EPSG:4326", "zzz_polys", "memory")
         polygons.dataProvider().addAttributes([QgsField("unit_name", QVariant.String)])
@@ -22,7 +22,7 @@ class TestDefaultStyling(ExtendedUnitTesting):
         self.assertTrue(settings.fitInPolygonOnly)
 
     def test_point_labels_are_not_forced_to_fit_a_polygon(self):
-        from mappy.mappy_utils import enable_default_labels
+        from mappy.engine.styling import enable_default_labels
 
         points = QgsVectorLayer("Point?crs=EPSG:4326", "zzz_pts", "memory")
         points.dataProvider().addAttributes([QgsField("unit_name", QVariant.String)])
@@ -36,7 +36,7 @@ class TestDefaultStyling(ExtendedUnitTesting):
         self.assertFalse(settings.fitInPolygonOnly)
 
     def test_does_not_override_existing_labeling(self):
-        from mappy.mappy_utils import enable_default_labels
+        from mappy.engine.styling import enable_default_labels
 
         polygons = QgsVectorLayer("Polygon?crs=EPSG:4326", "zzz_polys2", "memory")
         polygons.dataProvider().addAttributes([QgsField("unit_name", QVariant.String)])

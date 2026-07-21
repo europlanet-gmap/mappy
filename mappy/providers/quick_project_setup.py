@@ -101,7 +101,8 @@ class QuickProjectSetup(MappyProcessingAlgorithm):
             vector_file.as_posix(), crs, type="Linestring", name="source_contacts", fields=line_fields
         )
 
-        from ..mappy_utils import enable_default_labels, style_simple_black_line, get_or_create_color_table
+        from ..engine.colors import get_or_create_color_table
+        from ..engine.styling import enable_default_labels, style_simple_black_line
 
         enable_default_labels(indicators_layer, "unit_name")
         style_simple_black_line(contacts_layer)
@@ -157,9 +158,9 @@ class QuickProjectSetup(MappyProcessingAlgorithm):
         if crs is not None:
             vl.setCrs(crs)
 
-        from mappy.mappy_utils import write_layer_to_gpkg2, add_layer_from_geopackage
+        from mappy.engine.layers import write_layer_to_gpkg, add_layer_from_geopackage
 
-        write_layer_to_gpkg2(vl, gpkg_file, name)
+        write_layer_to_gpkg(vl, gpkg_file, name)
 
         layer = add_layer_from_geopackage(gpkg_file, name)
 

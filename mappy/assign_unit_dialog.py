@@ -12,7 +12,7 @@ from qgis.PyQt.QtWidgets import (
 )
 from qgis.gui import QgsFilterLineEdit
 
-from .mappy_utils import sequential_color
+from .engine.colors import sequential_color
 
 
 def _swatch_icon(color):

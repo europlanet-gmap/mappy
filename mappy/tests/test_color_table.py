@@ -71,7 +71,7 @@ class TestColorTable(ExtendedUnitTesting):
         return layer
 
     def test_creates_missing_color_field(self):
-        from mappy.mappy_utils import get_or_create_color_table
+        from mappy.engine.colors import get_or_create_color_table
 
         layer = self._make_points(["Basalt"])
         self.assertEqual(layer.fields().indexFromName("color"), -1)
@@ -81,7 +81,7 @@ class TestColorTable(ExtendedUnitTesting):
         self.assertNotEqual(layer.fields().indexFromName("color"), -1)
 
     def test_populates_color_for_every_matching_point(self):
-        from mappy.mappy_utils import get_or_create_color_table
+        from mappy.engine.colors import get_or_create_color_table
 
         layer = self._make_points(["Basalt", "Breccia", "Basalt"])
         table = get_or_create_color_table(layer, "unit_name")
@@ -92,7 +92,7 @@ class TestColorTable(ExtendedUnitTesting):
         self.assertNotEqual(table["Basalt"], table["Breccia"])
 
     def test_stable_across_repeated_calls(self):
-        from mappy.mappy_utils import get_or_create_color_table
+        from mappy.engine.colors import get_or_create_color_table
 
         layer = self._make_points(["Basalt", "Breccia"])
         table1 = get_or_create_color_table(layer, "unit_name")
@@ -105,7 +105,7 @@ class TestColorTable(ExtendedUnitTesting):
         # len(color_table) *while* color_table was being mutated in the same
         # loop, double-counting growth and making later units collide with
         # earlier ones assigned in a previous call
-        from mappy.mappy_utils import get_or_create_color_table
+        from mappy.engine.colors import get_or_create_color_table
 
         layer = self._make_points(["Basalt", "Breccia"])
         table1 = get_or_create_color_table(layer, "unit_name")
@@ -123,7 +123,7 @@ class TestColorTable(ExtendedUnitTesting):
         self.assertEqual(len(set(table2.values())), len(table2))
 
     def test_backfills_legacy_points_missing_a_color(self):
-        from mappy.mappy_utils import get_or_create_color_table
+        from mappy.engine.colors import get_or_create_color_table
 
         layer = self._make_points(["Basalt", "Basalt"])
         # simulate legacy data: the field already exists but one feature's
@@ -141,7 +141,7 @@ class TestColorTable(ExtendedUnitTesting):
         self.assertEqual(colors, [table["Basalt"], table["Basalt"]])
 
     def test_reset_categories_uses_persisted_color(self):
-        from mappy.mappy_utils import get_or_create_color_table, resetCategoriesIfNeeded
+        from mappy.engine.colors import get_or_create_color_table, resetCategoriesIfNeeded
 
         points = self._make_points(["Basalt", "Breccia"])
         table = get_or_create_color_table(points, "unit_name")
@@ -164,7 +164,7 @@ class TestColorTable(ExtendedUnitTesting):
             self.assertEqual(_category_color(polygons, unit), table[unit])
 
     def test_sync_colors_both_layers_from_points(self):
-        from mappy.mappy_utils import sync_unit_colors
+        from mappy.engine.colors import sync_unit_colors
 
         points = self._make_points(["Basalt", "Breccia"])
         polygons = self._make_polygons(["Basalt", "Breccia"])
@@ -176,7 +176,7 @@ class TestColorTable(ExtendedUnitTesting):
             self.assertEqual(_category_color(polygons, unit), table[unit])
 
     def test_manual_recolor_on_polygons_propagates_to_points_and_data(self):
-        from mappy.mappy_utils import sync_unit_colors
+        from mappy.engine.colors import sync_unit_colors
 
         points = self._make_points(["Basalt", "Breccia"])
         polygons = self._make_polygons(["Basalt", "Breccia"])
@@ -193,7 +193,7 @@ class TestColorTable(ExtendedUnitTesting):
                 self.assertEqual(f["color"], "#00ff00")
 
     def test_manual_recolor_on_points_propagates_to_polygons(self):
-        from mappy.mappy_utils import sync_unit_colors
+        from mappy.engine.colors import sync_unit_colors
 
         points = self._make_points(["Basalt", "Breccia"])
         polygons = self._make_polygons(["Basalt", "Breccia"])
@@ -207,7 +207,7 @@ class TestColorTable(ExtendedUnitTesting):
         self.assertEqual(_category_color(polygons, "Breccia"), "#0000ff")
 
     def test_conflicting_manual_recolor_prefers_polygons(self):
-        from mappy.mappy_utils import sync_unit_colors
+        from mappy.engine.colors import sync_unit_colors
 
         points = self._make_points(["Basalt", "Breccia"])
         polygons = self._make_polygons(["Basalt", "Breccia"])

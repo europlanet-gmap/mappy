@@ -21,7 +21,7 @@ class TestDropDuplicatePointsPerPolygon(ExtendedUnitTesting):
         return polys
 
     def test_drops_all_but_first_when_multiple_points_in_one_polygon(self):
-        from mappy.mappy_utils import drop_duplicate_points_per_polygon
+        from mappy.engine.layers import drop_duplicate_points_per_polygon
 
         polys = self._make_polygons()
 
@@ -63,7 +63,7 @@ class TestDropDuplicatePointsPerPolygon(ExtendedUnitTesting):
         self.assertEqual(remaining["FIRST_IN_POLY1"], first_id_in_poly1)
 
     def test_no_deletion_when_each_polygon_has_at_most_one_point(self):
-        from mappy.mappy_utils import drop_duplicate_points_per_polygon
+        from mappy.engine.layers import drop_duplicate_points_per_polygon
 
         polys = self._make_polygons()
 

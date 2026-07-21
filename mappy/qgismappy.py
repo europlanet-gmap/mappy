@@ -31,13 +31,14 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 
 # Initialize Qt resources from file resources.py
-from qgis.core import QgsProject, QgsVectorLayer, QgsFeature, QgsMessageLog, Qgis
+from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, Qgis
 
 
 from .mappy_utils import load_mappy_info_text
 from .qgismappy_dockwidget import MappyDockWidget
 from qgis.core import QgsApplication
 
+from .engine import EngineConfig, EngineError, ProcessingMapEngine
 from .providers import MappyProvider
 import os.path
 
@@ -98,6 +99,10 @@ class Mappy:
         # print(f"setting infobox text to {self.info_text}")
         self.config_dock.infobox.setHtml(self.info_text)
         self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.config_dock)
+
+        self.engine = ProcessingMapEngine()
+        self.engine.mapRecomputed.connect(lambda: self.log_message("Map recomputed"))
+        self.engine.unitAssigned.connect(lambda unit, fid: self.log_message(f"Unit '{unit}' assigned to polygon {fid}"))
 
         v = self.getVersion()
 
@@ -299,105 +304,26 @@ class Mappy:
 
         return True
 
-    def recompute_map(self):
+    def _refresh_engine_config(self) -> dict:
+        """Rebuilds self.engine.config from the dock's current widget
+        values, returning the raw pars dict too since check_input_pars
+        (GUI-only validation) still needs to read it directly."""
         from .mappy_utils import collect_parameters
 
         pars = collect_parameters(self.config_dock)
+        self.engine.config = EngineConfig.from_parameters(pars)
+        return pars
 
-        from qgis import processing
+    def recompute_map(self):
+        pars = self._refresh_engine_config()
 
         if not self.check_input_pars(pars):
             return
 
-        ofile = pars["output"]
-        olayername = pars["out_polygons_layer_name"]
-        o_cont_name = pars["out_contacts_layer_name"]
-
-        args = {
-            "IN_LINES": pars["lines"],
-            "IN_POINTS": pars["points"],
-            "OUTPUT": "TEMPORARY_OUTPUT",
-            "UNMATCHED": "TEMPORARY_OUTPUT",
-        }
-        o = processing.run("mappy:mapconstruction", args)
-
-        layer = o["OUTPUT"]
-        unmatched = o["UNMATCHED"]
-        points_layer = pars["points"]
-
-        # the join that assigned attributes to polygons only used the first
-        # matching point where more than one fell inside the same polygon;
-        # drop the rest so leftover duplicate indicator points don't linger
-        from .mappy_utils import drop_duplicate_points_per_polygon
-
-        drop_duplicate_points_per_polygon(points_layer, layer)
-
-        if pars["add_indicators"]:
-            newpoints = processing.run(
-                "mappy:labelspointsfrompolygons", {"IN_LAYER": unmatched, "TOLERANCE": 1, "OUTPUT": "TEMPORARY_OUTPUT"}
-            )["OUTPUT"]
-
-            newfeats = []
-            for feature in newpoints.getFeatures():
-                feature: QgsFeature
-                print(f"ADDING FEATURE {feature}")
-
-                newf = QgsFeature()
-                newf.setGeometry(feature.geometry())
-
-                newfeats.append(newf)
-
-            points_layer.dataProvider().addFeatures(newfeats)
-
-            points_layer.dataProvider().reloadData()
-            points_layer.triggerRepaint()
-
-        self.write_layer_to_gpkg(layer, ofile, olayername)
-        self.load_layer_if_not_loaded(
-            ofile,
-            olayername,
-            field_style=pars["units_field"],
-            insert_after=["source_contacts", "source_indicators"],
-            points_layer=points_layer,
-        )
-
-        if pars["generate_clean_contacts"]:
-            opts = {
-                "Extenddistance": 0,
-                "PrecisionjoinBuffer": 0.001,
-                "contacts": pars["lines"],
-                "polygonized": layer,
-                "OUTPUT": "TEMPORARY_OUTPUT",
-            }
-            layer = processing.run("mappy:removedangles", opts)["OUTPUT"]
-            self.write_layer_to_gpkg(layer, ofile, o_cont_name)
-            layer = self.load_layer_if_not_loaded(ofile, o_cont_name, None)
-
-            if pars["copyoverlinestyle"]:
-                print("copying layer style for lines")
-                layer: QgsVectorLayer
-                linelayer: QgsVectorLayer = pars["lines"]
-                # renderer: QgsFeatureRenderer = linelayer.renderer()
-
-                # newrend = type(linelayer.renderer())()
-
-                newrend = linelayer.renderer().clone()  # we clone the renderer
-                # renderer.copyRendererData(newrend)
-
-                layer.setRenderer(newrend)
-
-                # print(f"new renderer {newrend}")
-
-                # iface.layerTreeView().refreshLayerSymbology(layer.id())
-
-                # layer.rendererChanged.emit()
-                # layer.dataSourceChanged.emit()
-                #
-                # layer.triggerRepaint()
-
-                # print(f"on layer {layer.name()}")
-
-                # layerTreeView().refreshLayerSymbology(vlayer.id())
+        try:
+            self.engine.recompute_map()
+        except EngineError as e:
+            self.alert_box("Error", str(e))
 
     def toggle_assign_unit_tool(self, checked):
         canvas = self.iface.mapCanvas()
@@ -437,33 +363,25 @@ class Mappy:
     def assign_unit_at_point(self, point):
         """Called by AssignUnitMapTool with the clicked point (canvas CRS).
 
-        Finds the polygon at that location in the current final map layer,
-        looks up (or creates) the indicator point associated with it, lets
-        the user pick/type a unit name for it, updates both the point and
-        (since only the attribute changes, not the polygon geometry) the
-        clicked polygon's own attribute directly so its color/label update
-        immediately on screen. A full recompute_map() -- which redoes the
-        point/polygon join, dangle cleanup, etc. -- only additionally runs
-        if the "auto_recompute_on_assign_unit" setting is enabled (off by
+        Transforms the click into the polygons layer's CRS and asks the
+        engine to find the polygon/indicator point at that location, then
+        opens AssignUnitDialog for the user to pick/type a unit name, and
+        hands the result to the engine to actually perform the write. A
+        full recompute_map() -- which redoes the point/polygon join, dangle
+        cleanup, etc. -- only additionally runs if the
+        "auto_recompute_on_assign_unit" setting is enabled (off by
         default); otherwise the user is left to trigger it manually.
         """
-        from qgis.core import QgsCoordinateTransform, QgsFeature, QgsFeatureRequest, QgsGeometry, QgsRectangle
+        from qgis.core import QgsCoordinateTransform
 
         from .assign_unit_dialog import AssignUnitDialog
-        from .mappy_utils import collect_parameters, get_or_create_color_table, write_colors_to_points
 
-        pars = collect_parameters(self.config_dock)
+        self._refresh_engine_config()
 
-        points_layer = pars.get("points")
-        units_field = pars.get("units_field")
-
-        if points_layer is None or not units_field:
-            self.alert_box("Error", "Missing points layer or units field. Please configure them in Mappy settings.")
-            return
-
-        polygons_layer = self.findLayer(pars["output"], pars["out_polygons_layer_name"])
-        if polygons_layer is None:
-            self.alert_box("Error", "The map hasn't been generated yet. Run map construction first.")
+        try:
+            polygons_layer = self.engine.get_polygons_layer()
+        except EngineError as e:
+            self.alert_box("Error", str(e))
             return
 
         # the click comes in the canvas CRS; both the points and polygons
@@ -474,36 +392,18 @@ class Mappy:
             xform = QgsCoordinateTransform(canvas_crs, polygons_layer.crs(), QgsProject.instance())
             point = xform.transform(point)
 
-        click_geom = QgsGeometry.fromPointXY(point)
-
-        matched_polygon = None
-        request = QgsFeatureRequest().setFilterRect(QgsRectangle(point, point))
-        for f in polygons_layer.getFeatures(request):
-            if f.geometry().intersects(click_geom):
-                matched_polygon = f
-                break
-
+        matched_polygon = self.engine.find_polygon_at_point(point)
         if matched_polygon is None:
             self.iface.messageBar().pushInfo("Mappy", "No polygon at that location.")
             return
 
-        candidates = []
-        preq = QgsFeatureRequest().setFilterRect(matched_polygon.geometry().boundingBox())
-        for f in points_layer.getFeatures(preq):
-            if matched_polygon.geometry().intersects(f.geometry()):
-                candidates.append(f)
+        target_point_feature = self.engine.find_indicator_for_polygon(matched_polygon, near_point=point)
+        units_field = self.engine.config.units_field
+        current_value = target_point_feature[units_field] if target_point_feature is not None else None
 
-        target_point_feature = None
-        current_value = None
-        if candidates:
-            target_point_feature = min(candidates, key=lambda f: f.geometry().distance(click_geom))
-            current_value = target_point_feature[units_field]
-
-        field_index = points_layer.fields().indexFromName(units_field)
-        existing_values = sorted({str(v) for v in points_layer.uniqueValues(field_index) if v not in (None, "")})
-
+        existing_values = self.engine.list_existing_units()
         current_value_str = str(current_value) if str(current_value) in existing_values else None
-        color_table = get_or_create_color_table(points_layer, units_field)
+        color_table = self.engine.get_color_table()
 
         text, color, changed_colors, ok = AssignUnitDialog.getUnit(
             self.iface.mainWindow(),
@@ -515,113 +415,13 @@ class Mappy:
         if not ok or not text:
             return
 
-        if not points_layer.isEditable():
-            points_layer.startEditing()
+        self.engine.assign_unit(matched_polygon, target_point_feature, point, text, color=color, changed_colors=changed_colors)
 
-        if target_point_feature is not None:
-            points_layer.changeAttributeValue(target_point_feature.id(), field_index, text)
-        else:
-            newf = QgsFeature(points_layer.fields())
-            newf.setGeometry(click_geom)
-            newf[units_field] = text
-            points_layer.addFeature(newf)
-
-        points_layer.commitChanges()
-
-        # the confirmed unit's color (proposed-and-kept for a new unit, or
-        # hand-picked) plus every *other* unit recolored during the same
-        # dialog session -- both become authoritative for every point
-        # sharing that unit, not just the one the user ended up confirming.
-        #
-        # These are passed into sync_unit_colors as explicit overrides
-        # rather than written to points_layer directly here: the polygon
-        # layer's renderer hasn't been told about them yet at this point,
-        # and writing to points_layer first would make sync_unit_colors
-        # mistake that staleness for a manual Symbology edit on the
-        # *polygon* layer and let the old, stale color win, reverting the
-        # very change just made.
-        color_updates = dict(changed_colors)
-        if color:
-            color_updates[text] = color
-
-        # only the attribute changes here, not the polygon's geometry, so
-        # update the clicked polygon directly too instead of waiting for a
-        # full recompute -- this keeps its color/label in sync immediately
-        poly_field_index = polygons_layer.fields().indexFromName(units_field)
-        if poly_field_index != -1:
-            was_read_only = polygons_layer.readOnly()
-            polygons_layer.setReadOnly(False)
-            polygons_layer.startEditing()
-            polygons_layer.changeAttributeValue(matched_polygon.id(), poly_field_index, text)
-            polygons_layer.commitChanges()
-            polygons_layer.setReadOnly(was_read_only)
-
-            from .mappy_utils import enable_default_labels, sync_unit_colors
-
-            sync_unit_colors(points_layer, polygons_layer, units_field, explicit_overrides=color_updates)
-            enable_default_labels(polygons_layer, units_field)
-        elif color_updates:
-            # polygon layer has no units_field yet (map never recomputed) --
-            # nothing to sync colors with, but still persist the choice
-            write_colors_to_points(points_layer, units_field, "color", color_updates)
-
-        if pars.get("auto_recompute_on_assign_unit"):
-            self.recompute_map()
-        else:
+        if not self.engine.config.auto_recompute_on_assign_unit:
             self.iface.messageBar().pushInfo(
                 "Mappy",
                 "Unit assigned. Recompute the map to update the point/polygon join, dangle cleanup, etc.",
             )
-
-    def load_layer_if_not_loaded(
-        self, gpkgfile, layername, field_style=None, insert_after=None, points_layer=None
-    ) -> QgsVectorLayer:
-        layer: QgsVectorLayer | None = self.findLayer(gpkgfile, layername)
-        if layer is None:
-            layer = self.addLayerFromGeopackage(gpkgfile, layername, insert_after=insert_after)
-        else:
-            layer.dataProvider().reloadData()
-            layer.triggerRepaint()
-
-        layer.setReadOnly()
-
-        if field_style:
-            from .mappy_utils import resetCategoriesIfNeeded, enable_default_labels, sync_unit_colors
-
-            if points_layer is not None:
-                sync_unit_colors(points_layer, layer, field_style)
-            else:
-                resetCategoriesIfNeeded(layer, field_style)
-            enable_default_labels(layer, field_style)
-
-        return layer
-
-    def write_layer_to_gpkg(self, layer, gpkgfile, layername):
-        self.log_message(f"Writing layer {layer} to file {gpkgfile} with layername {layername}")
-
-        from .mappy_utils import write_layer_to_gpkg2
-
-        write_layer_to_gpkg2(layer, gpkgfile, layername)
-
-    def findLayer(self, gpkg, layer_name) -> QgsVectorLayer | None:
-        gpkg = os.path.abspath(gpkg)
-
-        gpkg += f"|layername={layer_name}"
-        layers = QgsProject.instance().mapLayers()
-
-        for layer in layers.values():
-            luri = layer.dataProvider().dataSourceUri()
-
-            r = os.path.realpath
-            if r(luri) == r(gpkg):
-                return layer
-
-        return None
-
-    def addLayerFromGeopackage(self, gpkgfile, layer_name, categories_field=None, insert_after=None) -> QgsVectorLayer:
-        from .mappy_utils import add_layer_from_geopackage
-
-        return add_layer_from_geopackage(gpkgfile, layer_name, categories_field=None, insert_after=insert_after)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""

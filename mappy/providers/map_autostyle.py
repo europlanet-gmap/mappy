@@ -68,7 +68,7 @@ class MapAutoStyleProcessingAlgorithm(MappyProcessingAlgorithm):
         # unassigned = self.parameterAsBool(parameters, self.STYLE_UNASSIGNED, context)
         feedback.pushInfo(f"field used is {fieldname}")
 
-        from ..mappy_utils import resetCategoriesIfNeeded
+        from ..engine.colors import resetCategoriesIfNeeded
 
         # resetCategoriesIfNeeded(polygons_layer, fieldname, unassigned=unassigned)
         resetCategoriesIfNeeded(polygons_layer, fieldname)

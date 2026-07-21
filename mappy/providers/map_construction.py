@@ -241,9 +241,6 @@ class MapConstructionProcessingAlgorithm(MappyProcessingAlgorithm):
         # outlayer = self.parameterAsLayer(parameters, self.OUTPUT, context)
         # feedback.pushInfo("->"+str(outlayer))
 
-        # from qgismappy.qgismappy_dockwidget import resetCategoriesIfNeeded
-        # resetCategoriesIfNeeded(sink, field)
-
         # Return the results of the algorithm. In this case our only result is
         # the feature sink which contains the processed features, but some
         # algorithms may return multiple feature sinks, calculated numeric

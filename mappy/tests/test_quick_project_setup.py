@@ -54,10 +54,8 @@ class TestQuickProjectSetup(ExtendedUnitTesting):
         self.assertEqual(points_layer.labeling().settings().fieldName, "unit_name")
 
         # source_contacts should default to a plain black line
-        from mappy.qgismappy import Mappy as _Mappy
+        from mappy.engine.layers import find_layer
 
-        contacts_layer = _Mappy.instance.findLayer(
-            points_layer.dataProvider().dataSourceUri().split("|")[0], "source_contacts"
-        )
+        contacts_layer = find_layer(points_layer.dataProvider().dataSourceUri().split("|")[0], "source_contacts")
         self.assertIsNotNone(contacts_layer)
         self.assertEqual(contacts_layer.renderer().symbol().color().name(), "#000000")
