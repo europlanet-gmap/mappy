@@ -1,3 +1,5 @@
+import os
+
 from qgis.PyQt.QtCore import QFile, QTextStream
 from qgis.PyQt.QtWidgets import QLineEdit, QCheckBox
 from qgis.core import QgsVectorLayer, QgsMapLayer
@@ -106,6 +108,14 @@ def collect_parameters(qt_obj) -> dict:
             pars[name] = val
 
     return pars
+
+
+def is_dev_mode() -> bool:
+    """True when the MAPPY_DEV environment variable is set to a truthy
+    value. Gates GUI-visible access to still-experimental features (e.g.
+    the incremental engine) behind an explicit opt-in, so a generic user
+    never sees or can enable them."""
+    return os.environ.get("MAPPY_DEV", "").strip().lower() in ("1", "true", "yes", "on")
 
 
 def load_mappy_info_text() -> str:

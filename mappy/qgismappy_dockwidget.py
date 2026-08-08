@@ -45,16 +45,25 @@ from pathlib import Path
 # from qgis.gui import QgsMapLayerComboBox
 from mappy.mappy_utils import (
     getChangeSignal,
+    is_dev_mode,
     parameters_widgets,
     readWidgetContent,
     serialize_value_for_settings,
 )
+
+# Dock widgets that expose still-experimental functionality (currently just
+# the incremental engine) -- kept hidden and out of reach of restoreSettingsFromProject
+# unless MAPPY_DEV is set, so a generic user can't stumble into them via the
+# GUI or via opening a project a developer saved with them enabled.
+DEV_ONLY_WIDGET_NAMES = ("use_incremental_engine", "label_topology_tolerance", "topology_tolerance")
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgismappy_dockwidget_base.ui"))
 
 
 class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     closingPlugin = pyqtSignal()
+    linesLayerChanged = pyqtSignal(QgsVectorLayer)
+    pointsLayerChanged = pyqtSignal(QgsVectorLayer)
 
     def __init__(self, parent=None):
         """Constructor."""
@@ -64,6 +73,7 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.setupUi(self)
         self.log_message("Initializing Mappy")
         self.initConstruct()
+        self._apply_dev_mode_visibility()
 
         self.units_field.setLayer(self.points.currentLayer())
         self.restoreSettingsFromProject()
@@ -76,6 +86,14 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.infobox.setOpenExternalLinks(True)
 
         self.connect_widgets()
+
+    def _apply_dev_mode_visibility(self):
+        """Hides the experimental-feature widgets (see DEV_ONLY_WIDGET_NAMES)
+        unless MAPPY_DEV is set. They stay in the .ui/dataclass as normal --
+        this only keeps them out of a generic user's view."""
+        dev = is_dev_mode()
+        for name in DEV_ONLY_WIDGET_NAMES:
+            self.get_widget_by_name(name).setVisible(dev)
 
     def get_available_settings(self):
         settings = []
@@ -146,6 +164,11 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     log.debug("----> set back field to previsouly used assignement")
                     self.units_field.setField(suggested)
 
+            self.pointsLayerChanged.emit(value)
+
+        if name == "lines":
+            self.linesLayerChanged.emit(value)
+
         if name == "units_field":
             # we store also this preference for being connected to this specific layer of points
             points_layer = serialize_value_for_settings(self.get_current_parameter_value("points"))
@@ -191,7 +214,14 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         pars = collect_parameters(self)
         log.debug(f"found pars {pars}")
 
+        dev = is_dev_mode()
+
         for k in pars:
+            if not dev and k in DEV_ONLY_WIDGET_NAMES:
+                # keep experimental settings at their widget default for a
+                # generic user, even if a dev saved the project with them
+                # enabled -- MAPPY_DEV gates activation, not just visibility
+                continue
             value, found = proj.readEntry("mappy", k, None)
             log.debug(f"just read {k}: {value}")
             if not found:

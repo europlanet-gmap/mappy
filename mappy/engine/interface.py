@@ -1,7 +1,18 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from qgis.PyQt.QtCore import QObject, pyqtSignal
 from qgis.core import QgsFeature, QgsPointXY, QgsVectorLayer
+
+
+@dataclass
+class TopologyValidationReport:
+    """Result of MapEngine.validate_topology(): whether the engine's
+    topology bookkeeping (if any) still matches reality, and human-readable
+    notes on any drift found. `ProcessingMapEngine` (no topology of its own)
+    always reports in_sync=True."""
+
+    in_sync: bool
+    issues: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -21,6 +32,22 @@ class EngineConfig:
     generate_clean_contacts: bool = False
     copyoverlinestyle: bool = False
     auto_recompute_on_assign_unit: bool = False
+    use_incremental_engine: bool = False
+    incremental_debounce_ms: int = 500
+    incremental_dirty_fraction_fallback: float = 0.3
+    # SpatiaLite's ISO topology engine requires near-exact coordinate
+    # matching at junctions -- real digitized line data essentially never
+    # satisfies that (unlike native:polygonize/GEOS, which is far more
+    # forgiving), causing spurious "geometry crosses an edge" errors on
+    # ordinary data. IncrementalMapEngine handles this itself by snapping
+    # every line's coordinates to a grid this wide before it reaches the
+    # topology (CreateTopology's own tolerance parameter turned out to
+    # silently reject any non-integer value in testing -- see
+    # incremental_engine.py's _prepare_line_geometry). 1e-6 matches the
+    # tolerance already used elsewhere in this codebase for the same kind
+    # of near-duplicate-vertex slop (see native:removeduplicatevertices
+    # calls in map_construction.py/addselfintersectionpoints.py).
+    topology_tolerance: float = 1e-6
 
     @classmethod
     def from_parameters(cls, pars: dict) -> "EngineConfig":
@@ -65,6 +92,7 @@ class MapEngine(QObject):
     mapRecomputed = pyqtSignal()
     unitAssigned = pyqtSignal(str, object)  # unit text, assigned polygon feature id
     errorOccurred = pyqtSignal(str)  # reserved, not emitted this round
+    topologyDirty = pyqtSignal(int)  # count of pending dirty-line rows, for an optional status indicator
 
     def __init__(self, config: EngineConfig | None = None, parent=None):
         super().__init__(parent)
@@ -99,4 +127,25 @@ class MapEngine(QObject):
         color: str | None = None,
         changed_colors: dict[str, str] | None = None,
     ) -> None:
+        raise NotImplementedError
+
+    def process_pending_changes(self) -> None:
+        """Drain whatever "features changed" bookkeeping this engine keeps
+        and react to it. Called by the GUI shortly after it notices a
+        commit on the configured lines/points layers (see
+        Mappy._rewire_layer_signals); callers don't need to -- and don't --
+        carry the precise added/modified/removed payload themselves, since
+        an engine that tracks this at all (see IncrementalMapEngine) keeps
+        its own authoritative record of what changed."""
+        raise NotImplementedError
+
+    def invalidate(self) -> None:
+        """Drops any incremental/topology state this engine keeps, so the
+        next recompute_map() rebuilds it from scratch. Also the manual
+        "repair drift" action."""
+        raise NotImplementedError
+
+    def validate_topology(self) -> TopologyValidationReport:
+        """Read-only drift check between whatever topology bookkeeping this
+        engine keeps and the current state of its layers."""
         raise NotImplementedError

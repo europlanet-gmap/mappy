@@ -26,7 +26,7 @@ from qgis.PyQt.QtGui import QDesktopServices
 
 from .resources import *  # DO NOT DELETE  # noqa: F403
 from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
+from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QTimer
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 
@@ -38,7 +38,7 @@ from .mappy_utils import load_mappy_info_text
 from .qgismappy_dockwidget import MappyDockWidget
 from qgis.core import QgsApplication
 
-from .engine import EngineConfig, EngineError, ProcessingMapEngine
+from .engine import EngineConfig, EngineError, IncrementalMapEngine, ProcessingMapEngine
 from .providers import MappyProvider
 import os.path
 
@@ -100,9 +100,32 @@ class Mappy:
         self.config_dock.infobox.setHtml(self.info_text)
         self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.config_dock)
 
-        self.engine = ProcessingMapEngine()
-        self.engine.mapRecomputed.connect(lambda: self.log_message("Map recomputed"))
-        self.engine.unitAssigned.connect(lambda unit, fid: self.log_message(f"Unit '{unit}' assigned to polygon {fid}"))
+        # ProcessingMapEngine (full-recompute) is always the engine at
+        # startup, regardless of a restored "use_incremental_engine"
+        # setting -- _refresh_engine_config() (called before every
+        # recompute_map()/assign_unit_at_point()/process_pending_changes())
+        # swaps to IncrementalMapEngine on first real use instead, so
+        # __init__ doesn't need its own copy of that dock-reading logic.
+        self.engine = self._make_engine_of_class(ProcessingMapEngine, EngineConfig())
+
+        # Commit-time signals on the currently configured lines/points layers
+        # are used only as a "go check for pending changes" nudge -- not as
+        # the source of truth for what changed. That keeps this wiring
+        # low-risk: even a signal-lifecycle bug (missed reconnect on layer
+        # swap, a dropped connection) only delays the engine noticing an
+        # edit, it can never lose one, since an engine that actually tracks
+        # changes (see IncrementalMapEngine) keeps its own durable record.
+        self._connected_lines_layer = None
+        self._connected_points_layer = None
+        self._pending_changes_timer = QTimer(self.config_dock)
+        self._pending_changes_timer.setSingleShot(True)
+        self._pending_changes_timer.timeout.connect(self._process_pending_engine_changes)
+        self.config_dock.linesLayerChanged.connect(self._on_lines_layer_changed)
+        self.config_dock.pointsLayerChanged.connect(self._on_points_layer_changed)
+        # the dock may already have layers pre-selected (restored from project
+        # settings before these signals were even connected), so sync once now
+        self._rewire_layer_signals("lines", self.config_dock.lines.currentLayer())
+        self._rewire_layer_signals("points", self.config_dock.points.currentLayer())
 
         v = self.getVersion()
 
@@ -304,14 +327,42 @@ class Mappy:
 
         return True
 
+    def _make_engine_of_class(self, engine_cls, config):
+        engine = engine_cls(config)
+        engine.mapRecomputed.connect(lambda: self.log_message("Map recomputed"))
+        engine.unitAssigned.connect(lambda unit, fid: self.log_message(f"Unit '{unit}' assigned to polygon {fid}"))
+        return engine
+
+    def _ensure_engine_matches_config(self, config: EngineConfig) -> None:
+        """Swaps self.engine between ProcessingMapEngine (the default,
+        always-full-recompute engine) and IncrementalMapEngine (opt-in --
+        regenerates only the affected polygons on edit) to match the
+        "use_incremental_engine" dock setting, if it doesn't already match.
+        Swapping drops any in-progress state the old engine instance held
+        (e.g. IncrementalMapEngine's open sidecar topology connection) --
+        the new instance rebuilds what it needs (the topology, dirty-queue
+        triggers) the next time recompute_map()/process_pending_changes()
+        runs, same as a fresh plugin session would.
+        """
+        wanted_cls = IncrementalMapEngine if config.use_incremental_engine else ProcessingMapEngine
+        if type(self.engine) is wanted_cls:
+            return
+        if isinstance(self.engine, IncrementalMapEngine):
+            self.engine.close()
+        self.engine = self._make_engine_of_class(wanted_cls, config)
+
     def _refresh_engine_config(self) -> dict:
         """Rebuilds self.engine.config from the dock's current widget
-        values, returning the raw pars dict too since check_input_pars
-        (GUI-only validation) still needs to read it directly."""
+        values (swapping the engine class first if the incremental-engine
+        toggle changed), returning the raw pars dict too since
+        check_input_pars (GUI-only validation) still needs to read it
+        directly."""
         from .mappy_utils import collect_parameters
 
         pars = collect_parameters(self.config_dock)
-        self.engine.config = EngineConfig.from_parameters(pars)
+        config = EngineConfig.from_parameters(pars)
+        self._ensure_engine_matches_config(config)
+        self.engine.config = config
         return pars
 
     def recompute_map(self):
@@ -423,6 +474,56 @@ class Mappy:
                 "Unit assigned. Recompute the map to update the point/polygon join, dangle cleanup, etc.",
             )
 
+    def _on_lines_layer_changed(self, layer):
+        self._rewire_layer_signals("lines", layer)
+
+    def _on_points_layer_changed(self, layer):
+        self._rewire_layer_signals("points", layer)
+
+    def _rewire_layer_signals(self, role, layer):
+        """(Re)connects this layer's commit-time signals to the debounce
+        timer that eventually calls engine.process_pending_changes(), and
+        disconnects the previous layer tracked for `role` first. Passing
+        layer=None just disconnects (used by unload()).
+
+        Uses commit-time signals (committedFeaturesAdded/GeometriesChanges/
+        FeaturesRemoved/AttributeValuesChanges), not the live edit-buffer
+        signals (featureAdded/geometryChanged): those fire mid-edit-session
+        with negative temp ids that get renumbered on commit, and fire once
+        per micro-edit rather than once per user action.
+        """
+        attr = f"_connected_{role}_layer"
+        previous = getattr(self, attr)
+        if previous is not None:
+            for signal_name in (
+                "committedFeaturesAdded",
+                "committedGeometriesChanges",
+                "committedFeaturesRemoved",
+                "committedAttributeValuesChanges",
+            ):
+                try:
+                    getattr(previous, signal_name).disconnect(self._on_layer_committed)
+                except TypeError:
+                    pass  # already disconnected (or never was) -- fine
+
+        setattr(self, attr, layer)
+
+        if layer is not None:
+            layer.committedFeaturesAdded.connect(self._on_layer_committed)
+            layer.committedGeometriesChanges.connect(self._on_layer_committed)
+            layer.committedFeaturesRemoved.connect(self._on_layer_committed)
+            layer.committedAttributeValuesChanges.connect(self._on_layer_committed)
+
+    def _on_layer_committed(self, *_args):
+        self._pending_changes_timer.start(self.engine.config.incremental_debounce_ms)
+
+    def _process_pending_engine_changes(self):
+        try:
+            self._refresh_engine_config()
+            self.engine.process_pending_changes()
+        except EngineError as e:
+            self.alert_box("Error", str(e))
+
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
 
@@ -434,6 +535,17 @@ class Mappy:
 
         if self.assign_unit_tool is not None:
             self.iface.mapCanvas().unsetMapTool(self.assign_unit_tool)
+
+        # stop the debounce timer and disconnect any layer commit signals
+        # before the dock (their parent/connect-site) goes away, same
+        # "unwire before tearing down" reasoning as the project-signal
+        # disconnects just below
+        self._pending_changes_timer.stop()
+        self._rewire_layer_signals("lines", None)
+        self._rewire_layer_signals("points", None)
+
+        if isinstance(self.engine, IncrementalMapEngine):
+            self.engine.close()
 
         # the dock widget stays connected to QgsProject.instance() (a
         # long-lived singleton that outlives plugin reloads) via

@@ -8,7 +8,7 @@ from qgis.core import (
 )
 
 from .colors import get_or_create_color_table, resetCategoriesIfNeeded, sync_unit_colors, write_colors_to_points
-from .interface import EngineError, MapEngine
+from .interface import EngineError, MapEngine, TopologyValidationReport
 from .layers import add_layer_from_geopackage, drop_duplicate_points_per_polygon, find_layer, write_layer_to_gpkg
 from .styling import enable_default_labels
 
@@ -152,6 +152,45 @@ class ProcessingMapEngine(MapEngine):
     def get_color_table(self) -> dict[str, str]:
         return get_or_create_color_table(self.config.points, self.config.units_field)
 
+    def _propagate_point_unit_to_polygon(self, polygon_feature, unit_text, color_updates=None) -> None:
+        """Writes unit_text to polygon_feature's own units_field attribute
+        (if the polygon layer has that field yet -- i.e. a full recompute
+        has run at least once) and syncs unit colors. Does not touch the
+        points layer itself -- callers that need to write/create the point
+        (assign_unit) or that already know the point was written elsewhere
+        (the incremental engine's points-path, reacting to a commit that
+        already happened) do that separately.
+
+        color_updates is passed into sync_unit_colors as an explicit
+        override rather than written to points_layer here: the polygon
+        layer's renderer hasn't been told about it yet at this point, and
+        writing to points_layer first would make sync_unit_colors mistake
+        that staleness for a manual Symbology edit on the *polygon* layer
+        and let the old, stale color win, reverting the very change just
+        made.
+        """
+        config = self.config
+        points_layer = config.points
+        units_field = config.units_field
+        color_updates = dict(color_updates) if color_updates else {}
+
+        polygons_layer = self.get_polygons_layer()
+        poly_field_index = polygons_layer.fields().indexFromName(units_field)
+        if poly_field_index != -1:
+            was_read_only = polygons_layer.readOnly()
+            polygons_layer.setReadOnly(False)
+            polygons_layer.startEditing()
+            polygons_layer.changeAttributeValue(polygon_feature.id(), poly_field_index, unit_text)
+            polygons_layer.commitChanges()
+            polygons_layer.setReadOnly(was_read_only)
+
+            sync_unit_colors(points_layer, polygons_layer, units_field, explicit_overrides=color_updates)
+            enable_default_labels(polygons_layer, units_field)
+        elif color_updates:
+            # polygon layer has no units_field yet (map never recomputed) --
+            # nothing to sync colors with, but still persist the choice
+            write_colors_to_points(points_layer, units_field, "color", color_updates)
+
     def assign_unit(
         self,
         polygon_feature,
@@ -165,16 +204,7 @@ class ProcessingMapEngine(MapEngine):
         point at click_point if there was none), and -- since only the
         attribute changes, not the polygon geometry -- also writes it
         directly to polygon_feature's own attribute so its color/label
-        update immediately without waiting for a full recompute_map().
-
-        color_updates (changed_colors plus, if given, {unit_text: color})
-        are passed into sync_unit_colors as explicit overrides rather than
-        written to points_layer directly here: the polygon layer's renderer
-        hasn't been told about them yet at this point, and writing to
-        points_layer first would make sync_unit_colors mistake that
-        staleness for a manual Symbology edit on the *polygon* layer and
-        let the old, stale color win, reverting the very change just made.
-        """
+        update immediately without waiting for a full recompute_map()."""
         config = self.config
         points_layer = config.points
         units_field = config.units_field
@@ -199,24 +229,23 @@ class ProcessingMapEngine(MapEngine):
         if color:
             color_updates[unit_text] = color
 
-        polygons_layer = self.get_polygons_layer()
-        poly_field_index = polygons_layer.fields().indexFromName(units_field)
-        if poly_field_index != -1:
-            was_read_only = polygons_layer.readOnly()
-            polygons_layer.setReadOnly(False)
-            polygons_layer.startEditing()
-            polygons_layer.changeAttributeValue(polygon_feature.id(), poly_field_index, unit_text)
-            polygons_layer.commitChanges()
-            polygons_layer.setReadOnly(was_read_only)
-
-            sync_unit_colors(points_layer, polygons_layer, units_field, explicit_overrides=color_updates)
-            enable_default_labels(polygons_layer, units_field)
-        elif color_updates:
-            # polygon layer has no units_field yet (map never recomputed) --
-            # nothing to sync colors with, but still persist the choice
-            write_colors_to_points(points_layer, units_field, "color", color_updates)
+        self._propagate_point_unit_to_polygon(polygon_feature, unit_text, color_updates)
 
         self.unitAssigned.emit(unit_text, polygon_feature.id())
 
         if config.auto_recompute_on_assign_unit:
             self.recompute_map()
+
+    def process_pending_changes(self) -> None:
+        """This engine keeps no incremental/topology state, so there is
+        nothing to drain -- the GUI's commit-signal nudge (see
+        Mappy._rewire_layer_signals) is simply a no-op here. A future
+        incremental engine reacts to this instead of requiring the user to
+        remember to click "Recompute map"."""
+
+    def invalidate(self) -> None:
+        """No incremental state to drop."""
+
+    def validate_topology(self) -> TopologyValidationReport:
+        """No topology of its own to drift out of sync."""
+        return TopologyValidationReport(in_sync=True)

@@ -167,6 +167,45 @@
              </property>
             </widget>
            </item>
+           <item row="4" column="0">
+            <widget class="QCheckBox" name="use_incremental_engine">
+             <property name="text">
+              <string>Use the incremental engine (experimental) [regenerates only the affected polygons on edit, instead of requiring a manual Recompute]</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_topology_tolerance">
+             <property name="text">
+              <string>Incremental engine: junction snapping tolerance [increase if Recompute fails with a topology error like "geometry crosses an edge" -- real digitized lines rarely meet exactly, unlike the default full recompute]</string>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QgsDoubleSpinBox" name="topology_tolerance">
+             <property name="decimals">
+              <number>8</number>
+             </property>
+             <property name="minimum">
+              <double>0.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>1000.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.000001000000000</double>
+             </property>
+             <property name="value">
+              <double>0.000001000000000</double>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
@@ -205,6 +244,11 @@
   </widget>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>QgsDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>qgsdoublespinbox.h</header>
+  </customwidget>
   <customwidget>
    <class>QgsFieldComboBox</class>
    <extends>QComboBox</extends>
