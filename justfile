@@ -8,6 +8,11 @@ default:
 qgis:
     QGIS_PLUGINPATH={{justfile_directory()}} qgis
 
+# Same as `qgis`, but with MAPPY_DEV=1 so the dock reveals still-experimental
+# features (e.g. the incremental engine toggle) normally hidden from users
+qgis-dev:
+    QGIS_PLUGINPATH={{justfile_directory()}} MAPPY_DEV=1 qgis
+
 # Create venv with access to system site-packages (for QGIS, PyQt6, osgeo, etc.)
 # then install dev/test extras on top via uv.
 setup-qgis:
