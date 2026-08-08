@@ -106,3 +106,36 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Editors / IDEs
+.idea/
+.vscode/
+*.code-workspace
+
+# Linux file-manager metadata
+.directory
+
+# SQLite/GeoPackage journal sidecars -- never meaningful to commit, and
+# their presence/absence churns on every open/close of the .gpkg
+*.gpkg-shm
+*.gpkg-wal
+
+# Spatial index sidecars QGIS regenerates on demand
+*.qix
+
+# Scratch outputs written by manual runs/tests (e.g. mappy/tests/test_core.py
+# writing to a relative "out.gpkg")
+/out.gpkg
+mappy/tests/out.gpkg
+symbology-style.db
+
+# Personal scratch project data used for manual testing -- not referenced by
+# any test/docs, unlike the curated fixtures already tracked under demo_data/
+/demo_data/adds/
+/demo_data/example/
+/demo_data/mars/
+/demo_data/tanaka/
+/demo_data/test_shapefiles/
+/demo_data/map.gpkg
+/demo_data/test_map.gpkg
+/demo_data/test_map2.gpkg
