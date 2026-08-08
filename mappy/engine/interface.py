@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from qgis.PyQt.QtCore import QObject, pyqtSignal
@@ -29,6 +30,13 @@ class EngineConfig:
     out_contacts_layer_name: str = ""
     units_field: str = ""
     add_indicators: bool = False
+    # Off by default: a wrongly-selected lines layer can make points that
+    # aren't actually duplicates land in the same malformed polygon,
+    # permanently deleting real data (see drop_duplicate_points_per_polygon
+    # in layers.py). Opt-in, not just guarded/confirmed at the point of
+    # deletion, so this never runs at all unless a user deliberately wants
+    # the cleanup.
+    remove_duplicate_indicator_points: bool = False
     generate_clean_contacts: bool = False
     copyoverlinestyle: bool = False
     auto_recompute_on_assign_unit: bool = False
@@ -66,6 +74,16 @@ class EngineError(Exception):
     etc). The GUI layer catches this and turns it into an alert box."""
 
 
+class RecomputeCancelled(EngineError):
+    """Raised when the user declines a MapEngine.confirm_destructive_step
+    prompt (currently just drop_duplicate_points_per_polygon's deletions)
+    -- the operation that raised it aborts without writing anything. A
+    subclass of EngineError so callers that don't distinguish still catch
+    it, but the GUI catches this one separately and stays silent instead of
+    showing an alert box, mirroring qgismappy.check_input_pars' own
+    Save/Cancel convention for a user-initiated cancellation."""
+
+
 class MapEngine(QObject):
     """Abstract contract for a map-generation/processing engine, kept
     independent of any GUI (no dialogs, no menus, no map tools, no
@@ -97,6 +115,14 @@ class MapEngine(QObject):
     def __init__(self, config: EngineConfig | None = None, parent=None):
         super().__init__(parent)
         self.config = config or EngineConfig()
+        # Optional GUI-injected yes/no gate for a destructive, hard-to-reverse
+        # step (currently just drop_duplicate_points_per_polygon's
+        # deletions) -- keeps this class itself free of dialogs per the
+        # class docstring above. None (the default outside the Mappy GUI:
+        # tests, scripts, direct Processing algorithm use) auto-approves,
+        # preserving that non-interactive behavior; Mappy wires a real
+        # confirmation dialog onto each engine instance it constructs.
+        self.confirm_destructive_step: Callable[[str], bool] | None = None
 
     def recompute_map(self) -> None:
         raise NotImplementedError

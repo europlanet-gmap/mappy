@@ -65,8 +65,13 @@ class ProcessingMapEngine(MapEngine):
 
         # the join that assigned attributes to polygons only used the first
         # matching point where more than one fell inside the same polygon;
-        # drop the rest so leftover duplicate indicator points don't linger
-        drop_duplicate_points_per_polygon(points_layer, layer)
+        # leftover duplicate indicator points are only cosmetic clutter (the
+        # join already ignored them), so cleaning them up is opt-in -- off
+        # by default, see EngineConfig.remove_duplicate_indicator_points.
+        # confirm_destructive_step/the guard threshold inside
+        # drop_duplicate_points_per_polygon still apply on top when enabled.
+        if config.remove_duplicate_indicator_points:
+            drop_duplicate_points_per_polygon(points_layer, layer, confirm=self.confirm_destructive_step)
 
         if config.add_indicators:
             newpoints = processing.run(

@@ -168,6 +168,16 @@
             </widget>
            </item>
            <item row="4" column="0">
+            <widget class="QCheckBox" name="remove_duplicate_indicator_points">
+             <property name="text">
+              <string>Remove duplicate indicator points on recompute [WARN - will permanently delete points layer features; off by default because a wrongly-selected lines layer can make real, distinct points look like duplicates]</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
             <widget class="QCheckBox" name="use_incremental_engine">
              <property name="text">
               <string>Use the incremental engine (experimental) [regenerates only the affected polygons on edit, instead of requiring a manual Recompute]</string>
@@ -177,7 +187,7 @@
              </property>
             </widget>
            </item>
-           <item row="5" column="0">
+           <item row="6" column="0">
             <widget class="QLabel" name="label_topology_tolerance">
              <property name="text">
               <string>Incremental engine: junction snapping tolerance [increase if Recompute fails with a topology error like "geometry crosses an edge" -- real digitized lines rarely meet exactly, unlike the default full recompute]</string>
@@ -187,7 +197,7 @@
              </property>
             </widget>
            </item>
-           <item row="6" column="0">
+           <item row="7" column="0">
             <widget class="QgsDoubleSpinBox" name="topology_tolerance">
              <property name="decimals">
               <number>8</number>

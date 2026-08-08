@@ -1,5 +1,5 @@
 from .incremental_engine import IncrementalMapEngine
-from .interface import EngineConfig, EngineError, MapEngine, TopologyValidationReport
+from .interface import EngineConfig, EngineError, MapEngine, RecomputeCancelled, TopologyValidationReport
 from .processing_engine import ProcessingMapEngine
 
 __all__ = [
@@ -8,5 +8,6 @@ __all__ = [
     "IncrementalMapEngine",
     "MapEngine",
     "ProcessingMapEngine",
+    "RecomputeCancelled",
     "TopologyValidationReport",
 ]

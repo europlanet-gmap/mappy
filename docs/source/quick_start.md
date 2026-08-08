@@ -249,6 +249,16 @@ to disable this feature and use it only at the end for finalizing the map.
   When enabled, a full {guilabel}`Recompute Map` is triggered every time you
   assign a unit with the {guilabel}`Assign unit to polygon` tool (see
   {ref}`assigning_units` below), instead of only updating the clicked polygon.
+- **Remove duplicate indicator points on recompute**: off by default. When two
+  or more indicator points fall inside the same polygon, only one is actually
+  used; enabling this deletes the rest from your points layer on every
+  {guilabel}`Recompute Map`. Leave this off unless you specifically want that
+  cleanup -- it permanently deletes points, and a wrongly-selected
+  {guilabel}`Lines` layer can make real, distinct points look like duplicates
+  purely because the resulting polygons are malformed. When enabled, Mappy
+  still asks for confirmation (showing how many points would be removed)
+  before deleting anything, and refuses outright if the number to delete looks
+  implausibly large.
 
 ---
 

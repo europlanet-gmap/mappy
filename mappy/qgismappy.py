@@ -38,7 +38,7 @@ from .mappy_utils import load_mappy_info_text
 from .qgismappy_dockwidget import MappyDockWidget
 from qgis.core import QgsApplication
 
-from .engine import EngineConfig, EngineError, IncrementalMapEngine, ProcessingMapEngine
+from .engine import EngineConfig, EngineError, IncrementalMapEngine, ProcessingMapEngine, RecomputeCancelled
 from .providers import MappyProvider
 import os.path
 
@@ -331,7 +331,20 @@ class Mappy:
         engine = engine_cls(config)
         engine.mapRecomputed.connect(lambda: self.log_message("Map recomputed"))
         engine.unitAssigned.connect(lambda unit, fid: self.log_message(f"Unit '{unit}' assigned to polygon {fid}"))
+        engine.confirm_destructive_step = self._confirm_destructive_engine_step
         return engine
+
+    def _confirm_destructive_engine_step(self, message: str) -> bool:
+        """Wired onto every engine instance as its confirm_destructive_step
+        (see MapEngine.__init__) -- the engine layer itself stays dialog-free,
+        this is the GUI's answer to its "is it OK to do this?" question."""
+        dlg = QMessageBox()
+        dlg.setIcon(QMessageBox.Icon.Warning)
+        dlg.setWindowTitle("Confirm data deletion")
+        dlg.setText(message)
+        dlg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        dlg.setDefaultButton(QMessageBox.StandardButton.No)
+        return dlg.exec() == QMessageBox.StandardButton.Yes
 
     def _ensure_engine_matches_config(self, config: EngineConfig) -> None:
         """Swaps self.engine between ProcessingMapEngine (the default,
@@ -373,6 +386,8 @@ class Mappy:
 
         try:
             self.engine.recompute_map()
+        except RecomputeCancelled:
+            pass  # user declined a confirm_destructive_step prompt -- no alert box, same as check_input_pars' own Cancel
         except EngineError as e:
             self.alert_box("Error", str(e))
 
@@ -466,7 +481,19 @@ class Mappy:
         if not ok or not text:
             return
 
-        self.engine.assign_unit(matched_polygon, target_point_feature, point, text, color=color, changed_colors=changed_colors)
+        try:
+            self.engine.assign_unit(
+                matched_polygon, target_point_feature, point, text, color=color, changed_colors=changed_colors
+            )
+        except RecomputeCancelled:
+            # auto_recompute_on_assign_unit triggered a recompute that hit a
+            # confirm_destructive_step prompt the user declined -- the unit
+            # assignment itself already went through, only the follow-up
+            # recompute was skipped
+            return
+        except EngineError as e:
+            self.alert_box("Error", str(e))
+            return
 
         if not self.engine.config.auto_recompute_on_assign_unit:
             self.iface.messageBar().pushInfo(

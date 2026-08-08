@@ -14,6 +14,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   `MAPPY_DEV` environment variable before launching QGIS to reveal the dock's
   "Use the incremental engine" toggle and its topology-tolerance setting
   (`just qgis-dev` does this for a local dev QGIS session).
+- "Remove duplicate indicator points on recompute" dock option, off by default:
+  Recompute Map's cleanup of per-polygon duplicate indicator points now only runs
+  if explicitly enabled, and even then asks for confirmation (naming the count)
+  before deleting anything and refuses outright if the count looks implausibly
+  large relative to the points layer -- guards against a wrongly-selected lines
+  layer producing malformed polygons that make real, distinct points look like
+  duplicates and get silently, permanently deleted.
 
 ### Fixed
 
