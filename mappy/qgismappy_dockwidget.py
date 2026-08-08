@@ -55,7 +55,12 @@ from mappy.mappy_utils import (
 # the incremental engine) -- kept hidden and out of reach of restoreSettingsFromProject
 # unless MAPPY_DEV is set, so a generic user can't stumble into them via the
 # GUI or via opening a project a developer saved with them enabled.
-DEV_ONLY_WIDGET_NAMES = ("use_incremental_engine", "label_topology_tolerance", "topology_tolerance")
+DEV_ONLY_WIDGET_NAMES = (
+    "use_incremental_engine",
+    "label_use_incremental_engine_detail",
+    "label_topology_tolerance",
+    "topology_tolerance",
+)
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgismappy_dockwidget_base.ui"))
 
