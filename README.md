@@ -24,6 +24,11 @@ them all. A few worth knowing about:
 
 - `just setup-qgis` -- create the local `.venv` with access to the system
   QGIS/PyQt bindings (needed once per machine).
+- `just qgis` -- launch QGIS with this checkout on `QGIS_PLUGINPATH`, so the
+  under-development plugin is picked up instead of an installed copy.
+- `just qgis-dev` -- same, with `MAPPY_DEV=1` set so the dock also reveals
+  still-experimental features (currently the incremental engine toggle and
+  its topology-tolerance setting) that are otherwise hidden from users.
 - `just test` -- run the test suite headlessly against your local QGIS
   install.
 - `just deploy` / `just package` -- install the plugin into your local QGIS

@@ -6,12 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+### Added
+
+- Incremental map engine (`IncrementalMapEngine`): keeps a SpatiaLite topology and
+  dirty-queue sidecar so edits regenerate only the affected polygons instead of a
+  full recompute. Still experimental and hidden from the GUI by default; set the
+  `MAPPY_DEV` environment variable before launching QGIS to reveal the dock's
+  "Use the incremental engine" toggle and its topology-tolerance setting
+  (`just qgis-dev` does this for a local dev QGIS session).
+
 ### Fixed
 
 - Quick Project Setup's CRS parameter relied on QGIS's "ProjectCrs" magic default
   string, which fails parameter validation on QGIS < 3.32 when the parameter is
   omitted. Resolve to the project CRS explicitly instead, restoring support back
   to QGIS 3.30.
+- QGIS Compatibility CI's `pip3 install` step failed on the `qgis/qgis:latest`
+  image once its Debian base started marking system Python as
+  externally-managed (PEP 668).
 
 ### Changed
 
