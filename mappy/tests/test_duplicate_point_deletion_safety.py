@@ -13,12 +13,9 @@ class TestDuplicatePointDeletionSafety(ExtendedUnitTesting):
     points from the user's points layer as a surprise -- see
     drop_duplicate_points_per_polygon in layers.py for the full rationale."""
 
-    def setUp(self):
-        self._engines = []
-
     def tearDown(self):
-        for engine in self._engines:
-            engine.close()
+        # ProcessingMapEngine (unlike IncrementalMapEngine) holds no
+        # external resources of its own -- no close() to call
         project = QgsProject.instance()
         stale = [layer_id for layer_id, layer in project.mapLayers().items() if OUTPUT in layer.dataProvider().dataSourceUri()]
         project.removeMapLayers(stale)
@@ -57,7 +54,6 @@ class TestDuplicatePointDeletionSafety(ExtendedUnitTesting):
             remove_duplicate_indicator_points=remove_duplicate_indicator_points,
         )
         engine = ProcessingMapEngine(config)
-        self._engines.append(engine)
         return engine, points
 
     def test_duplicate_points_survive_recompute_by_default(self):
