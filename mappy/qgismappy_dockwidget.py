@@ -81,9 +81,20 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self._apply_dev_mode_visibility()
 
         self.units_field.setLayer(self.points.currentLayer())
+        # while true, value_changed() must not write to the project: a
+        # project (re)load fires spurious layerChanged signals as the layer
+        # combos are cleared and repopulated -- e.g. auto-deselecting to
+        # None on QgsProject.clear(), then auto-selecting whatever layer
+        # streams in first -- and each one used to get written straight
+        # into the project's own "mappy/<name>" entry, clobbering the value
+        # just loaded from the project file before restoreSettingsFromProject
+        # ever got to read it back (see test_restore_multiple_layers.py and
+        # the "limits layer reverts to the first layer on reload" report)
+        self._restoring_from_project = False
         self.restoreSettingsFromProject()
 
         proj = QgsProject.instance()
+        proj.cleared.connect(self._begin_restore_guard)
         proj.readProject.connect(self.restoreSettingsFromProject)
         proj.writeProject.connect(self.saveSettingsToProject)
 
@@ -178,11 +189,24 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             # we store also this preference for being connected to this specific layer of points
             points_layer = serialize_value_for_settings(self.get_current_parameter_value("points"))
             key = points_layer + "_preferred_field"
-            proj.writeEntry("mappy", key, value)
-            log.debug(f"stored preference with value {value} to key {key}")
+            if not self._restoring_from_project:
+                proj.writeEntry("mappy", key, value)
+                log.debug(f"stored preference with value {value} to key {key}")
 
         current = self.get_current_parameter_value(name)
         log.debug(f"CURRENT VALUE {current}")
+
+        if self._restoring_from_project:
+            # a project (re)load is in flight: layer combos fire spurious
+            # layerChanged signals of their own accord while they get
+            # cleared and repopulated (auto-deselecting to None, then
+            # auto-selecting whichever layer streams in first), well before
+            # restoreSettingsFromProject() gets a chance to apply the value
+            # actually saved in the project file. Writing those transient
+            # values back here would clobber that saved entry before it is
+            # ever read, so skip persisting until the restore is done.
+            log.debug("Restoring from project -- not writing transient value to settings")
+            return
 
         asstring = serialize_value_for_settings(value)
 
@@ -208,70 +232,91 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         log.debug(f"Saved pars {pars}")
 
+    def _begin_restore_guard(self):
+        """Connected to QgsProject.cleared, which fires at the very start of
+        both "Open Project" and "New Project" -- well before readProject (if
+        it fires at all) triggers restoreSettingsFromProject(). Layer combos
+        emit spurious layerChanged signals of their own accord as they get
+        cleared and repopulated in between, so the guard must start here,
+        not just inside restoreSettingsFromProject(), to cover that window
+        too. Cleared at the end of restoreSettingsFromProject(); the
+        singleShot is a fallback for "New Project", which never emits
+        readProject at all and would otherwise leave the guard stuck on.
+        """
+        self._restoring_from_project = True
+        QtCore.QTimer.singleShot(0, self._end_restore_guard)
+
+    def _end_restore_guard(self):
+        self._restoring_from_project = False
+
     def restoreSettingsFromProject(self):
 
         log.debug("Restoring values from settings")
 
         proj = QgsProject.instance()
 
-        from .mappy_utils import collect_parameters
+        self._restoring_from_project = True
+        try:
+            from .mappy_utils import collect_parameters
 
-        pars = collect_parameters(self)
-        log.debug(f"found pars {pars}")
+            pars = collect_parameters(self)
+            log.debug(f"found pars {pars}")
 
-        dev = is_dev_mode()
+            dev = is_dev_mode()
 
-        for k in pars:
-            if not dev and k in DEV_ONLY_WIDGET_NAMES:
-                # keep experimental settings at their widget default for a
-                # generic user, even if a dev saved the project with them
-                # enabled -- MAPPY_DEV gates activation, not just visibility
-                continue
-            value, found = proj.readEntry("mappy", k, None)
-            log.debug(f"just read {k}: {value}")
-            if not found:
-                continue
-            ptype = type(pars[k])
-            if ptype in [str]:
-                pars[k] = value
-            elif ptype in [float, np.double]:
-                pars[k] = np.double(value)
-            elif ptype in [bool]:
-                # value is always a str here (serialize_value_for_settings
-                # stores everything as str(value)); bool(value) would be
-                # True for the non-empty string "False" too
-                pars[k] = str(value).strip().lower() == "true"
-            elif ptype in [QgsVectorLayer]:
-                root = proj.layerTreeRoot()
-                layer_node = root.findLayer(value)
-                # QgsLayerTreeLayer is a leaf node (no children), and falls
-                # back to __len__ for truthiness, which is 0 -- "if layer_node:"
-                # is falsy even when a real node was found, so it must be an
-                # explicit None check
-                if layer_node is not None:
-                    pars[k] = layer_node.layer()
-                log.debug(f"found layer {layer_node}")
+            for k in pars:
+                if not dev and k in DEV_ONLY_WIDGET_NAMES:
+                    # keep experimental settings at their widget default for a
+                    # generic user, even if a dev saved the project with them
+                    # enabled -- MAPPY_DEV gates activation, not just visibility
+                    continue
+                value, found = proj.readEntry("mappy", k, None)
+                log.debug(f"just read {k}: {value}")
+                if not found:
+                    continue
+                ptype = type(pars[k])
+                if ptype in [str]:
+                    pars[k] = value
+                elif ptype in [float, np.double]:
+                    pars[k] = np.double(value)
+                elif ptype in [bool]:
+                    # value is always a str here (serialize_value_for_settings
+                    # stores everything as str(value)); bool(value) would be
+                    # True for the non-empty string "False" too
+                    pars[k] = str(value).strip().lower() == "true"
+                elif ptype in [QgsVectorLayer]:
+                    root = proj.layerTreeRoot()
+                    layer_node = root.findLayer(value)
+                    # QgsLayerTreeLayer is a leaf node (no children), and falls
+                    # back to __len__ for truthiness, which is 0 -- "if layer_node:"
+                    # is falsy even when a real node was found, so it must be an
+                    # explicit None check
+                    if layer_node is not None:
+                        pars[k] = layer_node.layer()
+                    log.debug(f"found layer {layer_node}")
 
-            else:
-                raise TypeError(f"cannot convert type {type(value)} to {type(pars[k])}")
+                else:
+                    raise TypeError(f"cannot convert type {type(value)} to {type(pars[k])}")
 
-            from .mappy_utils import restoreWidgetContent
+                from .mappy_utils import restoreWidgetContent
 
-            w = self.get_widget_by_name(k)
-            try:
-                restoreWidgetContent(w, pars[k])
-            except Exception as e:
-                log.debug(f"Could not restore the value for the widget from the settings.\n Error: {e}")
+                w = self.get_widget_by_name(k)
+                try:
+                    restoreWidgetContent(w, pars[k])
+                except Exception as e:
+                    log.debug(f"Could not restore the value for the widget from the settings.\n Error: {e}")
 
-            if k == "points":
-                # QgsMapLayerComboBox can end up already showing the correct
-                # layer without ever firing layerChanged (e.g. it auto-selects
-                # a project's only point layer on its own), so units_field
-                # would never learn about it through that signal chain -- bind
-                # it explicitly rather than depending on that reentrant call
-                self.units_field.setLayer(self.points.currentLayer())
+                if k == "points":
+                    # QgsMapLayerComboBox can end up already showing the correct
+                    # layer without ever firing layerChanged (e.g. it auto-selects
+                    # a project's only point layer on its own), so units_field
+                    # would never learn about it through that signal chain -- bind
+                    # it explicitly rather than depending on that reentrant call
+                    self.units_field.setLayer(self.points.currentLayer())
 
-        log.debug(f"resulting pars {pars}")
+            log.debug(f"resulting pars {pars}")
+        finally:
+            self._restoring_from_project = False
 
     def getUserHome(self):
         return str(Path.home())
