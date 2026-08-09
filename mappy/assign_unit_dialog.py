@@ -41,6 +41,12 @@ class AssignUnitDialog(QDialog):
         self.color_table = dict(color_table or {})
         self._current_color = None
         self._manual_pick_text = None
+        # while true, textChanged-driven list filtering is skipped -- set
+        # while filling the filter box from a list selection so that
+        # clicking/double-clicking an item never hides other rows and
+        # reflows the list mid double-click, which would make the second
+        # click miss the item and swallow the dialog's auto-accept
+        self._suppress_filter = False
         # every color explicitly picked this session, keyed by unit name --
         # not just the one for whatever ends up confirmed on OK. Without
         # this, recoloring "Basalt" and then picking/confirming "Breccia"
@@ -117,16 +123,22 @@ class AssignUnitDialog(QDialog):
         self.list_widget.setFocus()
 
     def _apply_filter(self, text):
+        if self._suppress_filter:
+            return
         text = text.lower()
         for i in range(self.list_widget.count()):
             item = self.list_widget.item(i)
             item.setHidden(text not in item.text().lower())
 
     def _select_item(self, item):
-        self.filter_edit.setText(item.text())
+        self._suppress_filter = True
+        try:
+            self.filter_edit.setText(item.text())
+        finally:
+            self._suppress_filter = False
 
     def _accept_item(self, item):
-        self.filter_edit.setText(item.text())
+        self._select_item(item)
         self.accept()
 
     def _refresh_color_for_text(self, text):
