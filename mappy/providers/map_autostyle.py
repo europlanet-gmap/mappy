@@ -17,6 +17,7 @@ class MapAutoStyleProcessingAlgorithm(MappyProcessingAlgorithm):
 
     IN_LAYER = "IN_LAYER"
     CAT_FIELD = "CAT_FIELD"
+    POINTS_LAYER = "POINTS_LAYER"
     STYLE_UNASSIGNED = "STYLE_UNASSIGNED"
 
     def tr(self, string):
@@ -53,6 +54,18 @@ class MapAutoStyleProcessingAlgorithm(MappyProcessingAlgorithm):
             )
         )
 
+        self.addParameter(
+            QgsProcessingParameterFeatureSource(
+                self.POINTS_LAYER,
+                self.tr(
+                    "Points layer with persisted unit colors (optional -- keeps colors in sync with it instead of "
+                    "inventing new ones for any not-yet-styled category; must use the same field name as above)"
+                ),
+                [QgsProcessing.TypeVectorPoint],
+                optional=True,
+            )
+        )
+
         # self.addParameter(
         #     QgsProcessingParameterBoolean(
         #         self.STYLE_UNASSIGNED,
@@ -68,8 +81,16 @@ class MapAutoStyleProcessingAlgorithm(MappyProcessingAlgorithm):
         # unassigned = self.parameterAsBool(parameters, self.STYLE_UNASSIGNED, context)
         feedback.pushInfo(f"field used is {fieldname}")
 
-        from ..engine.colors import resetCategoriesIfNeeded
+        points_layer = self.parameterAsLayer(parameters, self.POINTS_LAYER, context)
 
-        # resetCategoriesIfNeeded(polygons_layer, fieldname, unassigned=unassigned)
-        resetCategoriesIfNeeded(polygons_layer, fieldname)
+        if points_layer is not None:
+            from ..engine.colors import sync_unit_colors
+
+            feedback.pushInfo(f"syncing colors with points layer {points_layer.name()}")
+            sync_unit_colors(points_layer, polygons_layer, fieldname)
+        else:
+            from ..engine.colors import resetCategoriesIfNeeded
+
+            # resetCategoriesIfNeeded(polygons_layer, fieldname, unassigned=unassigned)
+            resetCategoriesIfNeeded(polygons_layer, fieldname)
         return {}

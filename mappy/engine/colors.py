@@ -27,8 +27,12 @@ def resetCategoriesIfNeeded(layer, units_field, color_table=None) -> None:
 
     id = layer.fields().indexFromName(units_field)
     uniques = list(layer.uniqueValues(id))
-    has_unassigned = None in uniques
-    uniques = [u for u in uniques if u is not None]
+    # "" is as unassigned as a real NULL -- e.g. clearing a text field via
+    # QGIS's attribute table leaves "" behind, not NULL -- and the rest of
+    # this module (get_or_create_color_table, write_colors_to_points)
+    # already treats the two as equivalent
+    has_unassigned = any(u is None or u == "" for u in uniques)
+    uniques = [u for u in uniques if u is not None and u != ""]
 
     values = sorted(uniques)
     if has_unassigned:
@@ -80,7 +84,12 @@ def resetCategoriesIfNeeded(layer, units_field, color_table=None) -> None:
         symbol = QgsSymbol.defaultSymbol(layer.geometryType())
         from qgis.PyQt.QtCore import Qt
 
-        if slayer := symbol.symbolLayer(0):
+        if (slayer := symbol.symbolLayer(0)) and hasattr(slayer, "setStrokeStyle"):
+            # only fill symbol layers (polygons) have a separate stroke to
+            # suppress -- line layers have no such method (the line *is*
+            # the stroke), and this same helper is also used for line
+            # layers (see MapAutoStyleProcessingAlgorithm, which accepts
+            # both polygon and line input)
             slayer.setStrokeStyle(Qt.PenStyle.NoPen)
 
         if value is None:

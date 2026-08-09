@@ -219,3 +219,39 @@ class TestColorTable(ExtendedUnitTesting):
         table = sync_unit_colors(points, polygons, "unit_name")
 
         self.assertEqual(table["Basalt"], "#111111")
+
+    def test_empty_string_unit_falls_into_unassigned_not_its_own_category(self):
+        # regression test: "" is as unassigned as a real NULL -- e.g.
+        # clearing a text field via QGIS's attribute table leaves "" behind,
+        # not NULL -- so it must land in the shared "Unassigned" catch-all
+        # category rather than becoming its own stray, oddly-labeled one
+        from mappy.engine.colors import resetCategoriesIfNeeded
+
+        points = self._make_points(["Basalt", ""])
+
+        resetCategoriesIfNeeded(points, "unit_name")
+
+        renderer = points.renderer()
+        labels = [cat.label() for cat in renderer.categories()]
+        self.assertIn("Unassigned", labels)
+        self.assertNotIn("", labels)
+
+    def test_reset_categories_on_a_line_layer_does_not_crash(self):
+        # regression test: the fresh-symbol setup used to call
+        # setStrokeStyle unconditionally, which only exists on fill (i.e.
+        # polygon) symbol layers -- crashing for any line layer, which
+        # MapAutoStyleProcessingAlgorithm explicitly supports as input
+        from mappy.engine.colors import resetCategoriesIfNeeded
+
+        lines = QgsVectorLayer("LineString?crs=EPSG:4326", "zzz_lines", "memory")
+        lines.dataProvider().addAttributes([QgsField("unit_name", QVariant.String)])
+        lines.updateFields()
+        f = QgsFeature(lines.fields())
+        f.setGeometry(QgsGeometry.fromWkt("LINESTRING(0 0, 1 1)"))
+        f["unit_name"] = "Basalt"
+        lines.dataProvider().addFeature(f)
+
+        resetCategoriesIfNeeded(lines, "unit_name")
+
+        renderer = lines.renderer()
+        self.assertEqual([cat.label() for cat in renderer.categories()], ["Basalt"])
