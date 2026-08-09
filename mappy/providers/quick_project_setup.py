@@ -103,11 +103,23 @@ class QuickProjectSetup(MappyProcessingAlgorithm):
 
         from ..engine.colors import get_or_create_color_table
         from ..engine.styling import enable_default_labels, style_simple_black_line
+        from mappy.qgismappy import Mappy
 
-        enable_default_labels(indicators_layer, "unit_name")
+        # respects the dock's "Auto-label indicator points" setting like
+        # every other place points get labeled -- if a user has that off as
+        # a general preference, a freshly created project's points layer
+        # shouldn't get labeled either
+        auto_label_points = True
+        if Mappy.instance is not None:
+            auto_label_points = Mappy.instance.config_dock.auto_label_points.isChecked()
+        if auto_label_points:
+            enable_default_labels(indicators_layer, "unit_name")
         style_simple_black_line(contacts_layer)
         # create the persistent color column up front, even though it's
-        # still empty at this point (no units assigned to any point yet)
+        # still empty at this point (no units assigned to any point yet) --
+        # always done regardless of auto-styling settings, since this is
+        # just data bookkeeping other features (AssignUnitDialog's
+        # swatches, cross-layer color sync) depend on either way
         get_or_create_color_table(indicators_layer, "unit_name")
 
         if create_linear_features_layer:

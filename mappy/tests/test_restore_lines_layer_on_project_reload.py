@@ -1,6 +1,7 @@
 import tempfile
 from pathlib import Path
 
+import pytest
 from qgis.core import (
     QgsCoordinateTransformContext,
     QgsProject,
@@ -12,7 +13,13 @@ from mappy.tests import ExtendedUnitTesting
 
 
 class TestRestoreLinesLayerOnProjectReload(ExtendedUnitTesting):
+    @pytest.mark.order("last")
     def test_reloading_a_saved_project_keeps_the_saved_lines_layer(self):
+        # proj.clear() below wipes every layer in the shared, session-wide
+        # QgsProject.instance() -- including ones other test modules (e.g.
+        # test_core.py's Storage.points/lines) keep Python references to
+        # for the rest of the session. Ordered last so this never runs
+        # before something else that depends on those surviving.
         # regression test: reopening a saved project with multiple line
         # layers used to reset the "limits layer" (lines) combo to the
         # first layer in the list instead of the one that was saved. The

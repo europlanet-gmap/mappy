@@ -229,7 +229,13 @@ def _current_category_overrides(layer, baseline) -> dict[str, str]:
 
 
 def sync_unit_colors(
-    points_layer, polygons_layer, units_field, color_field="color", explicit_overrides=None
+    points_layer,
+    polygons_layer,
+    units_field,
+    color_field="color",
+    explicit_overrides=None,
+    style_points=True,
+    style_polygons=True,
 ) -> dict[str, str]:
     """Reconciles unit colors across points_layer, polygons_layer and the
     persisted color_field, then applies the result to both layers.
@@ -250,6 +256,13 @@ def sync_unit_colors(
     color (if it had been written to points_layer beforehand) would make
     the *stale* polygon color look like an intentional manual override and
     win, silently reverting the very change being applied.
+
+    style_points/style_polygons gate only the *rendering* step (whether
+    each layer's categorized renderer actually gets touched) -- the
+    persisted color_field data is always computed/backfilled/reconciled
+    either way, since it's the shared source of truth other features (e.g.
+    AssignUnitDialog's swatches, and the other layer's own styling) depend
+    on regardless of whether a given layer's own auto-styling is enabled.
     """
     baseline = get_or_create_color_table(points_layer, units_field, color_field)
 
@@ -265,7 +278,9 @@ def sync_unit_colors(
     if final_table != baseline:
         write_colors_to_points(points_layer, units_field, color_field, final_table)
 
-    resetCategoriesIfNeeded(polygons_layer, units_field, color_table=final_table)
-    resetCategoriesIfNeeded(points_layer, units_field, color_table=final_table)
+    if style_polygons:
+        resetCategoriesIfNeeded(polygons_layer, units_field, color_table=final_table)
+    if style_points:
+        resetCategoriesIfNeeded(points_layer, units_field, color_table=final_table)
 
     return final_table

@@ -30,6 +30,17 @@ class EngineConfig:
     out_contacts_layer_name: str = ""
     units_field: str = ""
     add_indicators: bool = False
+    # Independent on/off switches for the categorized coloring and default
+    # labeling this plugin otherwise applies automatically to the output
+    # polygons and indicator points layers on every recompute/assign_unit.
+    # All default True (today's unconditional behavior); a user who's
+    # already styled/labeled a layer by hand can turn the matching one off
+    # without losing the underlying persisted color data, which keeps
+    # flowing between layers regardless (see engine/colors.py).
+    auto_color_polygons: bool = True
+    auto_label_polygons: bool = True
+    auto_color_points: bool = True
+    auto_label_points: bool = True
     # Off by default: a wrongly-selected lines layer can make points that
     # aren't actually duplicates land in the same malformed polygon,
     # permanently deleting real data (see drop_duplicate_points_per_polygon

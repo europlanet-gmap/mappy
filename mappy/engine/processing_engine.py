@@ -34,11 +34,21 @@ class ProcessingMapEngine(MapEngine):
         layer.setReadOnly()
 
         if field_style:
+            config = self.config
             if points_layer is not None:
-                sync_unit_colors(points_layer, layer, field_style)
-            else:
+                sync_unit_colors(
+                    points_layer,
+                    layer,
+                    field_style,
+                    style_points=config.auto_color_points,
+                    style_polygons=config.auto_color_polygons,
+                )
+                if config.auto_label_points:
+                    enable_default_labels(points_layer, field_style)
+            elif config.auto_color_polygons:
                 resetCategoriesIfNeeded(layer, field_style)
-            enable_default_labels(layer, field_style)
+            if config.auto_label_polygons:
+                enable_default_labels(layer, field_style)
 
         return layer
 
@@ -189,8 +199,18 @@ class ProcessingMapEngine(MapEngine):
             polygons_layer.commitChanges()
             polygons_layer.setReadOnly(was_read_only)
 
-            sync_unit_colors(points_layer, polygons_layer, units_field, explicit_overrides=color_updates)
-            enable_default_labels(polygons_layer, units_field)
+            sync_unit_colors(
+                points_layer,
+                polygons_layer,
+                units_field,
+                explicit_overrides=color_updates,
+                style_points=config.auto_color_points,
+                style_polygons=config.auto_color_polygons,
+            )
+            if config.auto_label_polygons:
+                enable_default_labels(polygons_layer, units_field)
+            if config.auto_label_points:
+                enable_default_labels(points_layer, units_field)
         elif color_updates:
             # polygon layer has no units_field yet (map never recomputed) --
             # nothing to sync colors with, but still persist the choice

@@ -1,6 +1,7 @@
 import tempfile
 from pathlib import Path
 
+import pytest
 from qgis.PyQt.QtCore import QVariant
 from qgis.core import (
     QgsCoordinateTransformContext,
@@ -26,6 +27,7 @@ class TestRestorePointsAndFieldOnProjectReload(ExtendedUnitTesting):
         QgsProject.instance().addMapLayer(layer)
         return layer
 
+    @pytest.mark.order("last")
     def test_reloading_a_saved_project_keeps_the_saved_points_layer_and_field(self):
         # same bug as the "lines" combo (see
         # test_restore_lines_layer_on_project_reload.py), but for the
@@ -33,6 +35,12 @@ class TestRestorePointsAndFieldOnProjectReload(ExtendedUnitTesting):
         # through the same value_changed()->project-entry write path, so a
         # project reload used to reset them to the first point layer /
         # first field instead of what was saved.
+        #
+        # proj.clear() below wipes every layer in the shared, session-wide
+        # QgsProject.instance() -- including ones other test modules (e.g.
+        # test_core.py's Storage.points/lines) keep Python references to
+        # for the rest of the session. Ordered last so this never runs
+        # before something else that depends on those surviving.
         from mappy.qgismappy import Mappy
 
         dock = Mappy.instance.config_dock
