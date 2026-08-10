@@ -68,9 +68,27 @@ class RemoveDuplicateSegmentsProcessingAlgorithm(MappyProcessingAlgorithm):
 
         self.addParameter(QgsProcessingParameterFeatureSink(self.OUTPUT, self.tr("Cleaned segments")))
 
+    @staticmethod
+    def _segment_endpoints(geom):
+        """The start/end vertices of a 2-vertex line segment. Raises a
+        clear, actionable QgsProcessingException instead of letting a
+        multi-vertex polyline crash the unpacking with a cryptic
+        "too many values to unpack" ValueError -- this algorithm compares
+        segments by their two endpoints, so its input must already be
+        exploded into individual 2-vertex segments (e.g. via QGIS's own
+        "Explode Lines")."""
+        verts = list(geom.vertices())
+        if len(verts) != 2:
+            raise QgsProcessingException(
+                "Remove Duplicated Segments expects 2-vertex line segments as input, but found a feature with "
+                f"{len(verts)} vertices. Run 'Explode Lines' on the input first to split multi-vertex polylines "
+                "into individual segments."
+            )
+        return verts[0], verts[1]
+
     def equal_segments(self, seg1, seg2, threshold=1e-6):
-        s1_s, s1_e = seg1.vertices()
-        s2_s, s2_e = seg2.vertices()
+        s1_s, s1_e = self._segment_endpoints(seg1)
+        s2_s, s2_e = self._segment_endpoints(seg2)
 
         if s1_s.distance(s2_s) < threshold and s1_e.distance(s2_e) < threshold:
             return True
