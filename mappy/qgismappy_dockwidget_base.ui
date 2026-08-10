@@ -144,11 +144,70 @@
          </widget>
         </item>
         <item>
-         <widget class="QGroupBox" name="groupBox_3">
+         <widget class="QGroupBox" name="groupBox_styling">
           <property name="title">
-           <string>Options</string>
+           <string>Styling</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_7">
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="copyoverlinestyle">
+             <property name="text">
+              <string>Copy lines style to clean contacts (if generated)</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QCheckBox" name="auto_color_polygons">
+             <property name="text">
+              <string>Auto-color output polygons by unit</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QCheckBox" name="auto_label_polygons">
+             <property name="text">
+              <string>Auto-label output polygons by unit</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QCheckBox" name="auto_color_points">
+             <property name="text">
+              <string>Auto-color indicator points by unit</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QCheckBox" name="auto_label_points">
+             <property name="text">
+              <string>Auto-label indicator points by unit</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_generation">
+          <property name="title">
+           <string>Map Generation</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_8">
            <item row="0" column="0" colspan="2">
             <widget class="QCheckBox" name="overwrite">
              <property name="text">
@@ -190,56 +249,6 @@
             </widget>
            </item>
            <item row="4" column="0">
-            <widget class="QCheckBox" name="copyoverlinestyle">
-             <property name="text">
-              <string>Copy lines style to clean contacts (if generated)</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
-            <widget class="QCheckBox" name="auto_color_polygons">
-             <property name="text">
-              <string>Auto-color output polygons by unit</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="0">
-            <widget class="QCheckBox" name="auto_label_polygons">
-             <property name="text">
-              <string>Auto-label output polygons by unit</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="0">
-            <widget class="QCheckBox" name="auto_color_points">
-             <property name="text">
-              <string>Auto-color indicator points by unit</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="0">
-            <widget class="QCheckBox" name="auto_label_points">
-             <property name="text">
-              <string>Auto-label indicator points by unit</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="0">
             <widget class="QCheckBox" name="auto_recompute_on_assign_unit">
              <property name="text">
               <string>Automatically regenerate the map when assigning a unit</string>
@@ -249,7 +258,7 @@
              </property>
             </widget>
            </item>
-           <item row="10" column="0">
+           <item row="5" column="0">
             <widget class="QCheckBox" name="remove_duplicate_indicator_points">
              <property name="text">
               <string>Remove duplicate indicator points on recompute</string>
@@ -259,7 +268,7 @@
              </property>
             </widget>
            </item>
-           <item row="11" column="0">
+           <item row="6" column="0">
             <widget class="QLabel" name="label_remove_duplicate_warning">
              <property name="text">
               <string>WARN: permanently deletes points. Off by default because a wrongly-selected lines layer can make real, distinct points look like duplicates.</string>
@@ -269,7 +278,16 @@
              </property>
             </widget>
            </item>
-           <item row="12" column="0">
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_experimental">
+          <property name="title">
+           <string>Experimental</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_9">
+           <item row="0" column="0">
             <widget class="QCheckBox" name="use_incremental_engine">
              <property name="text">
               <string>Use the incremental engine (experimental)</string>
@@ -279,7 +297,7 @@
              </property>
             </widget>
            </item>
-           <item row="13" column="0">
+           <item row="1" column="0">
             <widget class="QLabel" name="label_use_incremental_engine_detail">
              <property name="text">
               <string>Regenerates only the affected polygons on edit, instead of requiring a manual Recompute.</string>
@@ -289,7 +307,7 @@
              </property>
             </widget>
            </item>
-           <item row="14" column="0">
+           <item row="2" column="0">
             <widget class="QLabel" name="label_topology_tolerance">
              <property name="text">
               <string>Incremental engine: junction snapping tolerance [increase if Recompute fails with a topology error like "geometry crosses an edge" -- real digitized lines rarely meet exactly, unlike the default full recompute]</string>
@@ -299,7 +317,7 @@
              </property>
             </widget>
            </item>
-           <item row="15" column="0">
+           <item row="3" column="0">
             <widget class="QgsDoubleSpinBox" name="topology_tolerance">
              <property name="decimals">
               <number>8</number>

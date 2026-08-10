@@ -106,10 +106,16 @@ class MappyDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def _apply_dev_mode_visibility(self):
         """Hides the experimental-feature widgets (see DEV_ONLY_WIDGET_NAMES)
         unless MAPPY_DEV is set. They stay in the .ui/dataclass as normal --
-        this only keeps them out of a generic user's view."""
+        this only keeps them out of a generic user's view.
+
+        The "Experimental" group box currently holds nothing but these
+        dev-only widgets, so it's hidden right along with them -- a
+        generic user would otherwise see an empty, pointless group box.
+        """
         dev = is_dev_mode()
         for name in DEV_ONLY_WIDGET_NAMES:
             self.get_widget_by_name(name).setVisible(dev)
+        self.groupBox_experimental.setVisible(dev)
 
     def get_available_settings(self):
         settings = []
