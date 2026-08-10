@@ -394,6 +394,21 @@ class Mappy:
     def toggle_assign_unit_tool(self, checked):
         canvas = self.iface.mapCanvas()
         if checked:
+            self._refresh_engine_config()
+            try:
+                polygons_layer = self.engine.get_polygons_layer()
+            except EngineError:
+                polygons_layer = None
+
+            if polygons_layer is not None and polygons_layer.selectedFeatureCount() > 0:
+                # a selection already exists on the polygon layer -- apply
+                # the picked unit to every selected polygon right away
+                # instead of waiting for a canvas click, which would only
+                # ever let the user assign one polygon at a time
+                self.assign_unit_action.setChecked(False)
+                self.assign_unit_to_selection(polygons_layer, polygons_layer.selectedFeatures())
+                return
+
             if self.assign_unit_tool is None:
                 from .assign_unit_map_tool import AssignUnitMapTool
 
@@ -499,6 +514,92 @@ class Mappy:
             self.iface.messageBar().pushInfo(
                 "Mappy",
                 "Unit assigned. Recompute the map to update the point/polygon join, dangle cleanup, etc.",
+            )
+
+    def assign_unit_to_selection(self, polygons_layer, selected_features):
+        """Applies one user-picked unit (and optional color) to every
+        currently selected polygon feature at once, instead of the
+        one-click-at-a-time flow in assign_unit_at_point(). Triggered by
+        toggle_assign_unit_tool() when the polygon layer already has a
+        selection at the moment the Assign Unit button is pressed.
+
+        A full recompute_map() (if auto_recompute_on_assign_unit is on) is
+        deferred to run once after every polygon has been written, not once
+        per polygon -- engine.assign_unit() would otherwise trigger one
+        full recompute per selected polygon.
+        """
+        from .assign_unit_dialog import AssignUnitDialog
+
+        self._refresh_engine_config()
+        engine = self.engine
+        units_field = engine.config.units_field
+
+        # pre-fill the dialog only if every selected polygon already shares
+        # the exact same unit -- anything else would be misleading
+        field_index = polygons_layer.fields().indexFromName(units_field)
+        shared_values = {f[units_field] for f in selected_features} if field_index != -1 else set()
+        current_value = shared_values.pop() if len(shared_values) == 1 else None
+
+        existing_values = engine.list_existing_units()
+        current_value_str = str(current_value) if str(current_value) in existing_values else None
+        color_table = engine.get_color_table()
+
+        text, color, changed_colors, ok = AssignUnitDialog.getUnit(
+            self.iface.mainWindow(),
+            existing_values,
+            current_value_str,
+            color_table,
+            title=f"Assign unit to {len(selected_features)} selected polygons",
+        )
+
+        if not ok or not text:
+            return
+
+        # suppress assign_unit()'s own per-call recompute for the whole
+        # loop -- restored right after regardless of how the loop ends, so
+        # a mid-loop error never leaves the engine's config stuck disabled
+        auto_recompute = engine.config.auto_recompute_on_assign_unit
+        engine.config.auto_recompute_on_assign_unit = False
+
+        assigned = 0
+        try:
+            for polygon_feature in selected_features:
+                point_feature = engine.find_indicator_for_polygon(polygon_feature)
+                if point_feature is not None:
+                    click_point = point_feature.geometry().asPoint()
+                else:
+                    # no existing indicator in this polygon -- assign_unit()
+                    # will create one at click_point, so hand it a point
+                    # guaranteed to fall inside the polygon (unlike a
+                    # centroid, which can land outside a concave shape)
+                    click_point = polygon_feature.geometry().pointOnSurface().asPoint()
+
+                try:
+                    engine.assign_unit(
+                        polygon_feature, point_feature, click_point, text, color=color, changed_colors=changed_colors
+                    )
+                except EngineError as e:
+                    self.alert_box("Error", f"Stopped after {assigned} of {len(selected_features)} polygons: {e}")
+                    return
+                assigned += 1
+        finally:
+            engine.config.auto_recompute_on_assign_unit = auto_recompute
+
+        if auto_recompute:
+            try:
+                engine.recompute_map()
+            except RecomputeCancelled:
+                # the unit assignments already went through -- only the
+                # follow-up recompute was skipped
+                return
+            except EngineError as e:
+                self.alert_box("Error", str(e))
+                return
+        else:
+            self.iface.messageBar().pushInfo(
+                "Mappy",
+                f"Unit assigned to {assigned} polygons. Recompute the map to update the point/polygon join, "
+                "dangle cleanup, etc.",
             )
 
     def _on_lines_layer_changed(self, layer):

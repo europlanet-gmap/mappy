@@ -29,9 +29,9 @@ class AssignUnitDialog(QDialog):
     with no separate dialog beyond the native color picker.
     """
 
-    def __init__(self, existing_values, current_value=None, color_table=None, parent=None):
+    def __init__(self, existing_values, current_value=None, color_table=None, parent=None, title=None):
         super().__init__(parent)
-        self.setWindowTitle("Assign unit")
+        self.setWindowTitle(title or "Assign unit")
         self.resize(320, 400)
 
         # local copy: edits made in this dialog (recoloring an existing
@@ -199,7 +199,7 @@ class AssignUnitDialog(QDialog):
         return dict(self._changed_colors)
 
     @staticmethod
-    def getUnit(parent, existing_values, current_value=None, color_table=None):
-        dlg = AssignUnitDialog(existing_values, current_value, color_table, parent)
+    def getUnit(parent, existing_values, current_value=None, color_table=None, title=None):
+        dlg = AssignUnitDialog(existing_values, current_value, color_table, parent, title=title)
         ok = dlg.exec() == QDialog.DialogCode.Accepted
         return dlg.unit_name(), dlg.unit_color(), dlg.changed_colors(), ok
