@@ -268,8 +268,45 @@ class Mappy:
         dlg.setText(message)
         return dlg.exec()
 
+    def _ensure_gpkg_output(self, pars) -> bool:
+        """Normalizes pars["output"] to always end in .gpkg (appending it if
+        missing) and persists the correction back to the dock/project, then
+        checks that its parent folder exists and is writable. QGIS can't
+        reload a GeoPackage layer that was written without the extension on
+        recompute, and writing to a non-writable/missing folder previously
+        failed silently deep inside processing rather than with a clear
+        message here."""
+        output_path = str(pars.get("output") or "").strip()
+        if not output_path:
+            self.alert_box("Error", "Missing output GeoPackage path. Please set it in the settings.")
+            return False
+
+        from pathlib import Path
+
+        path = Path(output_path)
+        if path.suffix.lower() != ".gpkg":
+            path = path.with_name(path.name + ".gpkg")
+            output_path = path.as_posix()
+            pars["output"] = output_path
+            self.engine.config.output = output_path
+            self.config_dock.get_widget_by_name("output").setFilePath(output_path)
+
+        if not path.parent.exists():
+            self.alert_box("Error", f"Output folder does not exist: {path.parent}")
+            return False
+
+        if not os.access(path.parent, os.W_OK):
+            self.alert_box("Error", f"Output folder is not writable: {path.parent}")
+            return False
+
+        return True
+
     def check_input_pars(self, pars):
         print(pars)
+
+        if not self._ensure_gpkg_output(pars):
+            return False
+
         try:
             lines = pars["lines"]
         except KeyError:
