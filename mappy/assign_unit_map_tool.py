@@ -8,18 +8,25 @@ if TYPE_CHECKING:
 
 
 class AssignUnitMapTool(QgsMapTool):
-    """Click a polygon on the map to assign a unit name to its indicator point."""
+    """A plain click opens the assign-unit dialog immediately for just the
+    clicked polygon. Ctrl+click instead toggles the clicked polygon into/out
+    of a multi-polygon selection, which a right-click -- the same gesture
+    QGIS's own digitizing tools use to close a sketch -- applies one dialog
+    pick to all at once."""
 
     def __init__(self, canvas, mappy):
         super().__init__(canvas)
         self.mappy: Mappy = mappy
 
     def canvasReleaseEvent(self, event):
-        if event.button() != Qt.MouseButton.LeftButton:
-            return
-
-        point = self.toMapCoordinates(event.pos())
-        self.mappy.assign_unit_at_point(point)
+        if event.button() == Qt.MouseButton.LeftButton:
+            point = self.toMapCoordinates(event.pos())
+            if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+                self.mappy.add_polygon_to_assign_selection(point)
+            else:
+                self.mappy.assign_unit_at_point(point)
+        elif event.button() == Qt.MouseButton.RightButton:
+            self.mappy.finish_assign_unit_selection()
 
     def deactivate(self):
         super().deactivate()

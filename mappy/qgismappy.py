@@ -103,7 +103,8 @@ class Mappy:
         # ProcessingMapEngine (full-recompute) is always the engine at
         # startup, regardless of a restored "use_incremental_engine"
         # setting -- _refresh_engine_config() (called before every
-        # recompute_map()/assign_unit_at_point()/process_pending_changes())
+        # recompute_map()/assign_unit_at_point()/add_polygon_to_assign_
+        # selection()/assign_unit_to_selection()/process_pending_changes())
         # swaps to IncrementalMapEngine on first real use instead, so
         # __init__ doesn't need its own copy of that dock-reading logic.
         self.engine = self._make_engine_of_class(ProcessingMapEngine, EngineConfig())
@@ -441,8 +442,23 @@ class Mappy:
         if self.assign_unit_action is not None:
             self.assign_unit_action.setChecked(False)
 
+        # deactivating the tool (switching to a different one, or pressing
+        # this one's button again) abandons whatever got left/ctrl-clicked
+        # into a selection without a closing right-click -- clear it so it
+        # doesn't linger selected once the user is done with this tool
+        try:
+            polygons_layer = self.engine.get_polygons_layer()
+        except EngineError:
+            return
+        polygons_layer.removeSelection()
+
     def assign_unit_at_point(self, point):
-        """Called by AssignUnitMapTool with the clicked point (canvas CRS).
+        """Called by AssignUnitMapTool on a plain (no Ctrl) left-click
+        (canvas CRS): opens the assign-unit dialog immediately for just the
+        one polygon under the click, same as before multi-polygon
+        selections existed. Ctrl+click instead builds a multi-polygon
+        selection via add_polygon_to_assign_selection() -- see that and
+        finish_assign_unit_selection() for the batch flow.
 
         Transforms the click into the polygons layer's CRS and asks the
         engine to find the polygon/indicator point at that location, then
@@ -516,12 +532,65 @@ class Mappy:
                 "Unit assigned. Recompute the map to update the point/polygon join, dangle cleanup, etc.",
             )
 
+    def add_polygon_to_assign_selection(self, point):
+        """Called by AssignUnitMapTool on a Ctrl+left-click (canvas CRS):
+        toggles the clicked polygon into/out of a multi-polygon selection,
+        which finish_assign_unit_selection() (a right-click) later applies
+        one dialog pick to all at once. A plain click (no Ctrl) instead
+        assigns immediately to just the one clicked polygon -- see
+        assign_unit_at_point(). A Ctrl+click on empty space is a no-op.
+        """
+        from qgis.core import QgsCoordinateTransform
+
+        self._refresh_engine_config()
+
+        try:
+            polygons_layer = self.engine.get_polygons_layer()
+        except EngineError as e:
+            self.alert_box("Error", str(e))
+            return
+
+        canvas_crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        if canvas_crs != polygons_layer.crs():
+            xform = QgsCoordinateTransform(canvas_crs, polygons_layer.crs(), QgsProject.instance())
+            point = xform.transform(point)
+
+        matched_polygon = self.engine.find_polygon_at_point(point)
+        if matched_polygon is None:
+            return
+
+        if matched_polygon.id() in polygons_layer.selectedFeatureIds():
+            polygons_layer.deselect([matched_polygon.id()])
+        else:
+            polygons_layer.select([matched_polygon.id()])
+
+    def finish_assign_unit_selection(self):
+        """Called by AssignUnitMapTool on a right-click -- the same gesture
+        QGIS's own digitizing tools use to close a sketch -- applies one
+        dialog pick to every polygon Ctrl+clicked into a selection via
+        add_polygon_to_assign_selection() so far. A no-op if nothing is
+        selected yet; the tool stays active afterward, ready to select the
+        next batch.
+        """
+        try:
+            polygons_layer = self.engine.get_polygons_layer()
+        except EngineError as e:
+            self.alert_box("Error", str(e))
+            return
+
+        if polygons_layer.selectedFeatureCount() == 0:
+            return
+
+        self.assign_unit_to_selection(polygons_layer, polygons_layer.selectedFeatures())
+
     def assign_unit_to_selection(self, polygons_layer, selected_features):
         """Applies one user-picked unit (and optional color) to every
         currently selected polygon feature at once, instead of the
-        one-click-at-a-time flow in assign_unit_at_point(). Triggered by
-        toggle_assign_unit_tool() when the polygon layer already has a
-        selection at the moment the Assign Unit button is pressed.
+        one-at-a-time flow assign_unit_at_point() drives for a plain click.
+        Triggered by toggle_assign_unit_tool() when the polygon layer
+        already has a selection at the moment the Assign Unit button is
+        pressed, or by finish_assign_unit_selection() on a right-click
+        closing a Ctrl+click multi-polygon selection.
 
         A full recompute_map() (if auto_recompute_on_assign_unit is on) is
         deferred to run once after every polygon has been written, not once
@@ -584,6 +653,11 @@ class Mappy:
                 assigned += 1
         finally:
             engine.config.auto_recompute_on_assign_unit = auto_recompute
+            # drop the selection as soon as the assignment has happened
+            # (whether it fully completed or stopped early on an error) --
+            # it would otherwise linger highlighted on the map after the
+            # write, with no further purpose once applied
+            polygons_layer.removeSelection()
 
         if auto_recompute:
             try:
