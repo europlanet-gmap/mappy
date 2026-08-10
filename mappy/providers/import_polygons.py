@@ -5,13 +5,32 @@ Group :
 With QGIS : 32601
 """
 
+from qgis.core import QgsApplication
 from qgis.core import QgsProcessing
+from qgis.core import QgsProcessingException
 from qgis.core import QgsProcessingMultiStepFeedback
 from qgis.core import QgsProcessingParameterVectorLayer
 from qgis.core import QgsProcessingParameterDistance
 from qgis.core import QgsProcessingParameterFeatureSink
 from qgis import processing
 from mappy.providers.MappyProcessingAlgorithm import MappyProcessingAlgorithm
+
+# GRASS is not always available -- depending on the OS/QGIS install, its
+# provider can be present but disabled, or its own PATH/GRASS_PREFIX env
+# vars can be missing even when GRASS itself is installed (a known issue on
+# macOS). Checked before running rather than letting v.to.lines fail with a
+# generic "algorithm not found" error deep inside processing.run().
+GRASS_LINES_ALGORITHM = "grass7:v.to.lines"
+GRASS_UNAVAILABLE_MESSAGE = (
+    "This tool requires the GRASS provider (v.to.lines), which isn't available in this QGIS "
+    "installation.\n\n"
+    "- Check that the GRASS provider is enabled under Settings > Options > Processing > Providers > GRASS.\n"
+    "- Make sure GRASS itself is installed and on your PATH -- on macOS this sometimes needs launching QGIS "
+    "with GRASS_PREFIX/PATH set explicitly, e.g.:\n"
+    "    export GRASS_PREFIX=/opt/local/lib/grass84\n"
+    "    export PATH=$GRASS_PREFIX/bin:$PATH\n"
+    "    open /Applications/QGIS.app"
+)
 
 
 class ImportPolgonalMap(MappyProcessingAlgorithm):
@@ -62,6 +81,9 @@ class ImportPolgonalMap(MappyProcessingAlgorithm):
         )
 
     def processAlgorithm(self, parameters, context, model_feedback):
+        if QgsApplication.processingRegistry().algorithmById(GRASS_LINES_ALGORITHM) is None:
+            raise QgsProcessingException(GRASS_UNAVAILABLE_MESSAGE)
+
         # Use a multi-step feedback, so that individual child algorithm progress reports are adjusted for the
         # overall progress through the model
         feedback = QgsProcessingMultiStepFeedback(3, model_feedback)
