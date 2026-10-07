@@ -127,6 +127,56 @@ docker-test ubuntu_version="24.04": (docker-build ubuntu_version)
 docker-shell ubuntu_version="24.04": (docker-build ubuntu_version)
     docker run --rm -it mappy-test:{{ubuntu_version}} bash
 
+# qgis/qgis Docker tags the local compatibility matrix covers: the declared
+# minimum (qgisMinimumVersion in mappy/metadata.txt -- the only pinned tag
+# upstream still publishes), the current LTR and stable releases, and the
+# master/nightly build. Each image is ~8.5 GB.
+COMPAT_TAGS := "release-3_30 ltr stable latest"
+
+# Too heavy for CI, which only tests the reference Ubuntu-packaged QGIS (see
+# .github/workflows/): run this locally before a release or after touching
+# version-sensitive QGIS API.
+#
+# The checkout is mounted read-only and copied inside the container, so the
+# root-owned files the run creates never land in the working tree. Only the
+# bare test dependencies are installed (not `uv sync`): older images' Python
+# is below this project's requires-python, and the plugin loads through
+# QGIS's plugin path in conftest.py rather than as an installed package.
+# pip options are passed as env vars, not flags (e.g. --break-system-packages):
+# newer images mark their Python as externally-managed (PEP 668), but
+# release-3_30's pip predates those flags and aborts on them, while ignoring
+# the env vars.
+#
+# Run the test suite inside one qgis/qgis Docker image, e.g. `just test-qgis ltr`
+test-qgis tag:
+    @docker run --rm -v {{justfile_directory()}}:/mnt/src:ro \
+        -e QT_QPA_PLATFORM=offscreen -e PIP_BREAK_SYSTEM_PACKAGES=1 -e PIP_ROOT_USER_ACTION=ignore -e PYTHONDONTWRITEBYTECODE=1 \
+        qgis/qgis:{{tag}} sh -ec ' \
+            mkdir /src && tar -C /mnt/src --exclude=./.git --exclude=./.venv -cf - . | tar -C /src -xf - && cd /src; \
+            python3 -c "from qgis.core import Qgis; print(\"QGIS\", Qgis.version())"; \
+            pip3 install -q pytest pytest-order pytest-dependency numpy; \
+            python3 -m pytest mappy/tests -q -p no:cacheprovider --order-dependencies -rfE'
+
+# Keeps going past failures and exits non-zero if any version failed. A
+# `latest` failure may be upstream breakage in unreleased QGIS rather than a
+# plugin bug.
+#
+# Run the suite on every COMPAT_TAGS QGIS image (or the given ones) and summarize
+test-compat tags=COMPAT_TAGS:
+    #!/usr/bin/env bash
+    set -uo pipefail
+    failed=()
+    for tag in {{tags}}; do
+        echo "=== qgis/qgis:$tag ==="
+        just test-qgis "$tag" || failed+=("$tag")
+    done
+    if [ ${#failed[@]} -eq 0 ]; then
+        echo "All passed: {{tags}}"
+    else
+        echo "FAILED on: ${failed[*]}" >&2
+        exit 1
+    fi
+
 # Live-reload documentation server
 docs:
     uv run sphinx-autobuild docs/source docs/build

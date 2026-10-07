@@ -28,17 +28,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   string, which fails parameter validation on QGIS < 3.32 when the parameter is
   omitted. Resolve to the project CRS explicitly instead, restoring support back
   to QGIS 3.30.
-- QGIS Compatibility CI's `pip3 install` step failed on the `qgis/qgis:latest`
-  image once its Debian base started marking system Python as
-  externally-managed (PEP 668).
 
 ### Changed
 
 - Raised `qgisMinimumVersion` from 3.16 to 3.30: the declared floor was untested and
   already broken by newer QGIS API usage adopted since (verified: 12 of 58 tests fail
   on 3.16, 10 fail on 3.24/3.28 due to unsupported scoped-enum access, down to 0 by
-  3.30 after the CRS fix above). CI now tests both 3.30 and current QGIS 4 against
-  every push.
+  3.30 after the CRS fix above). Re-verified on 3.30.3 (all tests pass).
+- Multi-version QGIS testing moved from GitHub CI to a local `just test-compat`
+  recipe. It runs the suite in the official `qgis/qgis` images: the 3.30
+  minimum, the LTR, the stable release, and the nightly build. CI now tests
+  only the reference Ubuntu-packaged QGIS.
+- Tagged releases now fail early if the tag doesn't match the plugin version.
+  The GitHub release notes are taken from this changelog.
 
 ## 0.4.1 - 2026-07-20
 

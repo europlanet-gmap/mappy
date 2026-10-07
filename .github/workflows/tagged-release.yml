@@ -35,6 +35,21 @@ jobs:
       with:
         fetch-depth: 0
 
+    # Fail fast (before the slow apt install) if the tag was pushed without
+    # bumping the version first -- otherwise the release would ship a zip
+    # whose metadata.txt tells QGIS it is still the previous version.
+    # `just bump` keeps all three in sync.
+    - name: Check tag matches the plugin version
+      run: |
+        tag="${GITHUB_REF_NAME#v}"
+        metadata=$(sed -n 's/^version=//p' mappy/metadata.txt)
+        project=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)
+        echo "tag=$tag metadata.txt=$metadata pyproject.toml=$project"
+        if [ "$tag" != "$metadata" ] || [ "$tag" != "$project" ]; then
+          echo "::error::Tag $GITHUB_REF_NAME does not match the version in mappy/metadata.txt ($metadata) / pyproject.toml ($project). Use 'just bump' to create release tags."
+          exit 1
+        fi
+
     - name: Install system deps (qgis)
       run: |
         sudo apt-get update
@@ -62,11 +77,27 @@ jobs:
     - name: Test with pytest
       run: uv run just test
 
+    # VERSION passed explicitly rather than left to the justfile's
+    # `git describe`, which could pick a different tag if several point at
+    # this commit -- the zip name has to match `files:` below exactly.
     - name: Create package
-      run: uv run just package
+      run: uv run just VERSION=${{ github.ref_name }} package
+
+    # The released version's CHANGELOG.md section (minus its own heading,
+    # the release title already names the version). kacl-cli exits non-zero
+    # if the section is missing, failing the release before it is created.
+    - name: Extract release notes
+      run: |
+        set -o pipefail
+        uv run kacl-cli get "${GITHUB_REF_NAME#v}" | tail -n +2 > release-notes.md
 
     - uses: softprops/action-gh-release@v3
       with:
         tag_name: ${{ github.ref_name }}
+        name: mappy ${{ github.ref_name }}
+        body_path: release-notes.md
+        generate_release_notes: true
         prerelease: false
+        make_latest: true
+        fail_on_unmatched_files: true
         files: mappy/zip_build/mappy-${{ github.ref_name }}.zip
