@@ -154,9 +154,7 @@ class TestAssignUnitToSelection(ExtendedUnitTesting):
             patch.object(mappy.engine, "get_color_table", return_value={}),
             patch.object(mappy.engine, "find_indicator_for_polygon", return_value=None),
             patch.object(mappy.engine, "assign_unit"),
-            patch(
-                "mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("", None, {}, False)
-            ) as get_unit,
+            patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("", None, {}, False)) as get_unit,
         ):
             mappy.assign_unit_to_selection(polygons, features)
 
@@ -168,16 +166,14 @@ class TestAssignUnitToSelection(ExtendedUnitTesting):
         mappy, points, polygons = self._make_setup()
         features = list(polygons.getFeatures())
         features[1]["unit_name"] = "UNIT_B"
-        polygons.dataProvider().changeAttributeValues({features[1].id(): {1: "UNIT_B"}})
+        polygons.dataProvider().changeAttributeValues({features[1].id(): {polygons.fields().indexOf("unit_name"): "UNIT_B"}})
 
         with (
             patch.object(mappy.engine, "list_existing_units", return_value=["UNIT_A", "UNIT_B"]),
             patch.object(mappy.engine, "get_color_table", return_value={}),
             patch.object(mappy.engine, "find_indicator_for_polygon", return_value=None),
             patch.object(mappy.engine, "assign_unit"),
-            patch(
-                "mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("", None, {}, False)
-            ) as get_unit,
+            patch("mappy.assign_unit_dialog.AssignUnitDialog.getUnit", return_value=("", None, {}, False)) as get_unit,
         ):
             mappy.assign_unit_to_selection(polygons, features)
 

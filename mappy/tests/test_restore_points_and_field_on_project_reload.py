@@ -50,9 +50,7 @@ class TestRestorePointsAndFieldOnProjectReload(ExtendedUnitTesting):
 
         # target layer added in the middle, so it's neither first nor last
         _layer_a = self._make_point_layer_on_disk(tmpdir, "restore_reload_pts_a", ["alpha", "unit_name"])
-        layer_b_target = self._make_point_layer_on_disk(
-            tmpdir, "restore_reload_pts_b_target", ["alpha", "unit_name"]
-        )
+        layer_b_target = self._make_point_layer_on_disk(tmpdir, "restore_reload_pts_b_target", ["alpha", "unit_name"])
         _layer_c = self._make_point_layer_on_disk(tmpdir, "restore_reload_pts_c", ["alpha", "unit_name"])
 
         dock.points.setLayer(layer_b_target)

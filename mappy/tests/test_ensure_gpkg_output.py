@@ -1,5 +1,6 @@
 import os
 import tempfile
+import unittest
 from pathlib import Path
 from unittest.mock import patch
 
@@ -67,6 +68,9 @@ class TestEnsureGpkgOutput(ExtendedUnitTesting):
         alert_box.assert_called_once()
         self.assertIn("does not exist", alert_box.call_args.args[1])
 
+    # root bypasses permission bits, so the chmod below leaves the folder
+    # writable -- the case in CI, whose qgis/qgis containers run as root.
+    @unittest.skipIf(hasattr(os, "geteuid") and os.geteuid() == 0, "root ignores folder permissions")
     def test_unwritable_output_folder_shows_alert(self):
         mappy, dock = self._make_setup()
         tmpdir = tempfile.mkdtemp()
